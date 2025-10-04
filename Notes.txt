@@ -1,0 +1,2 @@
+Mod dependencies:
+Custom Albums, Headquarters, PopupLib, LocalizeLib
