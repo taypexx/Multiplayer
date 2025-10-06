@@ -41,6 +41,7 @@ namespace Multiplayer.UI
         {
             Player = player;
             RankButton.Contents = new($"ELO: {Player.MultiplayerStats.ELO}\n\nRank: {Player.MultiplayerStats.Rank}");
+            UIManager.AchievementsWindow.Update(player);
         }
     }
 }

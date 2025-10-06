@@ -1,7 +1,6 @@
 ﻿using MelonLoader;
 using Multiplayer.Managers;
 using CustomAlbums.Utilities;
-using Il2CppArcadeController.UI.Panel.PnlHome;
 
 namespace Multiplayer
 {
@@ -16,6 +15,7 @@ namespace Multiplayer
             Settings.Load();
             AssetManager.Init();
             Localization.Init();
+            BattleManager.Init();
 
             Logger.Msg("Multiplayer was successfully initialized.");
         }
@@ -28,6 +28,8 @@ namespace Multiplayer
             {
                 UIManager.Init();
                 UIManager.InitUISystemMain();
+
+                AchievementManager.PlayAchievementAnimation();
             } else if (sceneName == "GameMain")
             {
 

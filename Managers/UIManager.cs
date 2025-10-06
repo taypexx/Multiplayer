@@ -12,14 +12,14 @@ namespace Multiplayer.Managers
 
         private static MessageWindow Warning;
 
-        internal static MainMenu MainMenu;
-        internal static MainMenuOpenButton MainMenuOpenButton;
+        internal static MainMenu MainMenu { get; private set; }
+        internal static MainMenuOpenButton MainMenuOpenButton { get; private set; }
 
-        internal static ProfileWindow ProfileWindow;
+        internal static ProfileWindow ProfileWindow { get; private set; }
 
-        internal static FriendsWindow FriendsWindow;
-        internal static AchievementsWindow AchievementsWindow;
-        internal static MoeStatsWindow MoeStatsWindow;
+        internal static FriendsWindow FriendsWindow { get; private set; }
+        internal static AchievementsWindow AchievementsWindow { get; private set; }
+        internal static MoeStatsWindow MoeStatsWindow { get; private set; }
         //internal static HQStatsWindow HQStatsWindow
 
         internal static void WarnNotification(LocalString warning)
@@ -30,11 +30,11 @@ namespace Multiplayer.Managers
 
         internal static async void OpenMainMenu()
         {
-            if (Debounce) { return; }
+            if (Debounce) return;
 
             if (Client.IsConnected)
             {
-                if (PlayerManager.LocalPlayer == null) { return; }
+                if (PlayerManager.LocalPlayer == null) return;
                 if (!PlayerManager.LocalPlayer.MultiplayerStats.Banned)
                 {
                     MainMenu.Window.Show();
@@ -71,7 +71,7 @@ namespace Multiplayer.Managers
 
         internal static void Init()
         {
-            if (MainMenu != null) { return; }
+            if (MainMenu != null) return;
 
             Warning = new(new(), Localization.Get("Warning","Title"))
             {

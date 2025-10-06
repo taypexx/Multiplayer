@@ -13,17 +13,16 @@ namespace Multiplayer.UI
         {
             FriendIndexes = new();
             AddReturnButton();
-
-            Window.OnInternalShow += OnShow;
         }
 
-        private void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        /// <summary>
+        /// Updates the window to show friends of a <see cref="Player"/>.
+        /// </summary>
+        /// <param name="player"><see cref="Player"/> whose friends will show.</param>
+        internal void Update(Player player)
         {
             RemoveAllButtons(true);
             FriendIndexes.Clear();
-
-            var player = UIManager.ProfileWindow.Player;
-            if (player == null) return;
 
             foreach (Player friend in player.MultiplayerStats.Friends)
             {

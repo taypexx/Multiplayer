@@ -93,7 +93,7 @@ namespace Multiplayer.UI
         internal bool RemoveAllButtons(bool keepRemoveButton = false)
         {
             bool success = true;
-            for (byte i = 0; i < Window.ForumObjects.Count; i++)
+            for (int i = 0; i < Window.ForumObjects.Count; i++)
             {
                 if (keepRemoveButton && Window.ForumObjects[i] == ReturnButton) continue;
                 success = RemoveButton(i) && success;
@@ -121,10 +121,7 @@ namespace Multiplayer.UI
             }
         }
 
-        internal virtual void OnCompletion(BaseWindow window)
-        {
-            
-        }
+        internal virtual void OnCompletion(BaseWindow window) {}
 
         internal virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {

@@ -93,6 +93,17 @@ namespace Multiplayer
                     {
                         English = "Vanilla Stats"
                     },
+                },
+                ["Achievements"] = new()
+                {
+                    ["AchievedOn"] = new()
+                    {
+                        English = "Achieved on"
+                    },
+                    ["Welcome!"] = new()
+                    {
+                        English = "Launch the multiplayer for the first time."
+                    }
                 }
             };
         }

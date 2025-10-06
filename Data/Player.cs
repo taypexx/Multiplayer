@@ -15,9 +15,9 @@ namespace Multiplayer.Data
         public ushort TotalAPs { get { return (ushort)(HQStats.APs + MoeStats.APs); } }
         public float TotalAverageAccuracy { get { return (HQStats.AverageAccuracy + MoeStats.AverageAccuracy) / 2; } }
 
-        internal Player(string uid, string name)
+        internal Player(string uid)
         {
-            MultiplayerStats = new(name);
+            MultiplayerStats = new();
             BattleStats = new();
             HQStats = new();
             MoeStats = new(uid);

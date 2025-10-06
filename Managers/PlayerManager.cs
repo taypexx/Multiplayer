@@ -6,14 +6,14 @@ namespace Multiplayer.Managers
 {
     internal static class PlayerManager
     {
-        internal static List<Player> CachedPlayers;
-        internal static Player LocalPlayer;
+        internal static List<Player> CachedPlayers { get; private set; }
+        internal static Player LocalPlayer { get; private set; }
 
         /// <summary>
-        /// Finds a cached <see cref="Player"/> by their <paramref name="uid"/>.
+        /// Finds/creates a <see cref="Player"/> by their <paramref name="uid"/>.
         /// </summary>
         /// <param name="uid">UID of a player (Pero UID).</param>
-        /// <returns>A <see cref="Player"/> or <see langword="null"/> if not cached.</returns>
+        /// <returns>A <see cref="Player"/> that was cached or a new instance.</returns>
         internal static Player GetPlayer(string uid)
         {
             foreach (Player player in CachedPlayers) 
@@ -23,20 +23,37 @@ namespace Multiplayer.Managers
                     return player;
                 }
             }
-            return null;
+            
+            // If not cached
+            Player newPlayer = new(uid);
+            CachePlayer(newPlayer);
+            return newPlayer;
         }
 
         /// <summary>
         /// Caches the <see cref="Player"/>.
         /// </summary>
         /// <param name="player"><see cref="Player"/> to cache.</param>
-        /// <returns><see langword="true"/> if the new <see cref="Player"/> instance was created or <see langword="false"/> if it was cached already.</returns>
-        internal static bool CachePlayer(Player player)
+        /// <returns><see langword="true"/> if <see cref="Player"/> was successfully cached or <see langword="false"/> if they were cached already.</returns>
+        private static bool CachePlayer(Player player)
         {
-            if (GetPlayer(player.Uid) != null) { return false; }
+            if (CachedPlayers.Contains(player)) return false;
 
             CachedPlayers.Add(player);
             return true;
+        }
+
+        /// <summary>
+        /// Syncronizes the local <see cref="Player"/> with the server.
+        /// </summary>
+        /// <returns><see langword="true"/> if the synchronization was successfull, otherwise <see langword="false"/>.</returns>
+        internal static async Task<bool> SyncLocalPlayer()
+        {
+            if (LocalPlayer == null) return false;
+
+            var content = await Client.PostAsync("syncLocal",LocalPlayer);
+
+            return content != null;
         }
 
         internal static void Init()
@@ -51,8 +68,7 @@ namespace Multiplayer.Managers
             }
 
             CachedPlayers = new();
-            LocalPlayer = new(localUid,localName);
-            CachePlayer(LocalPlayer);
+            LocalPlayer = GetPlayer(localUid);
         }
     }
 }

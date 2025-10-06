@@ -1,5 +1,7 @@
-﻿using Multiplayer.Managers;
+﻿using Il2CppAssets.Scripts.Database;
+using Multiplayer.Managers;
 using Newtonsoft.Json;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace Multiplayer
@@ -10,28 +12,30 @@ namespace Multiplayer
         private static bool Connected = false;
         internal static bool TriedConnecting = false;
 
+        private static string TOKEN = string.Empty;
         private static readonly string Endpoint = Settings.Config.MultiplayerAPI;
 
-        internal static HttpMessageHandler HttpHandler = new HttpClientHandler();
+        internal static HttpMessageHandler HttpHandler;
         internal static HttpClient Http;
 
         /// <summary>
         /// Performs an <see langword="async"/> GET request.
         /// </summary>
         /// <param name="path">Path of the request relative to the API endpoint.</param>
-        /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if true.</param>
-        /// <returns><see cref="HttpContent"/> if the request was successful, otherwise null.</returns>
-        private static async Task<HttpContent> GetAsync(string path, bool isFullPath = false)
+        /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
+        /// <returns><see cref="HttpContent"/> if the request was successful, otherwise <see langword="null"/>.</returns>
+        internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false)
         {
             try
             {
                 HttpResponseMessage response = await Http.GetAsync(isFullPath ? path : Endpoint + path);
                 if (!response.IsSuccessStatusCode)
                 {
+                    Main.Logger.Error($"{response.StatusCode}: {response.ReasonPhrase}");
                     Disconnect();
                     return null;
                 }
-                return response.Content;
+                return response;
             }
             catch (Exception)
             {
@@ -46,9 +50,9 @@ namespace Multiplayer
         /// </summary>
         /// <param name="path">Path of the request relative to the API endpoint.</param>
         /// <param name="data">Data to be serialized as JSON and sent.</param>
-        /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if true.</param>
+        /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
         /// <returns><see langword="true"/> if the request was successful, otherwise <see langword="false"/>.</returns>
-        private static async Task<bool> PostAsync(string path, object data, bool isFullPath = false)
+        internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false)
         {
             try
             {
@@ -58,38 +62,56 @@ namespace Multiplayer
                 HttpResponseMessage response = await Http.PostAsync(isFullPath ? path : Endpoint + path, sendContent);
                 if (!response.IsSuccessStatusCode)
                 {
+                    Main.Logger.Error($"{response.StatusCode}: {response.ReasonPhrase}");
                     Disconnect();
+                    return null;
                 }
-                return response.IsSuccessStatusCode;
+                return response;
             }
             catch (Exception)
             {
                 Main.Logger.Error("Couldn't perform a POST request!");
                 Disconnect();
-                return false;
+                return null;
             }
         }
 
         internal static async Task Connect()
         {
-            if (IsConnected || TriedConnecting) { return; }
+            if (IsConnected || TriedConnecting) return;
             TriedConnecting = true;
+
+            string uid = DataHelper.PeroUid;
+            if (uid == null) return;
 
             Main.Logger.Msg("Connecting to the server...");
 
+            HttpHandler = new HttpClientHandler();
             Http = new HttpClient(HttpHandler);
 
-            if (await GetAsync("connect") != null)
+            Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            Http.DefaultRequestHeaders.ConnectionClose = false;
+
+            var response = await PostAsync("connect",uid);
+
+            if (response != null)
             {
+                TOKEN = await response.Content.ReadAsStringAsync();
+                Http.DefaultRequestHeaders.Authorization = new("Bearer", TOKEN);
+
                 Connected = true;
                 Main.Logger.Success("Connected to the server successfully!");
 
+                //AchievementManager.Init(); UNCOMMENT THIS LATER WHEN THE SERVER IS UP
                 //PlayerManager.Init(); UNCOMMENT THIS LATER WHEN THE SERVER IS UP
-            } else
+            }
+            else
             {
                 Main.Logger.Error("Failed to connect to the server!");
             }
+
             Connected = true;// REMOVE THIS LATER WHEN THE SERVER IS UP
+            AchievementManager.Init(); // REMOVE THIS LATER WHEN THE SERVER IS UP
             PlayerManager.Init(); // REMOVE THIS LATER WHEN THE SERVER IS UP
         }
 

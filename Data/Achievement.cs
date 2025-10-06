@@ -1,15 +1,19 @@
-﻿namespace Multiplayer.Data
+﻿using LocalizeLib;
+
+namespace Multiplayer.Data
 {
     public class Achievement
     {
-        public byte Id { get; private set; }
-        public string Name { get; private set; }
-        public string Description { get; private set; }
+        private static byte IdInc = 0;
 
-        public Achievement(byte id, string name = "Achievement", string description = "") 
+        public byte Id { get; private set; }
+        public LocalString Name { get; private set; }
+        public LocalString Description { get; private set; }
+
+        public Achievement(string name, LocalString description) 
         {
-            Id = id;
-            Name = name;
+            Id = IdInc; IdInc++;
+            Name = new(name);
             Description = description;
         }
     }
