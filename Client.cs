@@ -3,6 +3,8 @@ using Multiplayer.Managers;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Security.Cryptography;
+using System.Net.Http.Json;
 
 namespace Multiplayer
 {
@@ -12,11 +14,23 @@ namespace Multiplayer
         private static bool Connected = false;
         internal static bool TriedConnecting = false;
 
-        private static string TOKEN = string.Empty;
+        internal static string TOKEN = string.Empty;
         private static readonly string Endpoint = Settings.Config.MultiplayerAPI;
+
+        internal static Dictionary<string, float> MoeDifficulties;
 
         internal static HttpMessageHandler HttpHandler;
         internal static HttpClient Http;
+
+        internal static string ComputeSha256Hash(string rawData)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = Encoding.UTF8.GetBytes(rawData);
+                var hash = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
+        }
 
         /// <summary>
         /// Performs an <see langword="async"/> GET request.
@@ -32,7 +46,7 @@ namespace Multiplayer
                 if (!response.IsSuccessStatusCode)
                 {
                     Main.Logger.Error($"{response.StatusCode}: {response.ReasonPhrase}");
-                    Disconnect();
+                    //Disconnect();
                     return null;
                 }
                 return response;
@@ -40,7 +54,7 @@ namespace Multiplayer
             catch (Exception)
             {
                 Main.Logger.Error("Couldn't perform a GET request!");
-                Disconnect();
+                //Disconnect();
                 return null;
             }
         }
@@ -63,7 +77,7 @@ namespace Multiplayer
                 if (!response.IsSuccessStatusCode)
                 {
                     Main.Logger.Error($"{response.StatusCode}: {response.ReasonPhrase}");
-                    Disconnect();
+                    //Disconnect();
                     return null;
                 }
                 return response;
@@ -71,14 +85,14 @@ namespace Multiplayer
             catch (Exception)
             {
                 Main.Logger.Error("Couldn't perform a POST request!");
-                Disconnect();
+                //Disconnect();
                 return null;
             }
         }
 
         internal static async Task Connect()
         {
-            if (IsConnected || TriedConnecting) return;
+            if (!DiscordManager.Initialized || IsConnected || TriedConnecting) return;
             TriedConnecting = true;
 
             string uid = DataHelper.PeroUid;
@@ -92,27 +106,35 @@ namespace Multiplayer
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Http.DefaultRequestHeaders.ConnectionClose = false;
 
-            var response = await PostAsync("connect",uid);
-
+            var response = await PostAsync("connect",new { Uid = uid });
             if (response != null)
             {
                 TOKEN = await response.Content.ReadAsStringAsync();
-                Http.DefaultRequestHeaders.Authorization = new("Bearer", TOKEN);
 
                 Connected = true;
                 Main.Logger.Success("Connected to the server successfully!");
-
-                //AchievementManager.Init(); UNCOMMENT THIS LATER WHEN THE SERVER IS UP
-                //PlayerManager.Init(); UNCOMMENT THIS LATER WHEN THE SERVER IS UP
             }
             else
             {
                 Main.Logger.Error("Failed to connect to the server!");
             }
+            response.Dispose();
 
-            Connected = true;// REMOVE THIS LATER WHEN THE SERVER IS UP
-            AchievementManager.Init(); // REMOVE THIS LATER WHEN THE SERVER IS UP
-            PlayerManager.Init(); // REMOVE THIS LATER WHEN THE SERVER IS UP
+            var moeDiffs = await GetAsync("https://api.musedash.moe/diffdiff", true);
+            if (moeDiffs != null)
+            {
+                MoeDifficulties = new();
+                var moeDiffsJson = await moeDiffs.Content.ReadFromJsonAsync<List<List<object>>>();
+                foreach (var chartStats in moeDiffsJson)
+                {
+                    MoeDifficulties.Add((string)chartStats[0], (float)chartStats[4]); // Key - Uid, Value - RL
+                }
+                Main.Logger.Success("Recieved chart difficulties from musedash.moe successfully!");
+            } else
+            {
+                Main.Logger.Error("Failed to recieve chart difficulties from musedash.moe!");
+            }
+            moeDiffs.Dispose();
         }
 
         internal static void Disconnect()

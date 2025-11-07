@@ -1,5 +1,4 @@
-﻿using CustomAlbums.Utilities;
-using Multiplayer.Managers;
+﻿using Multiplayer.Managers;
 using UnityEngine;
 
 namespace Multiplayer.Data
@@ -18,10 +17,8 @@ namespace Multiplayer.Data
 
         private void Load()
         {
-            if (!File.Exists(Path)) { return; }
+            if (!File.Exists(Path)) return;
 
-            //var fs = File.Open(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            //var bytes = fs.ToMemoryStream().ReadFully();
             byte[] bytes = File.ReadAllBytes(Path);
 
             Texture = new Texture2D(2, 2, TextureFormat.ARGB32, false)
@@ -29,8 +26,6 @@ namespace Multiplayer.Data
                 wrapMode = TextureWrapMode.MirrorOnce
             };
             ImageConversion.LoadImage(Texture, bytes);
-
-            //fs.Dispose();
 
             Sprite = Sprite.Create(Texture, new Rect(0, 0, Texture.width, Texture.height), new Vector2(0.5f, 0.5f));
 

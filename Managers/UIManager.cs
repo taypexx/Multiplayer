@@ -2,14 +2,16 @@
 using Multiplayer.UI;
 using PopupLib.UI;
 using PopupLib.UI.Windows;
+using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Multiplayer.Managers
 {
     internal static class UIManager
     {
-        private static bool Debounce = false;
-
+        internal static bool Debounce = false;
+        internal static Text WindowTitle { get; private set; }
         private static MessageWindow Warning;
 
         internal static MainMenu MainMenu { get; private set; }
@@ -19,8 +21,6 @@ namespace Multiplayer.Managers
 
         internal static FriendsWindow FriendsWindow { get; private set; }
         internal static AchievementsWindow AchievementsWindow { get; private set; }
-        internal static MoeStatsWindow MoeStatsWindow { get; private set; }
-        //internal static HQStatsWindow HQStatsWindow
 
         internal static void WarnNotification(LocalString warning)
         {
@@ -28,7 +28,7 @@ namespace Multiplayer.Managers
             Warning.Show();
         }
 
-        internal static async void OpenMainMenu()
+        internal static void OpenMainMenu()
         {
             if (Debounce) return;
 
@@ -52,13 +52,20 @@ namespace Multiplayer.Managers
                 {
                     Debounce = true;
                     PopupUtils.ShowInfoAndLog(Localization.Get("MainMenu", "Connecting"));
-                    await Client.Connect();
-
-                    Debounce = false;
-                    if (Client.IsConnected)
+                    _ = Client.Connect().ContinueWith(t =>
                     {
-                        OpenMainMenu();
-                    }
+                        Main.Dispatcher.Enqueue(() =>
+                        {
+                            if (Client.IsConnected)
+                            {
+                                AchievementManager.Init();
+                                PlayerManager.Init();
+                            }
+
+                            Debounce = false;
+                            OpenMainMenu();
+                        });
+                    });
                 }
             }
         }
@@ -73,6 +80,13 @@ namespace Multiplayer.Managers
         {
             if (MainMenu != null) return;
 
+            var windowTitleGo = GameObject.Instantiate(
+                GameObject.Find("UI/Forward/Tips/PnlAchievementsTips/TxtTittle"),
+                GameObject.Find("UI/Forward/Tips/PnlBulletinNew").transform
+            );
+            windowTitleGo.transform.localPosition = new(0f, 320f, 0f);
+            WindowTitle = windowTitleGo.GetComponent<Text>();
+
             Warning = new(new(), Localization.Get("Warning","Title"))
             {
                 AutoReset = true
@@ -85,8 +99,6 @@ namespace Multiplayer.Managers
 
             FriendsWindow = new();
             AchievementsWindow = new();
-            MoeStatsWindow = new();
-            //HQStatsWindow = new();
 
             ProfileWindow.CreateButtons();
             MainMenu.CreateButtons();

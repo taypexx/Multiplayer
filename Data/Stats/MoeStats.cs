@@ -1,25 +1,57 @@
-﻿namespace Multiplayer.Data.Stats
+﻿using MelonLoader;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace Multiplayer.Data.Stats
 {
     public class MoeStats
     {
+        public Player Player { get; private set; }
         public string Uid { get; private set; }
         public float RL { get; private set; }
         public ushort Records { get; private set; }
         public ushort APs { get; private set; }
         public float AverageAccuracy { get; private set; }
 
-        public MoeStats(string uid)
+        public MoeStats(Player player)
         {
-            Uid = uid;
+            Player = player;
+            Uid = player.MultiplayerStats.MDUid;
             RL = 0;
             Records = 0;
             APs = 0;
             AverageAccuracy = 0;
+
+            Update();
         }
 
-        internal void Update()
+        internal async void Update()
         {
-            // TODO: Actually get the data from md moe api and update the fields
+            var response = await Client.GetAsync("https://api.musedash.moe/player/" + Uid, true);
+            if (response == null) return;
+
+            var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();
+            var plays = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(updatedData["plays"].GetRawText());
+
+            unchecked
+            {
+                float newRL = 0;
+                updatedData["rl"].TryGetSingle(out newRL);
+                RL = newRL;
+                Records = (ushort)plays.Count;
+            }
+            APs = 0;
+
+            float totalAcc = 0f;
+            foreach (var play in plays)
+            {
+                float acc = 0;
+                play["acc"].TryGetSingle(out acc);
+                if (acc == 100) APs++;
+                totalAcc += acc;
+            }
+            AverageAccuracy = totalAcc / Records;
         }
     }
 }

@@ -1,2 +1,4 @@
 Mod dependencies:
 Custom Albums, Headquarters, PopupLib, LocalizeLib
+
+Banner ratio is 507 : 167

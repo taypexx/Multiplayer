@@ -15,10 +15,12 @@
 
   <ItemGroup>
     <None Remove="Assets\UI\fishingcat.jpg" />
+    <None Remove="Assets\UI\gemi.jpg" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\UI\fishingcat.jpg" />
+    <EmbeddedResource Include="Assets\UI\gemi.jpg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +32,9 @@
     </Reference>
     <Reference Include="CustomAlbums">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\Mods\CustomAlbums.dll</HintPath>
+    </Reference>
+    <Reference Include="DiscordRPC">
+      <HintPath>..\DiscordRPC.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppInterop.Runtime">
       <HintPath>$(MD_NET6_DIRECTORY)\MelonLoader\net6\Il2CppInterop.Runtime.dll</HintPath>

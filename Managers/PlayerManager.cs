@@ -12,7 +12,7 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Finds/creates a <see cref="Player"/> by their <paramref name="uid"/>.
         /// </summary>
-        /// <param name="uid">UID of a player (Pero UID).</param>
+        /// <param name="uid">UID of a player.</param>
         /// <returns>A <see cref="Player"/> that was cached or a new instance.</returns>
         internal static Player GetPlayer(string uid)
         {
@@ -31,6 +31,22 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
+        /// Sends an update request to server to update some parameters in the db.
+        /// </summary>
+        internal static async void SyncLocalPlayer()
+        {
+            var payload = new 
+            {
+                Uid = LocalPlayer.Uid,
+                Name = LocalPlayer.MultiplayerStats.Name,
+                AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
+                Achievements = LocalPlayer.MultiplayerStats.Achievements
+            };
+            var response = await Client.PostAsync("update",payload);
+            if (response == null) return;
+        }
+
+        /// <summary>
         /// Caches the <see cref="Player"/>.
         /// </summary>
         /// <param name="player"><see cref="Player"/> to cache.</param>
@@ -43,32 +59,18 @@ namespace Multiplayer.Managers
             return true;
         }
 
-        /// <summary>
-        /// Syncronizes the local <see cref="Player"/> with the server.
-        /// </summary>
-        /// <returns><see langword="true"/> if the synchronization was successfull, otherwise <see langword="false"/>.</returns>
-        internal static async Task<bool> SyncLocalPlayer()
-        {
-            if (LocalPlayer == null) return false;
-
-            var content = await Client.PostAsync("syncLocal",LocalPlayer);
-
-            return content != null;
-        }
-
         internal static void Init()
         {
-            var localUid = DataHelper.PeroUid;
-            var localName = DataHelper.nickname;
-
-            if (localUid == null || localName == null || localUid == string.Empty || localName == string.Empty)
+            /*if (!DataHelper.isLogin)
             {
                 //UIManager.WarnNotification(Localization.Get("Warning","NoAccount"));
                 return;
-            }
+            }*/
 
             CachedPlayers = new();
-            LocalPlayer = GetPlayer(localUid);
+            LocalPlayer = GetPlayer(DiscordManager.Client.CurrentUser.ID.ToString());
+
+            AchievementManager.Achieve(0);
         }
     }
 }

@@ -8,19 +8,20 @@ namespace Multiplayer.UI
     {
         private ForumObject MyProfileButton;
 
-        internal MainMenu() 
+        internal MainMenu() : base(Localization.Get("MainMenu", "Title"))
         {
-            Window.OnInternalShow += OnShow;
+            //Window.OnInternalShow += OnShow;
         }
 
         internal void CreateButtons()
         {
             MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, null, "fishingcat.jpg");
-            AddReturnButton();
+            AddReturnButton(null,"gemi.jpg");
         }
 
-        private void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
         {
+            base.OnShow(window);
             UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer);
         }
     }

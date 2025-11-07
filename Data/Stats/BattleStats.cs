@@ -2,6 +2,7 @@
 {
     public class BattleStats
     {
+        public Player Player { get; private set; }
         public uint Score { get; internal set; } = 0;
         public float Accuracy { get; internal set; } = 100;
 
@@ -42,6 +43,11 @@
                 }
                 else { return Grade.D; }
             }
+        }
+
+        public BattleStats(Player player)
+        {
+            Player = player;
         }
     }
 }

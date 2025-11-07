@@ -50,6 +50,10 @@ namespace Multiplayer
                 },
                 ["MainMenu"] = new()
                 {
+                    ["Title"] = new()
+                    {
+                        English = "Multiplayer"
+                    },
                     ["Open"] = new()
                     {
                         English = "Multiplayer"
@@ -69,6 +73,14 @@ namespace Multiplayer
                 },
                 ["ProfileWindow"] = new()
                 {
+                    ["Title"] = new()
+                    {
+                        English = "Profile"
+                    },
+                    ["TitleMyProfile"] = new()
+                    {
+                        English = "My Profile"
+                    },
                     ["Rank"] = new()
                     {
                         English = "Rank"
@@ -91,11 +103,55 @@ namespace Multiplayer
                     },
                     ["MoeStats"] = new()
                     {
-                        English = "Vanilla Stats"
+                        English = "MuseDash.moe"
+                    },
+                    ["AddFriend"] = new()
+                    {
+                        English = "Send a friend request"
+                    },
+                    ["RemoveFriend"] = new()
+                    {
+                        English = "Unfriend"
+                    },
+                    ["DecideFriendRequest"] = new()
+                    {
+                        English = "Accept/reject the friend request"
+                    },
+                    ["CancelFriendRequest"] = new()
+                    {
+                        English = "Cancel friend request"
+                    },
+                    ["DecideFriendRequestPrompt"] = new()
+                    {
+                        English = "Accept the friend request?"
+                    },
+                    ["DecideUnfriendPrompt"] = new()
+                    {
+                        English = "Are you sure you want to unfriend this person?"
+                    },
+                    ["AddFriendSuccess"] = new()
+                    {
+                        English = "Request sent"
+                    },
+                    ["RemoveFriendSuccess"] = new()
+                    {
+                        English = "Unfriended!"
+                    },
+                    ["CancelFriendRequestSuccess"] = new()
+                    {
+                        English = "Cancelled friend request"
+                    },
+                    ["AddedFriend"] = new()
+                    {
+                        English = "New friend added!"
                     },
                 },
                 ["Achievements"] = new()
                 {
+                    ["Title"] = new()
+                    {
+                        English = "Achievements"
+                    },
                     ["AchievedOn"] = new()
                     {
                         English = "Achieved on"

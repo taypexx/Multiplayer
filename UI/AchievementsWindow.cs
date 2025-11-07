@@ -5,7 +5,7 @@ namespace Multiplayer.UI
 {
     internal sealed class AchievementsWindow : BaseMultiplayerWindow
     {
-        internal AchievementsWindow() : base(UIManager.ProfileWindow)
+        internal AchievementsWindow() : base(Localization.Get("Achievements","Title"),UIManager.ProfileWindow)
         {
             AddReturnButton();
         }
@@ -20,7 +20,7 @@ namespace Multiplayer.UI
 
             foreach ((DateTime date, Achievement achievement) in player.MultiplayerStats.Achievements)
             {
-                AddButton(achievement.Name, null, new($"{achievement.Description}\n\n{Localization.Get("Achievements", "AchievedOn")}: {date})"));
+                AddButton(achievement.Name, null, new($"{achievement.Description}\n\n{Localization.Get("Achievements", "AchievedOn")}: {date} UTC"));
             }
         }
     }

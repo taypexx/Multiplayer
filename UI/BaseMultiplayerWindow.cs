@@ -1,5 +1,4 @@
-﻿using Il2Cpp;
-using Il2CppAssets.Scripts.UI.Tips;
+﻿using Il2CppAssets.Scripts.UI.Tips;
 using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
@@ -13,6 +12,7 @@ namespace Multiplayer.UI
 {
     internal abstract class BaseMultiplayerWindow
     {
+        internal LocalString Title { get; set; }
         internal ForumWindow Window { get; private set; }
         internal static Image BannerImage => GameObject.Find("UI/Forward/Tips/PnlBulletinNew/ImgBase/ScrollView/Viewport/Content/Image").GetComponent<Image>();
 
@@ -23,9 +23,11 @@ namespace Multiplayer.UI
 
         internal Dictionary<ForumObject,object> ButtonsWindows { get; private set; }
 
+        /// <param name="title">Title of the window.</param>
         /// <param name="returnWindow">Window to open after this one is closed.</param>
-        internal BaseMultiplayerWindow(BaseMultiplayerWindow returnWindow = null) 
+        internal BaseMultiplayerWindow(LocalString title, BaseMultiplayerWindow returnWindow = null) 
         {
+            Title = title;
             ReturnWindow = returnWindow;
             ButtonsWindows = new();
 
@@ -33,6 +35,7 @@ namespace Multiplayer.UI
             Window.AutoReset = true;
 
             Window.OnSelectionChanged += OnButtonClick;
+            Window.OnInternalShow += OnShow;
             Window.OnCompletion += OnCompletion;
         }
 
@@ -121,8 +124,6 @@ namespace Multiplayer.UI
             }
         }
 
-        internal virtual void OnCompletion(BaseWindow window) {}
-
         internal virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
             ForumObject forumObject = Window.ForumObjects[objectIndex];
@@ -152,6 +153,17 @@ namespace Multiplayer.UI
                     else return;
                 }
             }
+        }
+
+        internal virtual void OnShow(BaseWindow window)
+        {
+            if (Title is null) return;
+            UIManager.WindowTitle.text = Title.ToString();
+        }
+
+        internal virtual void OnCompletion(BaseWindow window)
+        {
+            UIManager.WindowTitle.text = string.Empty;
         }
     }
 }

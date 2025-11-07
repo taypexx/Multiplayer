@@ -46,10 +46,7 @@ namespace Multiplayer
     public class Config
     {
         [TomlPrecedingComment("Server address")]
-        internal string MultiplayerAPI { get; set; } = "http://localhost:9095/api/";
-
-        [TomlPrecedingComment("Timeout in milliseconds")]
-        internal int RequestTimeout { get; set; } = 3000;
+        internal string MultiplayerAPI { get; set; } = "http://127.0.0.1:9095/api/";
 
         [TomlPrecedingComment("Allow the invites from friends")]
         internal bool AllowFriendInvites { get; set; } = true;

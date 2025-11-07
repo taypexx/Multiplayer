@@ -1,7 +1,8 @@
-﻿using MelonLoader;
-using MelonLoader.Utils;
+﻿using MelonLoader.Utils;
 using Multiplayer.Data;
 using System.Reflection;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Multiplayer.Managers
 {
@@ -11,9 +12,10 @@ namespace Multiplayer.Managers
         private const int FileBufferSize = 81920;
 
         private static Dictionary<string, CustomImageAsset> ImageAssets;
+        private static GameObject AssetHolder;
 
         /// <summary>
-        /// Gets the <see cref="CustomImageAsset"/> reference or caches it if doesn't exist.
+        /// Gets the <see cref="CustomImageAsset"/> reference or creates a new one and caches it.
         /// </summary>
         /// <param name="relativePath">Path relative to Assets.</param>
         /// <returns><see cref="CustomImageAsset"/> reference.</returns>
@@ -24,8 +26,21 @@ namespace Multiplayer.Managers
                 return asset;
             } else
             {
+                if (AssetHolder == null)
+                {
+                    AssetHolder = new("MultiplayerAssetHolder");
+                    UnityEngine.Object.DontDestroyOnLoad(AssetHolder);
+                }
+
                 CustomImageAsset newAsset = new(relativePath);
+                if (newAsset == null) { return newAsset; }
+
                 ImageAssets.Add(relativePath, newAsset);
+
+                GameObject go = new("Img");
+                go.transform.parent = AssetHolder.transform;
+                go.AddComponent<Image>().sprite = newAsset.Sprite;
+
                 return newAsset;
             }
         }

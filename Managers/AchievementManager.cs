@@ -3,6 +3,7 @@ using Il2CppAssets.Scripts.UI.Panels;
 using Multiplayer.Data;
 using UnityEngine;
 using UnityEngine.UI;
+using HarmonyLib;
 
 namespace Multiplayer.Managers
 {
@@ -28,33 +29,49 @@ namespace Multiplayer.Managers
             }
 
             PnlMessage.FinishMessage();
+        }
 
-            int i = 0;
-            foreach (Transform cell in PnlMessage.layout.transform)
+        /// <summary>
+        /// Patches <see cref="PnlMessage.FinishMessage"/> and changes the text of the achievements.
+        /// </summary>
+        [HarmonyPatch(typeof(PnlMessage),nameof(PnlMessage.FinishMessage))]
+        private static class CustomAchievementPatch
+        {
+            private static void Postfix()
             {
-                Achievement achievement = QueuedAchievements[i];
-                cell.Find("TxtDescription").GetComponent<Text>().text = $"<color=#{ColorUtility.ToHtmlStringRGB(AchievementTitleColor)}>{achievement.Name}</color>    {achievement.Description}";
-                i++;
-            }
+                if (QueuedAchievements.Count == 0) return;
 
-            QueuedAchievements.Clear();
+                int i = 0;
+                foreach (Transform cell in PnlMessage.layout.transform)
+                {
+                    Console.WriteLine(i);
+                    Achievement achievement = QueuedAchievements[i];
+                    cell.Find("TxtDescription").GetComponent<Text>().text = $"<color=#{ColorUtility.ToHtmlStringRGB(AchievementTitleColor)}>{achievement.Name}</color>    {achievement.Description}";
+                    i++;
+                }
+
+                QueuedAchievements.Clear();
+            }
         }
 
         /// <summary>
         /// Adds an <see cref="Achievement"/> to the local <see cref="Player"/>'s profile.
         /// </summary>
-        /// <param name="achievement"><see cref="Achievement"/> to add.</param>
+        /// <param name="achievementId">ID of an <see cref="Achievement"/>.</param>
         /// <param name="instantAnim">Whether to play it instantly after getting or queue to play later.</param>
-        /// <returns><see langword="true"/> if it was added successfully, <see langword="false"/> if the player had it already.</returns>
-        internal static bool Achieve(Achievement achievement, bool instantAnim = true)
+        /// <returns><see langword="true"/> if it was added successfully, otherwise <see langword="false"/>.</returns>
+        internal static bool Achieve(int achievementId, bool instantAnim = true)
         {
             Player localPlayer = PlayerManager.LocalPlayer;
             if (localPlayer == null) return false;
 
+            Achievement achievement = Achievements[achievementId];
+            if (achievement == null) return false;
+
             if (localPlayer.MultiplayerStats.Achievements.ContainsValue(achievement)) return false;
 
             localPlayer.MultiplayerStats.Achievements.Add(DateTime.UtcNow,achievement);
-            _ = PlayerManager.SyncLocalPlayer();
+            PlayerManager.SyncLocalPlayer();
 
             QueuedAchievements.Add(achievement);
             if (instantAnim) PlayAchievementAnimation();
@@ -70,8 +87,6 @@ namespace Multiplayer.Managers
             {
                 new("Welcome!",Localization.Get("Achievements","Welcome!"))
             };
-
-            Achieve(Achievements[0]);
         }
     }
 }
