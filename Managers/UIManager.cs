@@ -2,6 +2,7 @@
 using Multiplayer.UI;
 using PopupLib.UI;
 using PopupLib.UI.Windows;
+using PopupLib.UI.Windows.Abstract;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -12,7 +13,10 @@ namespace Multiplayer.Managers
     {
         internal static bool Debounce = false;
         internal static Text WindowTitle { get; private set; }
-        private static MessageWindow Warning;
+
+        internal static MessageWindow Warning;
+        internal static PromptWindow WarningChoose;
+        internal static Action<bool?> WarningChooseAction;
 
         internal static MainMenu MainMenu { get; private set; }
         internal static MainMenuOpenButton MainMenuOpenButton { get; private set; }
@@ -28,69 +32,46 @@ namespace Multiplayer.Managers
             Warning.Show();
         }
 
-        internal static void OpenMainMenu()
+        internal static void WarnChooseNotification(LocalString warning)
         {
-            if (Debounce) return;
+            WarningChoose.Text = warning;
+            WarningChoose.Show();
+        }
 
-            if (Client.IsConnected)
-            {
-                if (PlayerManager.LocalPlayer == null) return;
-                if (!PlayerManager.LocalPlayer.MultiplayerStats.Banned)
-                {
-                    MainMenu.Window.Show();
-                } else
-                {
-                    WarnNotification(Localization.Get("MainMenu", "LocalPlayerBanned"));
-                }
-            } else
-            {
-                if (Client.TriedConnecting)
-                {
-                    Client.Disconnect();
-                }
-                else
-                {
-                    Debounce = true;
-                    PopupUtils.ShowInfoAndLog(Localization.Get("MainMenu", "Connecting"));
-                    _ = Client.Connect().ContinueWith(t =>
-                    {
-                        Main.Dispatcher.Enqueue(() =>
-                        {
-                            if (Client.IsConnected)
-                            {
-                                AchievementManager.Init();
-                                PlayerManager.Init();
-                            }
+        private static void WarningChooseCompletion(BaseWindow window)
+        {
+            if (WarningChooseAction is null) return;
 
-                            Debounce = false;
-                            OpenMainMenu();
-                        });
-                    });
-                }
-            }
+            WarningChooseAction.Invoke(WarningChoose.Result);
+            WarningChooseAction = null;
         }
 
         internal static void InitUISystemMain()
         {
+            var windowTitleGo = GameObject.Instantiate(
+                GameObject.Find("UI/Forward/Tips/PnlAchievementsTips/TxtTittle"),
+                GameObject.Find("UI/Forward/Tips/PnlBulletinNew").transform
+            );
+            windowTitleGo.transform.localPosition = new(0f, 330f, 0f);
+            WindowTitle = windowTitleGo.GetComponent<Text>();
+
             MainMenuOpenButton.Init();
-            MainMenuOpenButton.ButtonComponent.onClick.AddListener((UnityAction)new Action(OpenMainMenu));
+            MainMenuOpenButton.ButtonComponent.onClick.AddListener((UnityAction)new Action(MainMenu.Open));
         }
 
         internal static void Init()
         {
             if (MainMenu != null) return;
 
-            var windowTitleGo = GameObject.Instantiate(
-                GameObject.Find("UI/Forward/Tips/PnlAchievementsTips/TxtTittle"),
-                GameObject.Find("UI/Forward/Tips/PnlBulletinNew").transform
-            );
-            windowTitleGo.transform.localPosition = new(0f, 320f, 0f);
-            WindowTitle = windowTitleGo.GetComponent<Text>();
-
             Warning = new(new(), Localization.Get("Warning","Title"))
             {
                 AutoReset = true
             };
+            WarningChoose = new(new(), Localization.Get("Warning", "Title"))
+            {
+                AutoReset = true
+            };
+            WarningChoose.OnCompletion += WarningChooseCompletion;
 
             MainMenu = new();
             MainMenuOpenButton = new();

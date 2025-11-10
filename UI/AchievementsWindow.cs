@@ -5,9 +5,16 @@ namespace Multiplayer.UI
 {
     internal sealed class AchievementsWindow : BaseMultiplayerWindow
     {
-        internal AchievementsWindow() : base(Localization.Get("Achievements","Title"),UIManager.ProfileWindow)
+        internal AchievementsWindow() : base(Localization.Get("Achievements", "Title"),UIManager.ProfileWindow)
         {
             AddReturnButton();
+
+            Window.OnInternalShow += OnShow;
+        }
+
+        internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        {
+            AchievementManager.Achieve(0);
         }
 
         /// <summary>

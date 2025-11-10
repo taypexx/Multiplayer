@@ -21,8 +21,6 @@
             AverageAccuracy = 0;
             Top = 100;
             Biography = "This user does not have anything interesting to say.";
-
-            Update();
         }
 
         internal async void Update()

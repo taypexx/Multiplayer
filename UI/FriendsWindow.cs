@@ -7,11 +7,11 @@ namespace Multiplayer.UI
 {
     internal sealed class FriendsWindow : BaseMultiplayerWindow
     {
-        private Dictionary<int, Player> FriendIndexes;
+        private Dictionary<ForumObject, Player> ButtonsFriends;
 
         internal FriendsWindow() : base(Localization.Get("ProfileWindow", "Friends"), UIManager.ProfileWindow)
         {
-            FriendIndexes = new();
+            ButtonsFriends = new();
             AddReturnButton();
         }
 
@@ -22,23 +22,24 @@ namespace Multiplayer.UI
         internal void Update(Player player)
         {
             RemoveAllButtons(true);
-            FriendIndexes.Clear();
+            ButtonsFriends.Clear();
 
             foreach (Player friend in player.MultiplayerStats.Friends)
             {
                 ForumObject button = AddButton(friend.MultiplayerStats.NameLocal, UIManager.ProfileWindow);
-                FriendIndexes.Add(Window.ForumObjects.IndexOf(button), friend);
+                ButtonsFriends.Add(button, friend);
             }
         }
 
         internal override void OnButtonClick(IListWindow window, int objectIndex)
         {
-            if (FriendIndexes.TryGetValue(objectIndex, out Player player))
+            base.OnButtonClick(window, objectIndex);
+
+            // Should come after the base method or else it desyncs and breaks :bleh:
+            if (ButtonsFriends.TryGetValue(Window.ForumObjects[objectIndex], out Player player))
             {
                 UIManager.ProfileWindow.Update(player);
             }
-
-            base.OnButtonClick(window, objectIndex);
         }
     }
 }

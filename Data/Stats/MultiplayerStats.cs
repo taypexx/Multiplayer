@@ -1,13 +1,14 @@
-﻿using LocalizeLib;
+﻿using Il2CppAssets.Scripts.Database;
+using LocalizeLib;
 using Multiplayer.Managers;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Multiplayer.Data.Stats
 {
     public class MultiplayerStats
     {
         public Player Player { get; private set; }
-        public string MDUid { get; private set; }
         public string Name { get; private set; }
         public LocalString NameLocal { get; private set; }
         public string AvatarName { get; internal set; }
@@ -20,11 +21,10 @@ namespace Multiplayer.Data.Stats
         public bool Banned { get; private set; }
         public string Rank => GetRank(true);
 
-        public MultiplayerStats(Player player, string mdUid = "", string name = "Player")
+        public MultiplayerStats(Player player)
         {
             Player = player;
-            MDUid = mdUid;
-            Name = name;
+            Name = DataHelper.nickname ?? player.Uid;
             NameLocal = new(Name);
             AvatarName = "default";
             Friends = new();
@@ -32,38 +32,59 @@ namespace Multiplayer.Data.Stats
             Achievements = new();
             ELO = 1500;
             Banned = false;
-
-            Update();
         }
 
         internal async void Update()
         {
-            var response = await Client.GetAsync("player/" + Player.Uid);
+            var payload = new
+            {
+                SelfUid = PlayerManager.LocalPlayer?.Uid ?? Player.Uid,
+                TargetUid = Player.Uid,
+                Token = Client.Token
+            };
+
+            var response = await Client.PostAsync("getPlayer",payload);
             if (response == null) return;
 
-            var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+            var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
 
-            Name = (string)updatedData["Name"];
+            Name = updatedData["Name"].GetString();
             NameLocal = new(Name);
-            AvatarName = (string)updatedData["AvatarName"];
+            AvatarName = updatedData["AvatarName"].GetString();
 
             Friends.Clear();
-            foreach (string friendUid in (List<string>)updatedData["Friends"])
+            var updatedFriends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"].GetRawText());
+            foreach (string friendUid in (updatedFriends))
             {
                 Friends.Add(PlayerManager.GetPlayer(friendUid));
             }
 
             Achievements.Clear();
-            foreach ((long unixTimestamp, byte id) in (Dictionary<uint, byte>)updatedData["Achievements"])
+            try
             {
-                Achievements.Add(DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).DateTime, AchievementManager.Achievements[id]);
+                var updatedAchievements = JsonSerializer.Deserialize<Dictionary<long, byte>>(updatedData["Achievements"].GetRawText());
+                foreach ((long unixTimestamp, byte id) in (updatedAchievements))
+                {
+                    Achievements.Add(DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).DateTime, AchievementManager.Achievements[id]);
+                }
+            }
+            catch (Exception e)
+            {
+                Main.Logger.Warning(e.ToString());
             }
 
             FriendRequests.Clear();
-            FriendRequests = (Dictionary<string, string>)updatedData["FriendRequests"];
+            try
+            {
+                FriendRequests = JsonSerializer.Deserialize<Dictionary<string, string>>(updatedData["FriendRequests"].GetRawText());
+            }
+            catch (Exception e)
+            {
+                Main.Logger.Warning(e.ToString());
+            }
 
-            ELO = (ushort)updatedData["ELO"];
-            Banned = (bool)updatedData["Banned"];
+            ELO = updatedData["ELO"].GetUInt16();
+            Banned = updatedData["Banned"].GetBoolean();
         }
 
         private string GetRank(bool includingSubrank = false)

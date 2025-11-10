@@ -1,7 +1,6 @@
 ﻿using Il2Cpp;
 using Il2CppAssets.Scripts.UI.Panels.Menu;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Multiplayer.UI

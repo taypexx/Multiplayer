@@ -34,7 +34,7 @@ namespace Multiplayer
                     },
                     ["Offline"] = new()
                     {
-                        English = "Couldn't connect to the multiplayer server. Please make sure you are connected to the internet and restart the game."
+                        English = "Couldn't connect to the multiplayer server. Do you want to try again?"
                     }
                 },
                 ["Window"] = new()
@@ -62,14 +62,45 @@ namespace Multiplayer
                     {
                         English = "Connecting to the server..."
                     },
+                    ["LocalPlayerBanned"] = new()
+                    {
+                        English = "You have been banned from multiplayer servers. If you wish to appeal contact @cvle. or @taypexx in discord."
+                    },
                     ["MyProfile"] = new()
                     {
                         English = "My Profile"
                     },
-                    ["LocalPlayerBanned"] = new()
+                    ["Avatar"] = new()
                     {
-                        English = "You have been banned from multiplayer servers. If you wish to appeal contact @cvle. or @taypexx in discord."
-                    }
+                        English = "Avatar"
+                    },
+                    ["FriendRequests"] = new()
+                    {
+                        English = "Friend Requests"
+                    },
+                    ["Lobbies"] = new()
+                    {
+                        English = "Lobbies"
+                    },
+                    ["Competitive"] = new()
+                    {
+                        English = "Competitive"
+                    },
+                    ["CreditsTitle"] = new()
+                    {
+                        English = "Credits"
+                    },
+                    ["Credits"] = new()
+                    {
+                        English = "———| CREDITS |———\n\n" +
+                        "<color=f542adff>taypexx</color> — Muse Dash mod development\n" +
+                        "<color=f542adff>7OU</color> — Backend development\n" +
+                        "<color=1eff00ff>PBalint817</color> — Additional libraries (PopupLib & LocalizeLib)\n" +
+                        "<color=fff700ff>???</color> — Traditional Chinese translation\n" +
+                        "<color=fff700ff>???</color> — Simplified Chinese translation\n" +
+                        "<color=fff700ff>???</color> — Korean translation\n" +
+                        "<color=fff700ff>???</color> — Japanese translation\n"
+                    },
                 },
                 ["ProfileWindow"] = new()
                 {
@@ -77,17 +108,9 @@ namespace Multiplayer
                     {
                         English = "Profile"
                     },
-                    ["TitleMyProfile"] = new()
-                    {
-                        English = "My Profile"
-                    },
                     ["Rank"] = new()
                     {
                         English = "Rank"
-                    },
-                    ["Avatar"] = new()
-                    {
-                        English = "Avatar"
                     },
                     ["Friends"] = new()
                     {
@@ -160,7 +183,7 @@ namespace Multiplayer
                     {
                         English = "Launch the multiplayer for the first time."
                     }
-                }
+                },
             };
         }
     }

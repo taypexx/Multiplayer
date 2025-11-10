@@ -1,6 +1,5 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data;
-using Il2CppSystem;
 
 namespace Multiplayer.Managers
 {
@@ -26,23 +25,32 @@ namespace Multiplayer.Managers
             
             // If not cached
             Player newPlayer = new(uid);
+            newPlayer.Update(true);
             CachePlayer(newPlayer);
+
             return newPlayer;
         }
 
         /// <summary>
-        /// Sends an update request to server to update some parameters in the db.
+        /// Sends an update request to server to update some parameters in the db. Should be called when field(s) need(s) to be updated.
         /// </summary>
         internal static async void SyncLocalPlayer()
         {
+            var achievementsConverted = new Dictionary<long, byte>();
+            foreach ((DateTime timestamp, Achievement achievement) in LocalPlayer.MultiplayerStats.Achievements)
+            {
+                achievementsConverted.Add(new DateTimeOffset(timestamp.ToUniversalTime()).ToUnixTimeSeconds(),achievement.Id);
+            }
+
             var payload = new 
             {
                 Uid = LocalPlayer.Uid,
                 Name = LocalPlayer.MultiplayerStats.Name,
                 AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
-                Achievements = LocalPlayer.MultiplayerStats.Achievements
+                Achievements = achievementsConverted,
+                Token = Client.Token,
             };
-            var response = await Client.PostAsync("update",payload);
+            var response = await Client.PostAsync("updatePlayer",payload);
             if (response == null) return;
         }
 
@@ -61,16 +69,14 @@ namespace Multiplayer.Managers
 
         internal static void Init()
         {
-            /*if (!DataHelper.isLogin)
+            if (!DataHelper.isLogin)
             {
-                //UIManager.WarnNotification(Localization.Get("Warning","NoAccount"));
+                UIManager.WarnNotification(Localization.Get("Warning","NoAccount"));
                 return;
-            }*/
+            }
 
             CachedPlayers = new();
-            LocalPlayer = GetPlayer(DiscordManager.Client.CurrentUser.ID.ToString());
-
-            AchievementManager.Achieve(0);
+            LocalPlayer = GetPlayer(DataHelper.PeroUid);
         }
     }
 }

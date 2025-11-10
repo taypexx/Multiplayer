@@ -5,7 +5,6 @@ namespace Multiplayer.Data
     public class Player
     {
         public string Uid { get; private set; }
-        internal string UniqueHash  { get { return Uid.Reverse() + Client.ComputeSha256Hash("ame is gay"); } }
         
         public MultiplayerStats MultiplayerStats { get; private set; }
         public BattleStats BattleStats { get; private set; }

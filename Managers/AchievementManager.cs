@@ -29,29 +29,19 @@ namespace Multiplayer.Managers
             }
 
             PnlMessage.FinishMessage();
-        }
 
-        /// <summary>
-        /// Patches <see cref="PnlMessage.FinishMessage"/> and changes the text of the achievements.
-        /// </summary>
-        [HarmonyPatch(typeof(PnlMessage),nameof(PnlMessage.FinishMessage))]
-        private static class CustomAchievementPatch
-        {
-            private static void Postfix()
+            // FIX THIS SHIT PLEASE
+
+            int i = 0;
+            foreach (Transform cell in PnlMessage.layout.transform)
             {
-                if (QueuedAchievements.Count == 0) return;
-
-                int i = 0;
-                foreach (Transform cell in PnlMessage.layout.transform)
-                {
-                    Console.WriteLine(i);
-                    Achievement achievement = QueuedAchievements[i];
-                    cell.Find("TxtDescription").GetComponent<Text>().text = $"<color=#{ColorUtility.ToHtmlStringRGB(AchievementTitleColor)}>{achievement.Name}</color>    {achievement.Description}";
-                    i++;
-                }
-
-                QueuedAchievements.Clear();
+                Console.WriteLine(i);
+                Achievement achievement = QueuedAchievements[i];
+                cell.Find("TxtDescription").GetComponent<Text>().text = $"<color=#{ColorUtility.ToHtmlStringRGB(AchievementTitleColor)}>{achievement.Name}</color>    {achievement.Description}";
+                i++;
             }
+
+            QueuedAchievements.Clear();
         }
 
         /// <summary>

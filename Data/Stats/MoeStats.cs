@@ -8,7 +8,6 @@ namespace Multiplayer.Data.Stats
     public class MoeStats
     {
         public Player Player { get; private set; }
-        public string Uid { get; private set; }
         public float RL { get; private set; }
         public ushort Records { get; private set; }
         public ushort APs { get; private set; }
@@ -17,18 +16,15 @@ namespace Multiplayer.Data.Stats
         public MoeStats(Player player)
         {
             Player = player;
-            Uid = player.MultiplayerStats.MDUid;
             RL = 0;
             Records = 0;
             APs = 0;
             AverageAccuracy = 0;
-
-            Update();
         }
 
         internal async void Update()
         {
-            var response = await Client.GetAsync("https://api.musedash.moe/player/" + Uid, true);
+            var response = await Client.GetAsync("https://api.musedash.moe/player/" + Player.Uid, true);
             if (response == null) return;
 
             var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();

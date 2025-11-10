@@ -5,22 +5,23 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Security.Cryptography;
 using System.Net.Http.Json;
+using PopupLib.UI;
+using Multiplayer.UI;
 
 namespace Multiplayer
 {
     internal static class Client
     {
-        internal static bool IsConnected => Connected;
-        private static bool Connected = false;
-        internal static bool TriedConnecting = false;
+        internal static bool Connected { get; private set; } = false;
+        internal static bool TriedConnecting { get; private set; } = false;
 
-        internal static string TOKEN = string.Empty;
+        internal static string Token { get; private set; } = string.Empty;
         private static readonly string Endpoint = Settings.Config.MultiplayerAPI;
 
-        internal static Dictionary<string, float> MoeDifficulties;
+        internal static Dictionary<string, float> MoeDifficulties { get; private set; }
 
-        internal static HttpMessageHandler HttpHandler;
-        internal static HttpClient Http;
+        private static HttpMessageHandler HttpHandler;
+        private static HttpClient Http;
 
         internal static string ComputeSha256Hash(string rawData)
         {
@@ -45,7 +46,7 @@ namespace Multiplayer
                 HttpResponseMessage response = await Http.GetAsync(isFullPath ? path : Endpoint + path);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Main.Logger.Error($"{response.StatusCode}: {response.ReasonPhrase}");
+                    Main.Logger.Error($"{(int)response.StatusCode}: {response.ReasonPhrase}");
                     //Disconnect();
                     return null;
                 }
@@ -92,10 +93,12 @@ namespace Multiplayer
 
         internal static async Task Connect()
         {
-            if (!DiscordManager.Initialized || IsConnected || TriedConnecting) return;
+            if (!DiscordManager.Initialized || Connected || TriedConnecting) return;
+            PopupUtils.ShowInfo(Localization.Get("MainMenu", "Connecting"));
             TriedConnecting = true;
 
             string uid = DataHelper.PeroUid;
+            string playerName = DataHelper.nickname;
             if (uid == null) return;
 
             Main.Logger.Msg("Connecting to the server...");
@@ -106,10 +109,10 @@ namespace Multiplayer
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Http.DefaultRequestHeaders.ConnectionClose = false;
 
-            var response = await PostAsync("connect",new { Uid = uid });
+            var response = await PostAsync("connect", new { Uid = uid, Name =  playerName});
             if (response != null)
             {
-                TOKEN = await response.Content.ReadAsStringAsync();
+                Token = await response.Content.ReadFromJsonAsync<string>();
 
                 Connected = true;
                 Main.Logger.Success("Connected to the server successfully!");
@@ -139,14 +142,24 @@ namespace Multiplayer
 
         internal static void Disconnect()
         {
-            if (IsConnected) 
+            if (Connected) 
             {
                 Main.Logger.Msg("Disconnecting from the server...");
             }
             Connected = false;
 
             Http.Dispose();
-            UIManager.WarnNotification(Localization.Get("Warning","Offline"));
+
+            UIManager.WarningChooseAction = ReconnectOption;
+            UIManager.WarnChooseNotification(Localization.Get("Warning","Offline"));
+        }
+
+        private static void ReconnectOption(bool? doReconnect)
+        {
+            if (!(doReconnect ?? false)) return;
+
+            TriedConnecting = false;
+            UIManager.MainMenu.Open();
         }
     }
 }

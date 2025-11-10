@@ -14,7 +14,6 @@ namespace Multiplayer.UI
     internal sealed class ProfileWindow : BaseMultiplayerWindow
     {
         private ForumObject RankButton;
-        private ForumObject AvatarButton;
         private ForumObject FriendsButton;
         private ForumObject AchievementsButton;
         private ForumObject HQStatsButton;
@@ -28,12 +27,10 @@ namespace Multiplayer.UI
         private Dictionary<int, LocalString> FriendButtonTitles;
         private Dictionary<int, LocalString> FriendButtonResponses;
 
-        private static PnlHead PnlHead => GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>();
-
         // The Player whose stats are displayed in this window.
         internal Player Player;
 
-        internal ProfileWindow() : base(Localization.Get("ProfileWindow", "Title"), UIManager.MainMenu) 
+        internal ProfileWindow() : base(Localization.Get("ProfileWindow","Title"), UIManager.MainMenu) 
         {
             FriendButtonTitles = new()
             {
@@ -53,8 +50,6 @@ namespace Multiplayer.UI
                 [4] = FriendButtonTitles[4]
             };
 
-            //Window.OnSelectionChanged += OnButtonClick;
-
             FriendRequestPrompt = new(Localization.Get("ProfileWindow", "DecideFriendRequestPrompt"));
             FriendRequestPrompt.OnCompletion += OnFriendActionDecided;
 
@@ -65,7 +60,6 @@ namespace Multiplayer.UI
         internal void CreateButtons()
         {
             RankButton = AddButton(Localization.Get("ProfileWindow", "Rank"));
-            AvatarButton = AddButton(Localization.Get("ProfileWindow", "Avatar"), PnlHead);
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"), UIManager.FriendsWindow);
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
@@ -83,7 +77,7 @@ namespace Multiplayer.UI
                 var payload = new
                 {
                     Uid = PlayerManager.LocalPlayer.Uid,
-                    Token = Client.TOKEN,
+                    Token = Client.Token,
                     FriendUid = Player.Uid
                 };
 
@@ -160,7 +154,7 @@ namespace Multiplayer.UI
 
             Player localPlayer = PlayerManager.LocalPlayer;
 
-            Title = Player == localPlayer ? Localization.Get("ProfileWindow", "TitleMyProfile") : Localization.Get("ProfileWindow", "Title");
+            Title = Player.MultiplayerStats.NameLocal;
 
             FriendButtonState =
                 Player == localPlayer ? 4 :
