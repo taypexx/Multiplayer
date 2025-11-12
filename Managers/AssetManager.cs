@@ -1,4 +1,4 @@
-﻿using MelonLoader.Utils;
+﻿using CustomAlbums.Utilities;
 using Multiplayer.Data;
 using System.Reflection;
 using UnityEngine;
@@ -8,9 +8,7 @@ namespace Multiplayer.Managers
 {
     internal static class AssetManager
     {
-        internal static string AssetsPath = Path.Combine(MelonEnvironment.UserDataDirectory, "MultiplayerAssets");
-        private const int FileBufferSize = 81920;
-
+        private static Assembly Assembly = Assembly.GetExecutingAssembly();
         private static Dictionary<string, CustomImageAsset> ImageAssets;
         private static GameObject AssetHolder;
 
@@ -32,8 +30,14 @@ namespace Multiplayer.Managers
                     UnityEngine.Object.DontDestroyOnLoad(AssetHolder);
                 }
 
-                CustomImageAsset newAsset = new(relativePath);
-                if (newAsset == null) { return newAsset; }
+                using Stream stream = Assembly.GetManifestResourceStream("Multiplayer.Assets." + relativePath);
+                if (stream == null) return null;
+
+                byte[] bytes = stream.ToMemoryStream().ReadFully();
+                if (bytes == null) return null;
+
+                CustomImageAsset newAsset = new(bytes);
+                if (newAsset == null) return null;
 
                 ImageAssets.Add(relativePath, newAsset);
 
@@ -45,103 +49,23 @@ namespace Multiplayer.Managers
             }
         }
 
-        private static async Task ExtractEmbeddedResourcesAsync()
+        /// <summary>
+        /// Gets the file content as <see langword="string"/>.
+        /// </summary>
+        /// <param name="relativePath">Path relative to the executing assembly.</param>
+        /// <returns><see langword="string"/> content</returns>
+        internal static string GetStringAsset(string relativePath)
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceNames = assembly.GetManifestResourceNames();
+            using Stream stream = Assembly.GetManifestResourceStream("Multiplayer." + relativePath);
+            if (stream == null) return null;
 
-            if (resourceNames.Length == 0) return;
-
-            var extractionTasks = resourceNames.Select(resourceName =>
-                ExtractResourceAsync(assembly, resourceName));
-
-            await Task.WhenAll(extractionTasks);
+            using StreamReader streamReader = new StreamReader(stream);
+            return streamReader.ReadToEnd();
         }
 
-        private static async Task ExtractResourceAsync(Assembly assembly, string resourceName)
+        internal static void Init()
         {
-            try
-            {
-                using var stream = assembly.GetManifestResourceStream(resourceName);
-                if (stream == null) return;
-
-                var outputPath = Path.Combine(AssetsPath, resourceName);
-                await WriteStreamToFileAsync(stream, outputPath);
-            }
-            catch (Exception ex)
-            {
-                Main.Logger.Error($"Failed to extract resource '{resourceName}': {ex.Message}");
-            }
-        }
-
-        private static async Task WriteStreamToFileAsync(Stream inputStream, string filePath)
-        {
-            try
-            {
-                using var outputFileStream = new FileStream(
-                    filePath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None,
-                    bufferSize: FileBufferSize,
-                    useAsync: true);
-
-                await inputStream.CopyToAsync(outputFileStream);
-            }
-            catch (Exception ex)
-            {
-                Main.Logger.Error($"Failed to write stream to file '{Path.GetFileName(filePath)}': {ex.Message}");
-                throw;
-            }
-        }
-
-        private static void PrepareDirectory()
-        {
-            try
-            {
-                if (!Directory.Exists(AssetsPath))
-                {
-                    Directory.CreateDirectory(AssetsPath);
-                }
-            }
-            catch (Exception ex)
-            {
-                Main.Logger.Error($"Failed to prepare directory: {ex.Message}");
-                throw;
-            }
-        }
-
-        internal static async void Init()
-        {
-            try
-            {
-                ImageAssets = new();
-                PrepareDirectory();
-                await ExtractEmbeddedResourcesAsync();
-            }
-            catch (Exception ex)
-            {
-                Main.Logger.Error($"Failed to initialize Asset Manager: {ex.Message}");
-            }
-        }
-
-        internal static void CleanupDirectory()
-        {
-            try
-            {
-                if (!Directory.Exists(AssetsPath))
-                {
-                    Main.Logger.Msg("Directory does not exist - no cleanup needed.");
-                    return;
-                }
-
-                Directory.Delete(AssetsPath, true);
-                Main.Logger.Msg("Directory cleaned up successfully.");
-            }
-            catch (Exception ex)
-            {
-                Main.Logger.Error($"Failed to cleanup directory: {ex.Message}");
-            }
+            ImageAssets = new();
         }
     }
 }

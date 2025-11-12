@@ -13,6 +13,7 @@ namespace Multiplayer.Managers
     {
         internal static bool Debounce = false;
         internal static Text WindowTitle { get; private set; }
+        internal static GameObject MainFrame => GameObject.Find("UI/Forward/Tips/PnlBulletinNew");
 
         internal static MessageWindow Warning;
         internal static PromptWindow WarningChoose;
@@ -50,13 +51,14 @@ namespace Multiplayer.Managers
         {
             var windowTitleGo = GameObject.Instantiate(
                 GameObject.Find("UI/Forward/Tips/PnlAchievementsTips/TxtTittle"),
-                GameObject.Find("UI/Forward/Tips/PnlBulletinNew").transform
+                MainFrame.transform
             );
             windowTitleGo.transform.localPosition = new(0f, 330f, 0f);
+            windowTitleGo.SetActive(false);
             WindowTitle = windowTitleGo.GetComponent<Text>();
 
-            MainMenuOpenButton.Init();
-            MainMenuOpenButton.ButtonComponent.onClick.AddListener((UnityAction)new Action(MainMenu.Open));
+            MainMenuOpenButton.Create();
+            ProfileWindow.CreateAvatarBox();
         }
 
         internal static void Init()

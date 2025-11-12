@@ -30,7 +30,15 @@ namespace Multiplayer.Managers
 
             PnlMessage.FinishMessage();
 
-            // FIX THIS SHIT PLEASE
+            _ = PatchAchievements();
+        }
+
+        private static async Task PatchAchievements()
+        {
+            while (PnlMessage.layout.transform.childCount != QueuedAchievements.Count)
+            {
+                await Task.Delay(100);
+            }
 
             int i = 0;
             foreach (Transform cell in PnlMessage.layout.transform)
@@ -63,6 +71,11 @@ namespace Multiplayer.Managers
             localPlayer.MultiplayerStats.Achievements.Add(DateTime.UtcNow,achievement);
             PlayerManager.SyncLocalPlayer();
 
+            if (UIManager.ProfileWindow.Player == localPlayer)
+            {
+                UIManager.AchievementsWindow.Update(localPlayer);
+            }
+
             QueuedAchievements.Add(achievement);
             if (instantAnim) PlayAchievementAnimation();
 
@@ -75,7 +88,7 @@ namespace Multiplayer.Managers
 
             Achievements = new()
             {
-                new("Welcome!",Localization.Get("Achievements","Welcome!"))
+                new("Welcome!")
             };
         }
     }

@@ -1,6 +1,9 @@
 ﻿using Il2Cpp;
+using Il2CppAssets.Scripts.PeroTools.Nice.Events;
 using Il2CppAssets.Scripts.UI.Panels.Menu;
+using Multiplayer.Managers;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Multiplayer.UI
@@ -12,10 +15,10 @@ namespace Multiplayer.UI
 
         internal MainMenuOpenButton()
         {
-            Init();
+            Create();
         }
 
-        internal void Init()
+        internal void Create()
         {
             if (Button != null) { return; }
 
@@ -47,6 +50,7 @@ namespace Multiplayer.UI
 
             ButtonComponent = Button.GetComponent<Button>();
             ButtonComponent.onClick.RemoveAllListeners();
+            ButtonComponent.onClick.AddListener((UnityAction)new Action(UIManager.MainMenu.Open));
         }
     }
 }

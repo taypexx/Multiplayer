@@ -1,4 +1,5 @@
-﻿using Il2CppAssets.Scripts.UI.Panels;
+﻿using Il2Cpp;
+using Il2CppAssets.Scripts.UI.Panels;
 using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
@@ -13,12 +14,12 @@ namespace Multiplayer.UI
 {
     internal sealed class ProfileWindow : BaseMultiplayerWindow
     {
-        private ForumObject RankButton;
+        private ForumObject StatsButton;
         private ForumObject FriendsButton;
         private ForumObject AchievementsButton;
         private ForumObject HQStatsButton;
-        private ForumObject MoeStatsButton;
         private ForumObject FriendRequestButton;
+        private ForumObject RefreshButton;
 
         private PromptWindow FriendRequestPrompt;
         private PromptWindow UnfriendPrompt;
@@ -26,6 +27,9 @@ namespace Multiplayer.UI
         private int FriendButtonState;
         private Dictionary<int, LocalString> FriendButtonTitles;
         private Dictionary<int, LocalString> FriendButtonResponses;
+
+        private GameObject AvatarBox;
+        private HeadItem AvatarHeadItem;
 
         // The Player whose stats are displayed in this window.
         internal Player Player;
@@ -38,7 +42,7 @@ namespace Multiplayer.UI
                 [1] = Localization.Get("ProfileWindow", "CancelFriendRequest"),
                 [2] = Localization.Get("ProfileWindow", "RemoveFriend"),
                 [3] = Localization.Get("ProfileWindow", "AddFriend"),
-                [4] = new(),
+                [4] = null,
             };
 
             FriendButtonResponses = new()
@@ -47,25 +51,42 @@ namespace Multiplayer.UI
                 [1] = Localization.Get("ProfileWindow", "CancelFriendRequestSuccess"),
                 [2] = Localization.Get("ProfileWindow", "RemoveFriendSuccess"),
                 [3] = Localization.Get("ProfileWindow", "AddedFriend"),
-                [4] = FriendButtonTitles[4]
+                [4] = null
             };
 
             FriendRequestPrompt = new(Localization.Get("ProfileWindow", "DecideFriendRequestPrompt"));
+            FriendRequestPrompt.AutoReset = true;
             FriendRequestPrompt.OnCompletion += OnFriendActionDecided;
 
             UnfriendPrompt = new(Localization.Get("ProfileWindow", "DecideUnfriendPrompt"));
+            UnfriendPrompt.AutoReset = true;
             UnfriendPrompt.OnCompletion += OnFriendActionDecided;
+
+            Window.OnEarlyInternalShow += OnShow;
+            Window.OnCompletion += OnCompletion;
         }
 
         internal void CreateButtons()
         {
-            RankButton = AddButton(Localization.Get("ProfileWindow", "Rank"));
+            StatsButton = AddButton(Localization.Get("ProfileWindow", "Stats"));
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"), UIManager.FriendsWindow);
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
-            MoeStatsButton = AddButton(Localization.Get("ProfileWindow", "MoeStats"));
             FriendRequestButton = AddButton(Localization.Get("ProfileWindow", "AddFriend"));
+            RefreshButton = AddButton(Localization.Get("Window", "RefreshButton"),Window);
             AddReturnButton();
+        }
+
+        internal void CreateAvatarBox()
+        {
+            AvatarBox = GameObject.Instantiate(
+                GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>().headGridView.templateHeadItem.m_Button.gameObject,
+                UIManager.WindowTitle.transform
+            );
+            AvatarBox.transform.localScale = new(0.8f, 0.8f, 0.8f);
+            AvatarBox.transform.localPosition = new(333f, -166f, 0f);
+            AvatarHeadItem = AvatarBox.GetComponent<HeadItem>();
+            AvatarHeadItem.m_ImgLock.gameObject.SetActive(false);
         }
 
         private async void OnFriendActionDecided(BaseWindow window = null)
@@ -124,7 +145,23 @@ namespace Multiplayer.UI
                 {
                     OnFriendActionDecided();
                 }
+            } else if (button == RefreshButton)
+            {
+                Player.Update(true);
+                Update(Player);
             }
+        }
+
+        internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        {
+            base.OnShow(window);
+            AvatarBox.SetActive(true);
+        }
+
+        internal override void OnCompletion(BaseWindow window)
+        {
+            base.OnCompletion(window);
+            AvatarBox.SetActive(false);
         }
 
         /// <summary>
@@ -135,26 +172,31 @@ namespace Multiplayer.UI
         {
             Player = player;
 
-            RankButton.Contents = new
+            StatsButton.Contents = new
             (
-                $"ELO: {Player.MultiplayerStats.ELO}\n\n" +
-                $"Rank: {Player.MultiplayerStats.Rank}"
+                $"{Player.MultiplayerStats.Bio}\n\n" +
+
+                $"[ ELO ]: <color=1eff00ff>{Player.MultiplayerStats.ELO}</color>\n" +
+                $"[ Rank ]: <color=fff700ff>{Player.MultiplayerStats.Rank}</color>\n" +
+                $"[ LVL ]: <color=1eff00ff>{Player.MultiplayerStats.Level}</color>\n" +
+                $"[ RL ]: <color=1eff00ff>{Player.MoeStats.RL}</color>\n" +
+                $"[ Records ]: <color=fff700ff>{Player.MoeStats.Records}</color>\n" +
+                $"[ APs ]: <color=fff700ff>{Player.MoeStats.APs}</color>\n" +
+                $"[ Average Accuracy ]: <color=fff700ff>{Player.MoeStats.AverageAccuracy}%</color>"
             );
+            AchievementsButton.Contents = StatsButton.Contents;
+            FriendsButton.Contents = StatsButton.Contents;
+            FriendRequestButton.Contents = StatsButton.Contents;
+            RefreshButton.Contents = StatsButton.Contents;
+            ReturnButton.Contents = StatsButton.Contents;
 
             UIManager.FriendsWindow.Update(player);
             UIManager.AchievementsWindow.Update(player);
 
-            MoeStatsButton.Contents = new
-            (
-                $"RL: {Player.MoeStats.RL}\n\n" +
-                $"Records: {Player.MoeStats.Records}\n" +
-                $"APs: {Player.MoeStats.APs}\n" +
-                $"Average Accuracy: {Player.MoeStats.AverageAccuracy}%"
-            );
+            Title = Player.MultiplayerStats.NameLocal;
+            AvatarHeadItem.m_ImgHead.sprite = PnlHead.GetSprite(Player.MultiplayerStats.AvatarName);
 
             Player localPlayer = PlayerManager.LocalPlayer;
-
-            Title = Player.MultiplayerStats.NameLocal;
 
             FriendButtonState =
                 Player == localPlayer ? 4 :

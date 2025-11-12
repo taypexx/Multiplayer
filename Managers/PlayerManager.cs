@@ -15,6 +15,8 @@ namespace Multiplayer.Managers
         /// <returns>A <see cref="Player"/> that was cached or a new instance.</returns>
         internal static Player GetPlayer(string uid)
         {
+            if (!Client.Connected) return null;
+
             foreach (Player player in CachedPlayers) 
             {
                 if (player.Uid == uid)
@@ -36,6 +38,8 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static async void SyncLocalPlayer()
         {
+            if (!Client.Connected) return;
+
             var achievementsConverted = new Dictionary<long, byte>();
             foreach ((DateTime timestamp, Achievement achievement) in LocalPlayer.MultiplayerStats.Achievements)
             {
@@ -47,6 +51,8 @@ namespace Multiplayer.Managers
                 Uid = LocalPlayer.Uid,
                 Name = LocalPlayer.MultiplayerStats.Name,
                 AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
+                Bio = LocalPlayer.MultiplayerStats.Bio,
+                Level = LocalPlayer.MultiplayerStats.Level,
                 Achievements = achievementsConverted,
                 Token = Client.Token,
             };

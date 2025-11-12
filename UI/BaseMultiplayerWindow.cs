@@ -159,11 +159,12 @@ namespace Multiplayer.UI
         {
             if (Title is null) return;
             UIManager.WindowTitle.text = Title.ToString();
+            UIManager.WindowTitle.gameObject.SetActive(true);
         }
 
         internal virtual void OnCompletion(BaseWindow window)
         {
-            UIManager.WindowTitle.text = string.Empty;
+            UIManager.WindowTitle.gameObject.SetActive(false);
         }
     }
 }

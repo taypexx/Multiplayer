@@ -16,11 +16,13 @@
   <ItemGroup>
     <None Remove="Assets\UI\fishingcat.jpg" />
     <None Remove="Assets\UI\gemi.jpg" />
+    <None Remove="Localization\English.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\UI\fishingcat.jpg" />
     <EmbeddedResource Include="Assets\UI\gemi.jpg" />
+    <EmbeddedResource Include="Localization\English.json" />
   </ItemGroup>
 
   <ItemGroup>

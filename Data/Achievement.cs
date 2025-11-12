@@ -10,11 +10,11 @@ namespace Multiplayer.Data
         public LocalString Name { get; private set; }
         public LocalString Description { get; private set; }
 
-        public Achievement(string name, LocalString description) 
+        public Achievement(string name) 
         {
             Id = IdInc; IdInc++;
             Name = new(name);
-            Description = description;
+            Description = Localization.Get("Achievements", name);
         }
     }
 }

@@ -1,6 +1,10 @@
-﻿using Il2CppAssets.Scripts.UI.Panels;
+﻿using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.UI.Panels;
+using Il2CppSirenix.Serialization.Utilities;
+using LocalizeLib;
 using Multiplayer.Managers;
 using PopupLib.UI.Components;
+using PopupLib.UI.Windows;
 using UnityEngine;
 
 namespace Multiplayer.UI
@@ -9,26 +13,55 @@ namespace Multiplayer.UI
     {
         private ForumObject MyProfileButton;
         private ForumObject AvatarButton;
+        private ForumObject BioButton;
         private ForumObject FriendRequestsButton;
         private ForumObject LobbiesButton;
         private ForumObject CompetitiveButton;
         private ForumObject CreditsButton;
 
+        private InputWindow BioWindow;
         private static PnlHead PnlHead => GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>();
+        private static bool PnlHeadWasOpened = false;
+
+        private static LocalString MainDescription => Localization.Get("MainMenu", "Description");
 
         internal MainMenu() : base(Localization.Get("MainMenu", "Title"))
         {
+            BioWindow = new(Localization.Get("MainMenu", "BioDescription"));
+            BioWindow.AutoReset = true;
+            BioWindow.OnCompletion += OnBioCompletion;
+
+            PnlHead.onClose += (Action)PnlHeadClosed;
         }
 
         internal void CreateButtons()
         {
-            MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, null);
-            AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), PnlHead);
-            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"));
-            LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"));
-            CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"));
+            MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, MainDescription, "gemi.jpg");
+            AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), PnlHead, MainDescription);
+            BioButton = AddButton(Localization.Get("MainMenu", "Bio"), BioWindow, MainDescription);
+            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), null, MainDescription);
+            LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
+            CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
             CreditsButton = AddButton(Localization.Get("MainMenu", "CreditsTitle"), null, Localization.Get("MainMenu","Credits"));
-            AddReturnButton(null);
+            AddReturnButton(MainDescription);
+        }
+
+        internal void PnlHeadClosed()
+        {
+            if (PlayerManager.LocalPlayer is null) return;
+
+            string newAvatarName = "head_" + DataHelper.selectedHeadIndex.ToString();
+            if (PlayerManager.LocalPlayer.MultiplayerStats.AvatarName != newAvatarName)
+            {
+                PlayerManager.LocalPlayer.MultiplayerStats.AvatarName = newAvatarName;
+                PlayerManager.SyncLocalPlayer();
+            }
+
+            if (PnlHeadWasOpened)
+            {
+                PnlHeadWasOpened = false;
+                Open();
+            }
         }
 
         internal void Open()
@@ -75,6 +108,27 @@ namespace Multiplayer.UI
         {
             base.OnShow(window);
             UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer);
+        }
+
+        internal void OnBioCompletion(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        {
+            Window.Show();
+            if (BioWindow.Result.IsNullOrWhitespace()) return;
+
+            PlayerManager.LocalPlayer.MultiplayerStats.Bio = BioWindow.Result;
+            PlayerManager.SyncLocalPlayer();
+        }
+
+        internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
+        {
+            base.OnButtonClick(window, objectIndex);
+
+            ForumObject button = Window.ForumObjects[objectIndex];
+
+            if (button == AvatarButton)
+            {
+                PnlHeadWasOpened = true;
+            }
         }
     }
 }

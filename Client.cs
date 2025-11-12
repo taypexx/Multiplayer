@@ -98,7 +98,6 @@ namespace Multiplayer
             TriedConnecting = true;
 
             string uid = DataHelper.PeroUid;
-            string playerName = DataHelper.nickname;
             if (uid == null) return;
 
             Main.Logger.Msg("Connecting to the server...");
@@ -109,7 +108,7 @@ namespace Multiplayer
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Http.DefaultRequestHeaders.ConnectionClose = false;
 
-            var response = await PostAsync("connect", new { Uid = uid, Name =  playerName});
+            var response = await PostAsync("connect", new { Uid = uid});
             if (response != null)
             {
                 Token = await response.Content.ReadFromJsonAsync<string>();

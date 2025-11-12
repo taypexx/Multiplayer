@@ -1,190 +1,72 @@
 ﻿using LocalizeLib;
+using Multiplayer.Managers;
+using System.Reflection;
+using System.Text.Json;
 
 namespace Multiplayer
 {
     internal static class Localization
     {
-        private static Dictionary<string, Dictionary<string, LocalString>> Strings;
+        private static Dictionary<string, Dictionary<string,LocalString>> Strings = new();
         private static LocalString Empty = new();
+        private static Dictionary<int,string> Languages = new() 
+        { 
+            [0] = "English",
+            [1] = "Japanese",
+            [2] = "Korean",
+            [3] = "ChineseSimplified",
+            [4] = "ChineseTraditional",
+        };
 
         /// <summary>
-        /// Returns a <see cref="LocalString"/> of the given <paramref name="category"/> and <paramref name="name"/> or an empty <see cref="LocalString"/> if not found.
+        /// Returns a <see cref="LocalString"/> of the given <paramref name="category"/> and <paramref name="key"/> or an empty <see cref="LocalString"/> if not found.
         /// </summary>
         /// <returns>A <see cref="LocalString"/> reference.</returns>
-        internal static LocalString Get(string category,string name)
+        internal static LocalString Get(string category, string key)
         {
-            if (!Strings.TryGetValue(category, out var dic)) { return Empty; }
-            if (!dic.TryGetValue(name, out var localstr)) { return Empty; }
+            if (!Strings.TryGetValue(category, out var dic)) return Empty;
+            if (!dic.TryGetValue(key, out var localstr)) return Empty;
             return localstr;
         }
 
         internal static void Init()
         {
-            Strings = new()
+            foreach ((int i, string language) in Languages)
             {
-                ["Warning"] = new() 
+                string localizationJson = AssetManager.GetStringAsset($"Localization.{language}.json");
+                if (localizationJson is null)
                 {
-                    ["Title"] = new()
+                    Main.Logger.Error($"Failed to load {language} localization!");
+                    continue;
+                }
+
+                foreach ((string category, var dic) in JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(localizationJson))
+                {
+                    if (!Strings.ContainsKey(category)) Strings.Add(category, new());
+
+                    foreach ((string key, string text) in dic)
                     {
-                        English = "Warning"
-                    },
-                    ["NoAccount"] = new()
-                    {
-                        English = "You are not logged in! Please log in to play multiplayer."
-                    },
-                    ["Offline"] = new()
-                    {
-                        English = "Couldn't connect to the multiplayer server. Do you want to try again?"
+                        switch (i)
+                        {
+                            case 0:
+                                Strings[category][key] = new(text);
+                                break;
+                            case 1:
+                                Strings[category][key].Japanese = text;
+                                break;
+                            case 2:
+                                Strings[category][key].Korean = text;
+                                break;
+                            case 3:
+                                Strings[category][key].ChineseSimplified = text;
+                                break;
+                            case 4:
+                                Strings[category][key].ChineseTraditional = text;
+                                break;
+                        }
                     }
-                },
-                ["Window"] = new()
-                {
-                    ["ReturnButton"] = new()
-                    {
-                        English = "Back"
-                    },
-                    ["ExitButton"] = new()
-                    {
-                        English = "Exit"
-                    }
-                },
-                ["MainMenu"] = new()
-                {
-                    ["Title"] = new()
-                    {
-                        English = "Multiplayer"
-                    },
-                    ["Open"] = new()
-                    {
-                        English = "Multiplayer"
-                    },
-                    ["Connecting"] = new()
-                    {
-                        English = "Connecting to the server..."
-                    },
-                    ["LocalPlayerBanned"] = new()
-                    {
-                        English = "You have been banned from multiplayer servers. If you wish to appeal contact @cvle. or @taypexx in discord."
-                    },
-                    ["MyProfile"] = new()
-                    {
-                        English = "My Profile"
-                    },
-                    ["Avatar"] = new()
-                    {
-                        English = "Avatar"
-                    },
-                    ["FriendRequests"] = new()
-                    {
-                        English = "Friend Requests"
-                    },
-                    ["Lobbies"] = new()
-                    {
-                        English = "Lobbies"
-                    },
-                    ["Competitive"] = new()
-                    {
-                        English = "Competitive"
-                    },
-                    ["CreditsTitle"] = new()
-                    {
-                        English = "Credits"
-                    },
-                    ["Credits"] = new()
-                    {
-                        English = "———| CREDITS |———\n\n" +
-                        "<color=f542adff>taypexx</color> — Muse Dash mod development\n" +
-                        "<color=f542adff>7OU</color> — Backend development\n" +
-                        "<color=1eff00ff>PBalint817</color> — Additional libraries (PopupLib & LocalizeLib)\n" +
-                        "<color=fff700ff>???</color> — Traditional Chinese translation\n" +
-                        "<color=fff700ff>???</color> — Simplified Chinese translation\n" +
-                        "<color=fff700ff>???</color> — Korean translation\n" +
-                        "<color=fff700ff>???</color> — Japanese translation\n"
-                    },
-                },
-                ["ProfileWindow"] = new()
-                {
-                    ["Title"] = new()
-                    {
-                        English = "Profile"
-                    },
-                    ["Rank"] = new()
-                    {
-                        English = "Rank"
-                    },
-                    ["Friends"] = new()
-                    {
-                        English = "Friends"
-                    },
-                    ["Achievements"] = new()
-                    {
-                        English = "Achievements"
-                    },
-                    ["HQStats"] = new()
-                    {
-                        English = "Headquarters Stats"
-                    },
-                    ["MoeStats"] = new()
-                    {
-                        English = "MuseDash.moe"
-                    },
-                    ["AddFriend"] = new()
-                    {
-                        English = "Send a friend request"
-                    },
-                    ["RemoveFriend"] = new()
-                    {
-                        English = "Unfriend"
-                    },
-                    ["DecideFriendRequest"] = new()
-                    {
-                        English = "Accept/reject the friend request"
-                    },
-                    ["CancelFriendRequest"] = new()
-                    {
-                        English = "Cancel friend request"
-                    },
-                    ["DecideFriendRequestPrompt"] = new()
-                    {
-                        English = "Accept the friend request?"
-                    },
-                    ["DecideUnfriendPrompt"] = new()
-                    {
-                        English = "Are you sure you want to unfriend this person?"
-                    },
-                    ["AddFriendSuccess"] = new()
-                    {
-                        English = "Request sent"
-                    },
-                    ["RemoveFriendSuccess"] = new()
-                    {
-                        English = "Unfriended!"
-                    },
-                    ["CancelFriendRequestSuccess"] = new()
-                    {
-                        English = "Cancelled friend request"
-                    },
-                    ["AddedFriend"] = new()
-                    {
-                        English = "New friend added!"
-                    },
-                },
-                ["Achievements"] = new()
-                {
-                    ["Title"] = new()
-                    {
-                        English = "Achievements"
-                    },
-                    ["AchievedOn"] = new()
-                    {
-                        English = "Achieved on"
-                    },
-                    ["Welcome!"] = new()
-                    {
-                        English = "Launch the multiplayer for the first time."
-                    }
-                },
-            };
+                }
+            }
         }
     }
 }

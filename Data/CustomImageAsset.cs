@@ -5,22 +5,11 @@ namespace Multiplayer.Data
 {
     public class CustomImageAsset
     {
-        internal string Path {  get; private set; }
         internal Texture2D Texture { get; private set; }
         internal Sprite Sprite { get; private set; }
 
-        internal CustomImageAsset(string path, bool isFull = false)
+        internal CustomImageAsset(byte[] bytes)
         {
-            Path = isFull ? path : System.IO.Path.Combine(AssetManager.AssetsPath, "Multiplayer.Assets." + path);
-            Load();
-        }
-
-        private void Load()
-        {
-            if (!File.Exists(Path)) return;
-
-            byte[] bytes = File.ReadAllBytes(Path);
-
             Texture = new Texture2D(2, 2, TextureFormat.ARGB32, false)
             {
                 wrapMode = TextureWrapMode.MirrorOnce

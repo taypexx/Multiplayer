@@ -12,6 +12,15 @@ namespace Multiplayer.Data.Stats
         public string Name { get; private set; }
         public LocalString NameLocal { get; private set; }
         public string AvatarName { get; internal set; }
+        public string Bio { get; internal set; }
+        public int Level { 
+            get { 
+                return Player == PlayerManager.LocalPlayer ? DataHelper.Level : field; 
+            } private set {
+                if (Player == PlayerManager.LocalPlayer) return;
+                field = value;
+            } 
+        }
 
         public List<Player> Friends { get; internal set; }
         public Dictionary<string, string> FriendRequests { get; private set; }
@@ -26,10 +35,14 @@ namespace Multiplayer.Data.Stats
             Player = player;
             Name = DataHelper.nickname ?? player.Uid;
             NameLocal = new(Name);
-            AvatarName = "default";
+            AvatarName = "head_0";
+            Bio = "This player did not set their bio.";
+            Level = 1;
+
             Friends = new();
             FriendRequests = new();
             Achievements = new();
+
             ELO = 1500;
             Banned = false;
         }
@@ -40,6 +53,7 @@ namespace Multiplayer.Data.Stats
             {
                 SelfUid = PlayerManager.LocalPlayer?.Uid ?? Player.Uid,
                 TargetUid = Player.Uid,
+                Name = DataHelper.nickname,
                 Token = Client.Token
             };
 
@@ -51,6 +65,8 @@ namespace Multiplayer.Data.Stats
             Name = updatedData["Name"].GetString();
             NameLocal = new(Name);
             AvatarName = updatedData["AvatarName"].GetString();
+            Bio = updatedData["Bio"].GetString();
+            Level = updatedData["Level"].GetInt32();
 
             Friends.Clear();
             var updatedFriends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"].GetRawText());
@@ -70,7 +86,7 @@ namespace Multiplayer.Data.Stats
             }
             catch (Exception e)
             {
-                Main.Logger.Warning(e.ToString());
+                //Main.Logger.Warning(e.ToString());
             }
 
             FriendRequests.Clear();
@@ -80,7 +96,7 @@ namespace Multiplayer.Data.Stats
             }
             catch (Exception e)
             {
-                Main.Logger.Warning(e.ToString());
+                //Main.Logger.Warning(e.ToString());
             }
 
             ELO = updatedData["ELO"].GetUInt16();

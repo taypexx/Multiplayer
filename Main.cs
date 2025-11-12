@@ -41,6 +41,7 @@ namespace Multiplayer
                 UIManager.InitUISystemMain();
 
                 AchievementManager.PlayAchievementAnimation();
+                PlayerManager.SyncLocalPlayer();
             } else if (sceneName == "GameMain")
             {
 
@@ -65,7 +66,6 @@ namespace Multiplayer
         public override void OnApplicationQuit()
         {
             base.OnApplicationQuit();
-            AssetManager.CleanupDirectory();
         }
     }
 }

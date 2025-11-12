@@ -14,6 +14,7 @@ namespace Multiplayer.UI
 
         internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
         {
+            base.OnShow(window);
             AchievementManager.Achieve(0);
         }
 
@@ -27,7 +28,10 @@ namespace Multiplayer.UI
 
             foreach ((DateTime date, Achievement achievement) in player.MultiplayerStats.Achievements)
             {
-                AddButton(achievement.Name, null, new($"{achievement.Description}\n\n{Localization.Get("Achievements", "AchievedOn")}: {date} UTC"));
+                AddButton(achievement.Name, null, new(
+                    $"{achievement.Description}\n\n" +
+                    $"[ {Localization.Get("Achievements", "AchievedOn")} ]: <color=fff700ff>{date.ToLocalTime()}</color>"
+                ));
             }
         }
     }
