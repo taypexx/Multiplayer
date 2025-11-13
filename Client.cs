@@ -7,6 +7,8 @@ using System.Security.Cryptography;
 using System.Net.Http.Json;
 using PopupLib.UI;
 using Multiplayer.UI;
+using System.Text.Json;
+using LocalizeLib;
 
 namespace Multiplayer
 {
@@ -14,6 +16,10 @@ namespace Multiplayer
     {
         internal static bool Connected { get; private set; } = false;
         internal static bool TriedConnecting { get; private set; } = false;
+
+        internal static bool Outdated => ServerVersion != Main.Version;
+        internal static string ServerVersion { get; private set; }
+        private static LocalString OutdatedWarning; 
 
         internal static string Token { get; private set; } = string.Empty;
         private static readonly string Endpoint = Settings.Config.MultiplayerAPI;
@@ -97,6 +103,12 @@ namespace Multiplayer
             PopupUtils.ShowInfo(Localization.Get("MainMenu", "Connecting"));
             TriedConnecting = true;
 
+            if (!DataHelper.isLogin)
+            {
+                UIManager.WarnNotification(Localization.Get("Warning", "NoAccount"));
+                return;
+            }
+
             string uid = DataHelper.PeroUid;
             if (uid == null) return;
 
@@ -111,8 +123,17 @@ namespace Multiplayer
             var response = await PostAsync("connect", new { Uid = uid});
             if (response != null)
             {
-                Token = await response.Content.ReadFromJsonAsync<string>();
+                var content = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();
 
+                ServerVersion = content["Version"].GetString();
+                if (Outdated)
+                {
+                    OutdatedWarning = new(string.Format(Localization.Get("Warning", "Outdated").ToString(), Main.Version, ServerVersion));
+                    Main.Logger.Error("Outdated version of the mod, cannot proceed!");
+                    return;
+                }
+
+                Token = content["Token"].GetString();
                 Connected = true;
                 Main.Logger.Success("Connected to the server successfully!");
             }
@@ -148,6 +169,12 @@ namespace Multiplayer
             Connected = false;
 
             Http.Dispose();
+
+            if (Outdated)
+            {
+                UIManager.WarnNotification(OutdatedWarning);
+                return;
+            }
 
             UIManager.WarningChooseAction = ReconnectOption;
             UIManager.WarnChooseNotification(Localization.Get("Warning","Offline"));

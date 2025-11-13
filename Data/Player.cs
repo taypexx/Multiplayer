@@ -25,7 +25,7 @@ namespace Multiplayer.Data
         }
 
         /// <summary>
-        /// Updates the <see cref="Player"/>.
+        /// Updates stats of the <see cref="Player"/>.
         /// </summary>
         /// <param name="fullUpdate">Whether to update HQStats and MoeStats as well.</param>
         internal void Update(bool fullUpdate = false)
@@ -37,15 +37,6 @@ namespace Multiplayer.Data
                 HQStats.Update();
                 MoeStats.Update();
             }
-        }
-
-        /// <summary>
-        /// Updates the player in-battle stats.
-        /// </summary>
-        /// <param name="battleStats">Updated <see cref="Data.Stats.BattleStats"/>.</param>
-        internal void UpdateBattle(BattleStats battleStats)
-        {
-            BattleStats = battleStats;
         }
     }
 }

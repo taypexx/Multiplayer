@@ -47,6 +47,9 @@ namespace Multiplayer.Data.Stats
             Banned = false;
         }
 
+        /// <summary>
+        /// Synchronizes stats with the server.
+        /// </summary>
         internal async void Update()
         {
             var payload = new

@@ -1,0 +1,20 @@
+Mod dependencies:
+Custom Albums, Headquarters, PopupLib, LocalizeLib
+
+Banner ratio is 507 : 167
+
+TODO:
+
+Friends system (requests etc)
+Properly display achievements
+Make the settings window
+Lobby system (private and public ones)
+Chat in the lobby (funny asf imo)
+Make so that you can't play charts when in lobby until the hosts decides to do so (also kick out of the chart if you got there somehow)
+Somehow toggle quick restart when in battle (multiplayer battle only) (and also toggle default pause option)
+Synchronize gameplay in battle via tcp or udp
+
+Finish discord rpc stuff
+Add more achievements
+Localization
+Comment everything important

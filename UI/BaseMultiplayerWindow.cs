@@ -14,7 +14,9 @@ namespace Multiplayer.UI
     {
         internal LocalString Title { get; set; }
         internal ForumWindow Window { get; private set; }
-        internal static Image BannerImage => GameObject.Find("UI/Forward/Tips/PnlBulletinNew/ImgBase/ScrollView/Viewport/Content/Image").GetComponent<Image>();
+
+        internal static Image BannerImageComponent => GameObject.Find("UI/Forward/Tips/PnlBulletinNew/ImgBase/ScrollView/Viewport/Content/Image").GetComponent<Image>();
+        internal CustomImageAsset Banner { get; private set; }
 
         internal ForumObject ReturnButton { get; private set; }
         internal bool HasReturnButton => ReturnButton != null;
@@ -24,10 +26,13 @@ namespace Multiplayer.UI
         internal Dictionary<ForumObject,object> ButtonsWindows { get; private set; }
 
         /// <param name="title">Title of the window.</param>
-        /// <param name="returnWindow">Window to open after this one is closed.</param>
-        internal BaseMultiplayerWindow(LocalString title, BaseMultiplayerWindow returnWindow = null) 
+        /// <param name="returnWindow">(Optional) Window to open after this one is closed.</param>
+        /// <param name="bannerAssetName">(Optional) Path to the image asset relative to "Multiplayer.Assets.UI".</param>
+        internal BaseMultiplayerWindow(LocalString title, BaseMultiplayerWindow returnWindow = null, string bannerAssetName = null) 
         {
             Title = title;
+            if (bannerAssetName != null) Banner = AssetManager.GetImageAsset("UI." + bannerAssetName);
+
             ReturnWindow = returnWindow;
             ButtonsWindows = new();
 
@@ -45,24 +50,13 @@ namespace Multiplayer.UI
         /// <param name="buttonName">Localized text to be displayed on the button.</param>
         /// <param name="windowToOpen">(Optional) Window to open when the button is pressed.</param>
         /// <param name="content">(Optional) Text to be displayed on the main frame.</param>
-        /// <param name="bannerAssetName">(Optional) Asset name of the banner image relative to Assets.UI.</param>
         /// <returns>A new button.</returns>
-        internal ForumObject AddButton(LocalString buttonName, object windowToOpen = null, LocalString content = null, string bannerAssetName = null)
+        internal ForumObject AddButton(LocalString buttonName, object windowToOpen = null, LocalString content = null)
         {
-            if (content == null) { content = new(); }
+            if (content == null) content = new();
 
             ForumObject button = new(buttonName, content);
-
-            if (bannerAssetName != null)
-            {
-                CustomImageAsset banner = AssetManager.GetImageAsset("UI." + bannerAssetName);
-                if (banner != null) 
-                {
-                    // Assigning it to the image component because otherwise unity GC will destroy it
-                    BannerImage.sprite = banner.Sprite;
-                    button.Texture = banner.Texture;
-                }
-            }
+            button.Texture = Banner?.Texture;
 
             Window.ForumObjects.Add(button);
             ButtonsWindows.Add(button, windowToOpen);
@@ -109,10 +103,10 @@ namespace Multiplayer.UI
         /// </summary>
         /// <param name="content">(Optional) Text to be displayed on the main frame.</param>
         /// <param name="bannerAssetName">(Optional) Asset name of the banner image relative to Assets.UI.</param>
-        internal void AddReturnButton(LocalString content = null, string bannerAssetName = null)
+        internal void AddReturnButton(LocalString content = null)
         {
             if (ReturnButton != null) return;
-            ReturnButton = AddButton(Localization.Get("Window", HasReturnWindow ? "ReturnButton" : "ExitButton"),null,content,bannerAssetName);
+            ReturnButton = AddButton(Localization.Get("Window", HasReturnWindow ? "ReturnButton" : "ExitButton"),null,content);
         }
 
         internal virtual void OnReturnButtonClick()

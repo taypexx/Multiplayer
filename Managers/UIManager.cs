@@ -27,12 +27,21 @@ namespace Multiplayer.Managers
         internal static FriendsWindow FriendsWindow { get; private set; }
         internal static AchievementsWindow AchievementsWindow { get; private set; }
 
+        /// <summary>
+        /// Displays a warning popup with the given <see cref="LocalString"/>.
+        /// </summary>
+        /// <param name="warning">Warning message.</param>
         internal static void WarnNotification(LocalString warning)
         {
             Warning.Text = warning;
             Warning.Show();
         }
 
+        /// <summary>
+        /// Displays a warning popup with the given <see cref="LocalString"/> and asks to continue or not.
+        /// WarningChooseAction (<see cref="Action"/>) will be invoked once the local player clicks on either of options.
+        /// </summary>
+        /// <param name="warning">Warning message.</param>
         internal static void WarnChooseNotification(LocalString warning)
         {
             WarningChoose.Text = warning;
@@ -47,6 +56,9 @@ namespace Multiplayer.Managers
             WarningChooseAction = null;
         }
 
+        /// <summary>
+        /// Initializes every time a UISystem_PC scene gets loaded.
+        /// </summary>
         internal static void InitUISystemMain()
         {
             var windowTitleGo = GameObject.Instantiate(

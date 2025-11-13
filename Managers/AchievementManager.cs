@@ -17,6 +17,18 @@ namespace Multiplayer.Managers
         private static Il2CppAssets.Scripts.GameCore.Managers.AchievementManager PeroAchievementManager => Singleton<Il2CppAssets.Scripts.GameCore.Managers.AchievementManager>.instance;
 
         /// <summary>
+        /// Performs an achievements check and rewards the local <see cref="Player"/> if some conditions are met.
+        /// </summary>
+        internal static void Check()
+        {
+            Player localPlayer = PlayerManager.LocalPlayer;
+            if (localPlayer is null) return;
+
+            Achieve(0);
+            if (localPlayer.MultiplayerStats.ELO >= Rank.TopRankELO) Achieve(1);
+        }
+
+        /// <summary>
         /// Plays the vanilla achievement reward animation for every queued <see cref="Achievement"/>.
         /// </summary>
         internal static void PlayAchievementAnimation()
@@ -33,6 +45,9 @@ namespace Multiplayer.Managers
             _ = PatchAchievements();
         }
 
+        /// <summary>
+        /// Patches the default achievement animation and replaces the text to the custom one.
+        /// </summary>
         private static async Task PatchAchievements()
         {
             while (PnlMessage.layout.transform.childCount != QueuedAchievements.Count)
@@ -53,12 +68,12 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Adds an <see cref="Achievement"/> to the local <see cref="Player"/>'s profile.
+        /// Adds an <see cref="Achievement"/> to the local <see cref="Player"/>'s profile and synchronizes with the server.
         /// </summary>
         /// <param name="achievementId">ID of an <see cref="Achievement"/>.</param>
         /// <param name="instantAnim">Whether to play it instantly after getting or queue to play later.</param>
         /// <returns><see langword="true"/> if it was added successfully, otherwise <see langword="false"/>.</returns>
-        internal static bool Achieve(int achievementId, bool instantAnim = true)
+        internal static bool Achieve(int achievementId, bool instantAnim = false)
         {
             Player localPlayer = PlayerManager.LocalPlayer;
             if (localPlayer == null) return false;
@@ -88,7 +103,8 @@ namespace Multiplayer.Managers
 
             Achievements = new()
             {
-                new("Welcome!")
+                new("Welcome!"),
+                new("Autoplay.dll")
             };
         }
     }

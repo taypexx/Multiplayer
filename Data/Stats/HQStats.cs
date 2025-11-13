@@ -23,6 +23,9 @@
             Biography = "This user does not have anything interesting to say.";
         }
 
+        /// <summary>
+        /// Synchronizes stats with <see href="https://mdmc.moe"/>.
+        /// </summary>
         internal async void Update()
         {
             // TODO: Actually get the data from mdmc api and update the fields

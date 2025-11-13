@@ -41,7 +41,7 @@ namespace Multiplayer.Managers
 
                 ImageAssets.Add(relativePath, newAsset);
 
-                GameObject go = new("Img");
+                GameObject go = new(relativePath);
                 go.transform.parent = AssetHolder.transform;
                 go.AddComponent<Image>().sprite = newAsset.Sprite;
 

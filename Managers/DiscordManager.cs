@@ -6,12 +6,15 @@ namespace Multiplayer.Managers
 {
     internal static class DiscordManager
     {
-        internal static DiscordRpcClient Client { get; private set; }
+        private const string DiscordAppID = "1436371970206728301";
+        private const string MuseDashSteamID = "774171";
+
+        private static DiscordRpcClient Client;
         internal static User CurrentUser => Client?.CurrentUser;
         internal static bool Initialized => Client is null ? false : Client.IsInitialized;
-        internal static ulong StartTime { get; private set; }
+        private static ulong StartTime;
 
-        internal static Dictionary<RPCState, RichPresence> RPCs = new()
+        private static Dictionary<RPCState, RichPresence> RPCs = new()
         {
             [RPCState.Idle] = new() { State = "Idle" },
             [RPCState.InLobby] = new() { State = "In Lobby" },
@@ -20,12 +23,16 @@ namespace Multiplayer.Managers
             [RPCState.PlayingFriends] = new(),
             [RPCState.PlayingQueued] = new(),
         };
-        internal static RichPresence CurrentRPC => Client?.CurrentPresence;
+        private static RichPresence CurrentRPC => Client?.CurrentPresence;
+        private static RPCState CurrentRPCState;
 
-        internal static void UpdateRPC(RPCState rpcState)
+        /// <summary>
+        /// Updates the current <see cref="RichPresence"/> according to the local player's actions.
+        /// </summary>
+        internal static void UpdateRPC()
         {
             Lobby localLobby = LobbyManager.LocalLobby;
-            switch (rpcState)
+            switch (CurrentRPCState)
             {
                 case RPCState.Idle:
                     CurrentRPC.Details = string.Empty;
@@ -60,8 +67,13 @@ namespace Multiplayer.Managers
             }
         }
 
+        /// <summary>
+        /// Sets the current RPC to the given <see cref="RPCState"/>.
+        /// </summary>
         internal static void SetRPC(RPCState rpcState = RPCState.Idle)
         {
+            CurrentRPCState = rpcState;
+
             var rpc = RPCs.GetValueOrDefault(rpcState);
             rpc.Timestamps = new()
             {
@@ -69,13 +81,13 @@ namespace Multiplayer.Managers
             };
 
             Client.SetPresence(rpc);
-            UpdateRPC(rpcState);
+            UpdateRPC();
         }
 
         internal static void Init()
         {
-            Client = new DiscordRpcClient("1436371970206728301");
-            Client.RegisterUriScheme("774171");
+            Client = new DiscordRpcClient(DiscordAppID);
+            Client.RegisterUriScheme(MuseDashSteamID);
             Client.Initialize();
             StartTime = (ulong)new DateTimeOffset(DateTime.UtcNow.ToUniversalTime()).ToUnixTimeMilliseconds();
             SetRPC();

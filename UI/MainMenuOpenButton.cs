@@ -18,6 +18,9 @@ namespace Multiplayer.UI
             Create();
         }
 
+        /// <summary>
+        /// Creates a new button to open the main menu.
+        /// </summary>
         internal void Create()
         {
             if (Button != null) { return; }

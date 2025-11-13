@@ -2,7 +2,8 @@
   "Warning": {
     "Title": "Warning",
     "NoAccount": "You are not logged in! Please log in to play multiplayer.",
-    "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?"
+    "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?",
+    "Outdated": "Current mod version ({0}) is outdated. Please update to the latest version ({1}) to play multiplayer!"
   },
   "Window": {
     "RefreshButton": "— Refresh —",
@@ -11,7 +12,7 @@
   },
   "MainMenu": {
     "Title": "Multiplayer",
-    "Description": "Welcome to the <color=f542adff>Multiplayer</color>!\n\nHere you can play against other players, customize your profile, earn achievements, add friends and more!\nClick \"Lobbies\" to play with your friends or \"Competitive\" to play against random people.",
+    "Description": "Welcome to the <color=f542adff>Multiplayer</color>!\n\nHere you can play against other players,\ncustomize your profile, earn achievements,\nadd friends and more!\n\nClick \"Lobbies\" to play with your friends or \n\"Competitive\" to play against random people.",
     "Open": "Multiplayer",
     "Connecting": "Connecting to the server...",
     "LocalPlayerBanned": "You have been banned from multiplayer servers. If you wish to appeal please contact @cvle. or @taypexx in discord.",
@@ -23,7 +24,7 @@
     "Lobbies": "Lobbies",
     "Competitive": "Competitive",
     "CreditsTitle": "Credits",
-    "Credits": "———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries (PopupLib & LocalizeLib)\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\nName1, Name2, Name3"
+    "Credits": "———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\nName1, Name2, Name3"
   },
   "ProfileWindow": {
     "Title": "Profile",
@@ -45,6 +46,7 @@
   "Achievements": {
     "Title": "Achievements",
     "AchievedOn": "Achieved on",
-    "Welcome!": "Launch the multiplayer for the first time."
+    "Welcome!": "Launch the multiplayer for the first time.",
+    "Autoplay.dll":  "Reach the top rank in the multiplayer."
   }
 }

@@ -34,7 +34,7 @@ namespace Multiplayer.UI
         // The Player whose stats are displayed in this window.
         internal Player Player;
 
-        internal ProfileWindow() : base(Localization.Get("ProfileWindow","Title"), UIManager.MainMenu) 
+        internal ProfileWindow() : base(Localization.Get("ProfileWindow","Title"), UIManager.MainMenu, "Profile.png") 
         {
             FriendButtonTitles = new()
             {
@@ -176,10 +176,10 @@ namespace Multiplayer.UI
             (
                 $"{Player.MultiplayerStats.Bio}\n\n" +
 
-                $"[ ELO ]: <color=1eff00ff>{Player.MultiplayerStats.ELO}</color>\n" +
-                $"[ Rank ]: <color=fff700ff>{Player.MultiplayerStats.Rank}</color>\n" +
                 $"[ LVL ]: <color=1eff00ff>{Player.MultiplayerStats.Level}</color>\n" +
                 $"[ RL ]: <color=1eff00ff>{Player.MoeStats.RL}</color>\n" +
+                $"[ ELO ]: <color=1eff00ff>{Player.MultiplayerStats.ELO}</color>\n" +
+                $"[ Rank ]: <color=fff700ff>{Player.MultiplayerStats.Rank}</color>\n" +
                 $"[ Records ]: <color=fff700ff>{Player.MoeStats.Records}</color>\n" +
                 $"[ APs ]: <color=fff700ff>{Player.MoeStats.APs}</color>\n" +
                 $"[ Average Accuracy ]: <color=fff700ff>{Player.MoeStats.AverageAccuracy}%</color>"

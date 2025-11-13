@@ -7,6 +7,9 @@ namespace Multiplayer
 {
     public class Main : MelonMod
     {
+        public const string Name = "Multiplayer";
+        public const string Version = "1.0.0";
+
         internal static Dispatcher Dispatcher { get; private set; }
         internal static Logger Logger { get; private set; }
 
@@ -19,7 +22,7 @@ namespace Multiplayer
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
-            Logger = new("Multiplayer");
+            Logger = new(Name);
 
             Settings.Load();
             AssetManager.Init();
@@ -27,7 +30,7 @@ namespace Multiplayer
             BattleManager.Init();
             DiscordManager.Init();
 
-            Logger.Msg("Multiplayer was successfully initialized.");
+            Logger.Msg(Name + " was successfully initialized.");
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
@@ -40,7 +43,7 @@ namespace Multiplayer
                 UIManager.Init();
                 UIManager.InitUISystemMain();
 
-                AchievementManager.PlayAchievementAnimation();
+                AchievementManager.Check();
                 PlayerManager.SyncLocalPlayer();
             } else if (sceneName == "GameMain")
             {

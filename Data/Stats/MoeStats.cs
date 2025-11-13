@@ -22,6 +22,9 @@ namespace Multiplayer.Data.Stats
             AverageAccuracy = 0;
         }
 
+        /// <summary>
+        /// Synchronizes stats with <see href="https://musedash.moe"/>.
+        /// </summary>
         internal async void Update()
         {
             var response = await Client.GetAsync("https://api.musedash.moe/player/" + Player.Uid, true);

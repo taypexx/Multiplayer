@@ -20,6 +20,19 @@
             new(0, "Rookie", 0)
         };
 
+        public static ushort TopRankELO 
+        { 
+            get 
+            {
+                ushort top = 0;
+                foreach (var rank in RanksList)
+                {
+                    if (rank.ELO > top) top = rank.ELO;
+                }
+                return top;
+            } 
+        }
+
         public ushort ELO;
         public string Name;
         public byte SubRanks;

@@ -25,18 +25,18 @@ namespace Multiplayer.UI
 
         private static LocalString MainDescription => Localization.Get("MainMenu", "Description");
 
-        internal MainMenu() : base(Localization.Get("MainMenu", "Title"))
+        internal MainMenu() : base(Localization.Get("MainMenu", "Title"), null, "MainMenu.png")
         {
             BioWindow = new(Localization.Get("MainMenu", "BioDescription"));
             BioWindow.AutoReset = true;
             BioWindow.OnCompletion += OnBioCompletion;
 
-            PnlHead.onClose += (Action)PnlHeadClosed;
+            PnlHead.onClose += (Action)OnPnlHeadClose;
         }
 
         internal void CreateButtons()
         {
-            MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, MainDescription, "gemi.jpg");
+            MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, MainDescription);
             AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), PnlHead, MainDescription);
             BioButton = AddButton(Localization.Get("MainMenu", "Bio"), BioWindow, MainDescription);
             FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), null, MainDescription);
@@ -46,7 +46,10 @@ namespace Multiplayer.UI
             AddReturnButton(MainDescription);
         }
 
-        internal void PnlHeadClosed()
+        /// <summary>
+        /// Calls every time <see cref="Il2CppAssets.Scripts.UI.Panels.PnlHead"/> gets closed.
+        /// </summary>
+        internal void OnPnlHeadClose()
         {
             if (PlayerManager.LocalPlayer is null) return;
 
@@ -64,6 +67,9 @@ namespace Multiplayer.UI
             }
         }
 
+        /// <summary>
+        /// Opens the main menu if connected to the server, otherwise tries to connect first.
+        /// </summary>
         internal void Open()
         {
             if (UIManager.Debounce) return;
@@ -73,7 +79,13 @@ namespace Multiplayer.UI
                 if (PlayerManager.LocalPlayer == null) return;
                 if (!PlayerManager.LocalPlayer.MultiplayerStats.Banned)
                 {
-                    Window.Show();
+                    if (LobbyManager.LocalLobby == null)
+                    {
+                        Window.Show();
+                    } else
+                    {
+                        // Show the lobby window instead
+                    }
                 }
                 else
                 {
@@ -104,12 +116,9 @@ namespace Multiplayer.UI
             }
         }
 
-        internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
-        {
-            base.OnShow(window);
-            UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer);
-        }
-
+        /// <summary>
+        /// Calls every time the bio window gets closed.
+        /// </summary>
         internal void OnBioCompletion(PopupLib.UI.Windows.Abstract.BaseWindow window)
         {
             Window.Show();
@@ -117,6 +126,12 @@ namespace Multiplayer.UI
 
             PlayerManager.LocalPlayer.MultiplayerStats.Bio = BioWindow.Result;
             PlayerManager.SyncLocalPlayer();
+        }
+
+        internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        {
+            base.OnShow(window);
+            UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer);
         }
 
         internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)

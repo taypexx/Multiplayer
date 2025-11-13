@@ -34,7 +34,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Sends an update request to server to update some parameters in the db. Should be called when field(s) need(s) to be updated.
+        /// Synchronizes local <see cref="Player"/>'s stats with the server. Should be called when field(s) need(s) to be updated.
         /// </summary>
         internal static async void SyncLocalPlayer()
         {
@@ -75,12 +75,6 @@ namespace Multiplayer.Managers
 
         internal static void Init()
         {
-            if (!DataHelper.isLogin)
-            {
-                UIManager.WarnNotification(Localization.Get("Warning","NoAccount"));
-                return;
-            }
-
             CachedPlayers = new();
             LocalPlayer = GetPlayer(DataHelper.PeroUid);
         }

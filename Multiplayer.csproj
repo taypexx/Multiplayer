@@ -14,14 +14,18 @@
   </Target>
 
   <ItemGroup>
-    <None Remove="Assets\UI\fishingcat.jpg" />
-    <None Remove="Assets\UI\gemi.jpg" />
+    <None Remove="Assets\UI\Achievements.png" />
+    <None Remove="Assets\UI\Friends.png" />
+    <None Remove="Assets\UI\MainMenu.png" />
+    <None Remove="Assets\UI\Profile.png" />
     <None Remove="Localization\English.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Assets\UI\fishingcat.jpg" />
-    <EmbeddedResource Include="Assets\UI\gemi.jpg" />
+    <EmbeddedResource Include="Assets\UI\Achievements.png" />
+    <EmbeddedResource Include="Assets\UI\Friends.png" />
+    <EmbeddedResource Include="Assets\UI\MainMenu.png" />
+    <EmbeddedResource Include="Assets\UI\Profile.png" />
     <EmbeddedResource Include="Localization\English.json" />
   </ItemGroup>
 
@@ -77,7 +81,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\Avatars\" />
     <Folder Include="Patches\" />
   </ItemGroup>
 

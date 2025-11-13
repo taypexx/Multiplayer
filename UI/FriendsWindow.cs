@@ -9,7 +9,7 @@ namespace Multiplayer.UI
     {
         private Dictionary<ForumObject, Player> ButtonsFriends;
 
-        internal FriendsWindow() : base(Localization.Get("ProfileWindow", "Friends"), UIManager.ProfileWindow)
+        internal FriendsWindow() : base(Localization.Get("ProfileWindow", "Friends"), UIManager.ProfileWindow, "Friends.png")
         {
             ButtonsFriends = new();
             AddReturnButton();
