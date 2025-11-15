@@ -1,20 +1,25 @@
 Mod dependencies:
-Custom Albums, Headquarters, PopupLib, LocalizeLib
+Custom Albums, Headquarters(not as of now), PopupLib, LocalizeLib, DiscordRPC(userlibs)
 
 Banner ratio is 507 : 167
 
 TODO:
 
-Friends system (requests etc)
+Debounce when updating every func
+Proper updating (rework the logic)
+LVL fix
 Properly display achievements
 Make the settings window
 Lobby system (private and public ones)
 Chat in the lobby (funny asf imo)
+Play the demo of a chart in lobby and stop the current one
+Add the "Current selection" bar at the top left of the screen when for every member of a lobby with the name and cover of the chart
 Make so that you can't play charts when in lobby until the hosts decides to do so (also kick out of the chart if you got there somehow)
 Somehow toggle quick restart when in battle (multiplayer battle only) (and also toggle default pause option)
 Synchronize gameplay in battle via tcp or udp
 
+Fix pnlhead bug when loading uisystem main (breaks second time but not first)
 Finish discord rpc stuff
 Add more achievements
 Localization
-Comment everything important
+Comment everything importantZ

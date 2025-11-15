@@ -3,7 +3,8 @@
     "Title": "Warning",
     "NoAccount": "You are not logged in! Please log in to play multiplayer.",
     "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?",
-    "Outdated": "Current mod version ({0}) is outdated. Please update to the latest version ({1}) to play multiplayer!"
+    "Outdated": "Current mod version ({0}) is outdated. Please update to the latest version ({1}) to play multiplayer!",
+    "Unknown": "Unknown error occured!"
   },
   "Window": {
     "RefreshButton": "— Refresh —",
@@ -24,7 +25,7 @@
     "Lobbies": "Lobbies",
     "Competitive": "Competitive",
     "CreditsTitle": "Credits",
-    "Credits": "———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\nName1, Name2, Name3"
+    "Credits": "———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\nUntrustedURL, ???, ???"
   },
   "ProfileWindow": {
     "Title": "Profile",
@@ -32,13 +33,13 @@
     "Friends": "Friends",
     "Achievements": "Achievements",
     "HQStats": "Headquarters Stats",
-    "AddFriend": "Send a friend request",
+    "RequestSend": "Send a friend request",
     "RemoveFriend": "Unfriend",
-    "DecideFriendRequest": "Accept/reject the friend request",
+    "DecideFriendRequest": "Accept/reject friend request",
     "CancelFriendRequest": "Cancel friend request",
     "DecideFriendRequestPrompt": "Accept the friend request?",
     "DecideUnfriendPrompt": "Are you sure you want to unfriend this person?",
-    "AddFriendSuccess": "Request sent",
+    "RequestSendSuccess": "Request sent",
     "RemoveFriendSuccess": "Unfriended!",
     "CancelFriendRequestSuccess": "Cancelled friend request",
     "AddedFriend": "New friend added!"
@@ -47,6 +48,33 @@
     "Title": "Achievements",
     "AchievedOn": "Achieved on",
     "Welcome!": "Launch the multiplayer for the first time.",
-    "Autoplay.dll":  "Reach the top rank in the multiplayer."
+    "Autoplay.dll": "Reach the top rank in the multiplayer."
+  },
+  "Lobbies": {
+    "Title": "Lobbies",
+    "Description": "<color=1eff00ff>Public</color> lobbies are open to everyone as long as they are not full.\n\n<color=f542adff>Private</color> lobbies require you to enter their name and password in order to join.\n\nIf you don't want to join someone's lobby you can create your own.",
+    "PublicButton": "Public Lobbies",
+    "PrivateButton": "Join Private Lobby",
+    "CreateButton": "Create a Lobby"
+  },
+  "PublicLobbies": {
+    "Title": "Public Lobbies",
+    "Description": "Pick the one you like the most. ;)",
+    "DescirptionEmpty": "There are no public lobbies available right now. :("
+  },
+  "Lobby": {
+    "Title": "Lobby",
+    "Description": "<color=f542adff>{0}</color>\n\nHost: <color=fff700ff>{1}</color>\nPlayers: {2}/{3}\nStatus: <color={4}>{5}</color>",
+    "Join": "— Join —",
+    "Leave": "— Leave —",
+    "Disband": "— Disband —",
+    "JoinPrompt": "Join the lobby?",
+    "LeavePrompt": "Are you sure you want to leave this lobby?",
+    "DisbandPrompt": "Are you sure you want to disband this lobby? Everyone will be kicked out.",
+    "JoinSuccess": "You've joined the lobby!",
+    "LeaveSuccess": "You've left the lobby!",
+    "DisbandSuccess": "You've disbanded the lobby!",
+    "PublicStatus": "Public",
+    "PrivateStatus": "Private"
   }
 }

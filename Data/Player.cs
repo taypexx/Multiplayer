@@ -1,4 +1,5 @@
-﻿using Multiplayer.Data.Stats;
+﻿using Il2CppRewired.UI.ControlMapper;
+using Multiplayer.Data.Stats;
 
 namespace Multiplayer.Data
 {
@@ -28,15 +29,20 @@ namespace Multiplayer.Data
         /// Updates stats of the <see cref="Player"/>.
         /// </summary>
         /// <param name="fullUpdate">Whether to update HQStats and MoeStats as well.</param>
-        internal void Update(bool fullUpdate = false)
+        /// <returns><see langword="true"/> if all updates were successful, otherwise <see langword="false"/>.</returns>
+        internal async Task Update(bool fullUpdate = false)
         {
-            MultiplayerStats.Update();
-
-            if (fullUpdate)
+            await MultiplayerStats.Update().ContinueWith(t =>
             {
-                HQStats.Update();
-                MoeStats.Update();
-            }
+                Main.Dispatcher.Enqueue(() =>
+                {
+                    if (fullUpdate)
+                    {
+                        _ = HQStats.Update();
+                        _ = MoeStats.Update();
+                    }
+                });
+            });
         }
     }
 }

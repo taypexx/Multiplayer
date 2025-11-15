@@ -26,9 +26,10 @@
         /// <summary>
         /// Synchronizes stats with <see href="https://mdmc.moe"/>.
         /// </summary>
-        internal async void Update()
+        internal async Task<bool> Update()
         {
             // TODO: Actually get the data from mdmc api and update the fields
+            return true;
         }
     }
 }

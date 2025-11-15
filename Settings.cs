@@ -45,8 +45,14 @@ namespace Multiplayer
 
     public class Config
     {
-        [TomlPrecedingComment("Server address")]
-        internal string MultiplayerAPI { get; set; } = "http://127.0.0.1:9095/api/";
+        [TomlPrecedingComment("Server IP")]
+        internal string ServerIP { get; set; } = "26.74.129.52";
+
+        [TomlPrecedingComment("HTTP port of the server")]
+        internal int PortHTTP { get; set; } = 9095;
+
+        [TomlPrecedingComment("UDP port of the server")]
+        internal int PortUdp { get; set; } = 9096;
 
         [TomlPrecedingComment("Allow the invites from friends")]
         internal bool AllowFriendInvites { get; set; } = true;

@@ -1,4 +1,5 @@
-﻿using Il2CppAssets.Scripts.UI.Tips;
+﻿using DiscordRPC;
+using Il2CppAssets.Scripts.UI.Tips;
 using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
@@ -20,8 +21,10 @@ namespace Multiplayer.UI
 
         internal ForumObject ReturnButton { get; private set; }
         internal bool HasReturnButton => ReturnButton != null;
-        internal BaseMultiplayerWindow ReturnWindow { get; private set; }
+        internal BaseMultiplayerWindow ReturnWindow { get; set; }
         internal bool HasReturnWindow => ReturnWindow != null;
+        internal ForumObject RefreshButton { get; private set; }
+        internal bool HasRefreshButton => RefreshButton != null;
 
         internal Dictionary<ForumObject,object> ButtonsWindows { get; private set; }
 
@@ -69,14 +72,16 @@ namespace Multiplayer.UI
         /// </summary>
         /// <param name="objectIndex">Index of the button.</param>
         /// <returns><see langword="true"/> if it was removed, otherwise <see langword="false"/>.</returns>
-        internal bool RemoveButton(int objectIndex)
+        internal bool RemoveButton(ForumObject button)
         {
-            ForumObject button = Window.ForumObjects[objectIndex];
             if (button == null) return false;
 
             if (button == ReturnButton)
             {
                 ReturnButton = null;
+            } else if (button == RefreshButton)
+            {
+                RefreshButton = null;
             }
 
             return ButtonsWindows.Remove(button) && Window.ForumObjects.Remove(button);
@@ -85,24 +90,40 @@ namespace Multiplayer.UI
         /// <summary>
         /// Removes all buttons of the window.
         /// </summary>
-        /// <param name="keepRemoveButton">Whether to keep the ReturnButton and not remove it.</param>
+        /// <param name="keepCoreButtons">Whether to keep the ReturnButton and the RefreshButton and not remove it.</param>
+        /// <param name="keepButton">A button which won't be removed.</param>
         /// <returns><see langword="true"/> if all buttons were successfully removed, otherwise <see langword="false"/>.</returns>
-        internal bool RemoveAllButtons(bool keepRemoveButton = false)
+        internal bool RemoveAllButtons(bool keepCoreButtons = false, ForumObject keepButton = null)
         {
             bool success = true;
-            for (int i = 0; i < Window.ForumObjects.Count; i++)
+            List<ForumObject> toRemove = new();
+            foreach (ForumObject button in Window.ForumObjects)
             {
-                if (keepRemoveButton && Window.ForumObjects[i] == ReturnButton) continue;
-                success = RemoveButton(i) && success;
+                if (button == keepButton && button != null) continue;
+                if (keepCoreButtons && (button == ReturnButton || button == RefreshButton)) continue;
+                toRemove.Add(button);
             }
+            foreach (ForumObject button in toRemove)
+            {
+                success = RemoveButton(button) && success;
+            }
+            toRemove.Clear();
             return success;
+        }
+
+        /// <summary>
+        /// Adds the refresh button which updates the current window (Refreshing logic must be implemented separately).
+        /// </summary>
+        internal void AddRefreshButton()
+        {
+            if (RefreshButton != null) return;
+            RefreshButton = AddButton(Localization.Get("Window", "RefreshButton"), Window);
         }
 
         /// <summary>
         /// Adds the return button which closes the current window and opens the return window (if exists).
         /// </summary>
         /// <param name="content">(Optional) Text to be displayed on the main frame.</param>
-        /// <param name="bannerAssetName">(Optional) Asset name of the banner image relative to Assets.UI.</param>
         internal void AddReturnButton(LocalString content = null)
         {
             if (ReturnButton != null) return;

@@ -24,18 +24,35 @@ namespace Multiplayer
             base.OnInitializeMelon();
             Logger = new(Name);
 
+            InitGlobal();
+
+            Logger.Msg(Name + " was successfully initialized.");
+        }
+
+        private static void InitGlobal()
+        {
             Settings.Load();
             AssetManager.Init();
             Localization.Init();
             BattleManager.Init();
-            DiscordManager.Init();
+            //DiscordManager.Init();
+        }
 
-            Logger.Msg(Name + " was successfully initialized.");
+        internal static void InitConnect()
+        {
+            AchievementManager.Init();
+            PlayerManager.Init();
+            LobbyManager.Init();
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             base.OnSceneWasLoaded(buildIndex, sceneName);
+
+            if (BattleManager.Synchronizing && sceneName != "GameMain")
+            {
+                BattleManager.BattleSyncStop();
+            }
 
             if (sceneName == "UISystem_PC")
             {

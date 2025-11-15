@@ -9,6 +9,8 @@ using PopupLib.UI;
 using Multiplayer.UI;
 using System.Text.Json;
 using LocalizeLib;
+using System.Net.Sockets;
+using Il2CppSirenix.Serialization.Utilities;
 
 namespace Multiplayer
 {
@@ -17,17 +19,19 @@ namespace Multiplayer
         internal static bool Connected { get; private set; } = false;
         internal static bool TriedConnecting { get; private set; } = false;
 
-        internal static bool Outdated => ServerVersion != Main.Version;
+        internal static bool Outdated => ServerVersion != null && ServerVersion != Main.Version;
         internal static string ServerVersion { get; private set; }
         private static LocalString OutdatedWarning; 
 
         internal static string Token { get; private set; } = string.Empty;
-        private static readonly string Endpoint = Settings.Config.MultiplayerAPI;
+        private static readonly string APIEndpoint = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/api/";
 
         internal static Dictionary<string, float> MoeDifficulties { get; private set; }
 
         private static HttpMessageHandler HttpHandler;
         private static HttpClient Http;
+
+        private static UdpClient Udp;
 
         internal static string ComputeSha256Hash(string rawData)
         {
@@ -36,6 +40,26 @@ namespace Multiplayer
                 var bytes = Encoding.UTF8.GetBytes(rawData);
                 var hash = sha256.ComputeHash(bytes);
                 return Convert.ToBase64String(hash);
+            }
+        }
+
+        /// <summary>
+        /// Performs an <see langword="async"/> SEND request and awaits for the response from the server.
+        /// </summary>
+        /// <param name="data">Datagram to send.</param>
+        /// <returns></returns>
+        internal static async Task<byte[]> UdpSendAsync(byte[] data)
+        {
+            try
+            {
+                await Udp.SendAsync(data, data.Length, Settings.Config.ServerIP, Settings.Config.PortUdp);
+                var result = await Udp.ReceiveAsync();
+                return result.Buffer;
+            }
+            catch (Exception ex)
+            {
+                Main.Logger.Error(ex.ToString());
+                return null;
             }
         }
 
@@ -49,7 +73,7 @@ namespace Multiplayer
         {
             try
             {
-                HttpResponseMessage response = await Http.GetAsync(isFullPath ? path : Endpoint + path);
+                HttpResponseMessage response = await Http.GetAsync(isFullPath ? path : APIEndpoint + path);
                 if (!response.IsSuccessStatusCode)
                 {
                     Main.Logger.Error($"{(int)response.StatusCode}: {response.ReasonPhrase}");
@@ -80,7 +104,7 @@ namespace Multiplayer
                 var payload = JsonConvert.SerializeObject(data);
                 var sendContent = new StringContent(payload, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await Http.PostAsync(isFullPath ? path : Endpoint + path, sendContent);
+                HttpResponseMessage response = await Http.PostAsync(isFullPath ? path : APIEndpoint + path, sendContent);
                 if (!response.IsSuccessStatusCode)
                 {
                     Main.Logger.Error($"{response.StatusCode}: {response.ReasonPhrase}");
@@ -99,11 +123,11 @@ namespace Multiplayer
 
         internal static async Task Connect()
         {
-            if (!DiscordManager.Initialized || Connected || TriedConnecting) return;
+            if (Connected || TriedConnecting) return;
             PopupUtils.ShowInfo(Localization.Get("MainMenu", "Connecting"));
             TriedConnecting = true;
 
-            if (!DataHelper.isLogin)
+            if (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace())
             {
                 UIManager.WarnNotification(Localization.Get("Warning", "NoAccount"));
                 return;
@@ -115,12 +139,14 @@ namespace Multiplayer
             Main.Logger.Msg("Connecting to the server...");
 
             HttpHandler = new HttpClientHandler();
-            Http = new HttpClient(HttpHandler);
+            Http = new(HttpHandler);
 
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Http.DefaultRequestHeaders.ConnectionClose = false;
 
-            var response = await PostAsync("connect", new { Uid = uid});
+            Udp = new();
+
+            var response = await PostAsync("connect", new { Uid = uid });
             if (response != null)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();
@@ -169,6 +195,7 @@ namespace Multiplayer
             Connected = false;
 
             Http.Dispose();
+            Udp.Dispose();
 
             if (Outdated)
             {

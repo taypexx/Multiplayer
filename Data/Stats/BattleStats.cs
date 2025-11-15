@@ -5,6 +5,7 @@
         public Player Player { get; private set; }
         public uint Score { get; internal set; } = 0;
         public float Accuracy { get; internal set; } = 100;
+        public bool FC { get; internal set; } = false;
 
         public ushort Perfects { get; internal set; } = 0;
         public ushort Greats { get; internal set; } = 0;

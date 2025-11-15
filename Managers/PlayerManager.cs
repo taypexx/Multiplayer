@@ -11,9 +11,9 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Finds/creates a <see cref="Player"/> by their <paramref name="uid"/>.
         /// </summary>
-        /// <param name="uid">UID of a player.</param>
-        /// <returns>A <see cref="Player"/> that was cached or a new instance.</returns>
-        internal static Player GetPlayer(string uid)
+        /// <param name="uid">UID of a <see cref="Player"/>.</param>
+        /// <returns>A <see cref="Player"/> who was cached or a new instance.</returns>
+        internal static async Task<Player> GetPlayer(string uid)
         {
             if (!Client.Connected) return null;
 
@@ -27,8 +27,8 @@ namespace Multiplayer.Managers
             
             // If not cached
             Player newPlayer = new(uid);
-            newPlayer.Update(true);
             CachePlayer(newPlayer);
+            await newPlayer.Update(true);
 
             return newPlayer;
         }
@@ -76,7 +76,7 @@ namespace Multiplayer.Managers
         internal static void Init()
         {
             CachedPlayers = new();
-            LocalPlayer = GetPlayer(DataHelper.PeroUid);
+            LocalPlayer = GetPlayer(DataHelper.PeroUid).Result;
         }
     }
 }

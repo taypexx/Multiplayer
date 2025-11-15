@@ -19,7 +19,6 @@ namespace Multiplayer.UI
         private ForumObject AchievementsButton;
         private ForumObject HQStatsButton;
         private ForumObject FriendRequestButton;
-        private ForumObject RefreshButton;
 
         private PromptWindow FriendRequestPrompt;
         private PromptWindow UnfriendPrompt;
@@ -41,7 +40,7 @@ namespace Multiplayer.UI
                 [0] = Localization.Get("ProfileWindow", "DecideFriendRequest"),
                 [1] = Localization.Get("ProfileWindow", "CancelFriendRequest"),
                 [2] = Localization.Get("ProfileWindow", "RemoveFriend"),
-                [3] = Localization.Get("ProfileWindow", "AddFriend"),
+                [3] = Localization.Get("ProfileWindow", "RequestSend"),
                 [4] = null,
             };
 
@@ -50,7 +49,7 @@ namespace Multiplayer.UI
                 [0] = Localization.Get("ProfileWindow", "AddFriendSuccess"),
                 [1] = Localization.Get("ProfileWindow", "CancelFriendRequestSuccess"),
                 [2] = Localization.Get("ProfileWindow", "RemoveFriendSuccess"),
-                [3] = Localization.Get("ProfileWindow", "AddedFriend"),
+                [3] = Localization.Get("ProfileWindow", "RequestSendSuccess"),
                 [4] = null
             };
 
@@ -73,7 +72,7 @@ namespace Multiplayer.UI
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
             FriendRequestButton = AddButton(Localization.Get("ProfileWindow", "AddFriend"));
-            RefreshButton = AddButton(Localization.Get("Window", "RefreshButton"),Window);
+            AddRefreshButton();
             AddReturnButton();
         }
 
@@ -102,20 +101,21 @@ namespace Multiplayer.UI
                     FriendUid = Player.Uid
                 };
 
-                var response = await Client.PostAsync("friendRequest", payload);
                 LocalString msg;
+                var response = await Client.PostAsync("friendRequest", payload);
 
                 if (response != null)
                 {
-                    var data = await response.Content.ReadFromJsonAsync<Dictionary<string, int?>>();
-                    data.TryGetValue("Action", out int? actionDid);
-                    if (actionDid == null) { actionDid = FriendButtonState; }
-
+                    var actionDid = await response.Content.ReadFromJsonAsync<int>();
                     msg = FriendButtonResponses[FriendButtonState];
                 } else
                 {
-                    msg = Localization.Get("Warning","Offline");
+                    msg = Localization.Get("Warning", "Unknown");
                 }
+
+                await PlayerManager.LocalPlayer.Update();
+                await Player.Update();
+                await Update(Player);
 
                 PopupUtils.ShowInfoAndLog(msg);
 
@@ -127,19 +127,17 @@ namespace Multiplayer.UI
 
         internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
-            base.OnButtonClick(window, objectIndex);
-
             ForumObject button = Window.ForumObjects[objectIndex];
 
             if (button == FriendRequestButton) 
             {
+                base.OnButtonClick(window, objectIndex);
+                Window.ForceClose();
                 if (FriendButtonState == 0)
                 {
-                    Window.ForceClose();
                     FriendRequestPrompt.Show();
                 } else if (FriendButtonState == 2)
                 {
-                    Window.ForceClose();
                     UnfriendPrompt.Show();
                 } else if (FriendButtonState != 4)
                 {
@@ -147,12 +145,22 @@ namespace Multiplayer.UI
                 }
             } else if (button == RefreshButton)
             {
-                Player.Update(true);
-                Update(Player);
+                Player.Update(true).ContinueWith(t =>
+                {
+                    Main.Dispatcher.Enqueue(() =>
+                    {
+                        _ = Update(Player);
+                        base.OnButtonClick(window, objectIndex);
+                    });
+                });
+            }
+            else
+            {
+                base.OnButtonClick(window, objectIndex);
             }
         }
 
-        internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        internal override void OnShow(BaseWindow window)
         {
             base.OnShow(window);
             AvatarBox.SetActive(true);
@@ -168,9 +176,10 @@ namespace Multiplayer.UI
         /// Updates the profile window to display the information about the given <see cref="Data.Player"/>.
         /// </summary>
         /// <param name="player"><see cref="Data.Player"/> whose stats will now appear in the window.</param>
-        internal void Update(Player player)
+        internal async Task Update(Player player)
         {
             Player = player;
+            await player.Update(true);
 
             StatsButton.Contents = new
             (

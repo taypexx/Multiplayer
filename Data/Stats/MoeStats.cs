@@ -25,10 +25,11 @@ namespace Multiplayer.Data.Stats
         /// <summary>
         /// Synchronizes stats with <see href="https://musedash.moe"/>.
         /// </summary>
-        internal async void Update()
+        /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
+        internal async Task<bool> Update()
         {
             var response = await Client.GetAsync("https://api.musedash.moe/player/" + Player.Uid, true);
-            if (response == null) return;
+            if (response == null) return false;
 
             var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();
             var plays = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(updatedData["plays"].GetRawText());
@@ -51,6 +52,8 @@ namespace Multiplayer.Data.Stats
                 totalAcc += acc;
             }
             AverageAccuracy = totalAcc / Records;
+
+            return true;
         }
     }
 }

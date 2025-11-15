@@ -48,9 +48,10 @@ namespace Multiplayer.Data.Stats
         }
 
         /// <summary>
-        /// Synchronizes stats with the server.
+        /// Synchronizes <see cref="MultiplayerStats"/> with the server.
         /// </summary>
-        internal async void Update()
+        /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
+        internal async Task Update()
         {
             var payload = new
             {
@@ -73,16 +74,16 @@ namespace Multiplayer.Data.Stats
 
             Friends.Clear();
             var updatedFriends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"].GetRawText());
-            foreach (string friendUid in (updatedFriends))
+            foreach (string friendUid in updatedFriends)
             {
-                Friends.Add(PlayerManager.GetPlayer(friendUid));
+                Friends.Add(PlayerManager.GetPlayer(friendUid).Result);
             }
 
             Achievements.Clear();
             try
             {
                 var updatedAchievements = JsonSerializer.Deserialize<Dictionary<long, byte>>(updatedData["Achievements"].GetRawText());
-                foreach ((long unixTimestamp, byte id) in (updatedAchievements))
+                foreach ((long unixTimestamp, byte id) in updatedAchievements)
                 {
                     Achievements.Add(DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).DateTime, AchievementManager.Achievements[id]);
                 }

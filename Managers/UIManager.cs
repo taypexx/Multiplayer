@@ -23,9 +23,15 @@ namespace Multiplayer.Managers
         internal static MainMenuOpenButton MainMenuOpenButton { get; private set; }
 
         internal static ProfileWindow ProfileWindow { get; private set; }
-
         internal static FriendsWindow FriendsWindow { get; private set; }
         internal static AchievementsWindow AchievementsWindow { get; private set; }
+
+        internal static FriendRequestsWindow FriendRequestsWindow { get; private set; }
+
+        internal static LobbiesWindow LobbiesWindow { get; private set; }
+        internal static LobbyWindow LobbyWindow { get; private set; }
+        internal static PublicLobbiesWindow PublicLobbiesWindow { get; private set; }
+
 
         /// <summary>
         /// Displays a warning popup with the given <see cref="LocalString"/>.
@@ -91,11 +97,18 @@ namespace Multiplayer.Managers
             MainMenuOpenButton = new();
 
             ProfileWindow = new();
-
             FriendsWindow = new();
             AchievementsWindow = new();
 
+            FriendRequestsWindow = new();
+
+            LobbiesWindow = new();
+            PublicLobbiesWindow = new();
+            LobbyWindow = new();
+
             ProfileWindow.CreateButtons();
+            LobbiesWindow.CreateButtons();
+
             MainMenu.CreateButtons();
         }
     }

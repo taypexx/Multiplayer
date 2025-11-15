@@ -39,7 +39,7 @@ namespace Multiplayer.UI
             MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, MainDescription);
             AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), PnlHead, MainDescription);
             BioButton = AddButton(Localization.Get("MainMenu", "Bio"), BioWindow, MainDescription);
-            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), null, MainDescription);
+            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), UIManager.FriendRequestsWindow, MainDescription);
             LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
             CreditsButton = AddButton(Localization.Get("MainMenu", "CreditsTitle"), null, Localization.Get("MainMenu","Credits"));
@@ -84,7 +84,7 @@ namespace Multiplayer.UI
                         Window.Show();
                     } else
                     {
-                        // Show the lobby window instead
+                        UIManager.LobbyWindow.Window.Show();
                     }
                 }
                 else
@@ -98,15 +98,11 @@ namespace Multiplayer.UI
                 else
                 {
                     UIManager.Debounce = true;
-                    _ = Client.Connect().ContinueWith(t =>
+                    Client.Connect().ContinueWith(t =>
                     {
                         Main.Dispatcher.Enqueue(() =>
                         {
-                            if (Client.Connected)
-                            {
-                                AchievementManager.Init();
-                                PlayerManager.Init();
-                            }
+                            if (Client.Connected) Main.InitConnect();
 
                             UIManager.Debounce = false;
                             Open();
@@ -131,18 +127,37 @@ namespace Multiplayer.UI
         internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
         {
             base.OnShow(window);
-            UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer);
+            UIManager.ProfileWindow.ReturnWindow = this;
+            UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer).ContinueWith(t =>
+            {
+                Main.Dispatcher.Enqueue(() =>
+                {
+                    UIManager.FriendRequestsWindow.Update();
+                });
+            });
         }
 
         internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
-            base.OnButtonClick(window, objectIndex);
-
             ForumObject button = Window.ForumObjects[objectIndex];
 
             if (button == AvatarButton)
             {
+                base.OnButtonClick(window, objectIndex);
                 PnlHeadWasOpened = true;
+            } else if (button == LobbiesButton)
+            {
+                Window.ForceClose();
+                if (LobbyManager.LocalLobby is null)
+                {
+                    UIManager.LobbiesWindow.Window.Show();
+                } else
+                {
+                    // Open local lobby
+                }
+            } else
+            {
+                base.OnButtonClick(window, objectIndex);
             }
         }
     }

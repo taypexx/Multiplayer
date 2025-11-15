@@ -31,6 +31,7 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void UpdateRPC()
         {
+            if (!Initialized) return;
             Lobby localLobby = LobbyManager.LocalLobby;
             switch (CurrentRPCState)
             {
@@ -72,6 +73,7 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void SetRPC(RPCState rpcState = RPCState.Idle)
         {
+            if (!Initialized) return;
             CurrentRPCState = rpcState;
 
             var rpc = RPCs.GetValueOrDefault(rpcState);
