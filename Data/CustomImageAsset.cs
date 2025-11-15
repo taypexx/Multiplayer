@@ -1,5 +1,4 @@
-﻿using Multiplayer.Managers;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Multiplayer.Data
 {

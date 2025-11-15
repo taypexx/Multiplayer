@@ -48,7 +48,7 @@ namespace Multiplayer
         /// </summary>
         /// <param name="data">Datagram to send.</param>
         /// <returns></returns>
-        internal static async Task<byte[]> UdpSendAsync(byte[] data)
+        internal static async Task<byte[]> UdpSendAsync(byte[] data, CancellationToken cancellationToken)
         {
             try
             {
@@ -169,6 +169,7 @@ namespace Multiplayer
             }
             response.Dispose();
 
+            /*
             var moeDiffs = await GetAsync("https://api.musedash.moe/diffdiff", true);
             if (moeDiffs != null)
             {
@@ -184,6 +185,7 @@ namespace Multiplayer
                 Main.Logger.Error("Failed to recieve chart difficulties from musedash.moe!");
             }
             moeDiffs.Dispose();
+            */
         }
 
         internal static void Disconnect()

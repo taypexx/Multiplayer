@@ -14,6 +14,7 @@ namespace Multiplayer.Managers
                 field.Clear();
                 foreach (Lobby lobby in CachedLobbies)
                 {
+                    if (lobby.IsPrivate) continue;
                     field.Add(lobby);
                 }
                 return field;
@@ -23,7 +24,7 @@ namespace Multiplayer.Managers
         internal static Lobby LocalLobby { get; set; }
 
         /// <summary>
-        /// Finds/creates a <see cref="Lobby"/> by their <paramref name="id"/>.
+        /// Finds a <see cref="Lobby"/> by their <paramref name="id"/>.
         /// </summary>
         /// <param name="id">ID of a <see cref="Lobby"/>.</param>
         /// <returns>A <see cref="Lobby"/> that was cached or a new instance.</returns>
@@ -42,7 +43,7 @@ namespace Multiplayer.Managers
             // If not cached
             Lobby newLobby = new(id);
             CacheLobby(newLobby);
-            await newLobby.Update();
+            await newLobby.Update(false);
 
             return newLobby;
         }

@@ -5,8 +5,7 @@ Banner ratio is 507 : 167
 
 TODO:
 
-Debounce when updating every func
-Proper updating (rework the logic)
+Fix main menu opening on connect
 LVL fix
 Properly display achievements
 Make the settings window
@@ -17,6 +16,8 @@ Add the "Current selection" bar at the top left of the screen when for every mem
 Make so that you can't play charts when in lobby until the hosts decides to do so (also kick out of the chart if you got there somehow)
 Somehow toggle quick restart when in battle (multiplayer battle only) (and also toggle default pause option)
 Synchronize gameplay in battle via tcp or udp
+Make it so that if a player/lobby is not updated for a long time it gets disposed.
+MAKE THE SERVER USE ASYNCHRONOUS DATABASE (bottleneck warning)
 
 Fix pnlhead bug when loading uisystem main (breaks second time but not first)
 Finish discord rpc stuff

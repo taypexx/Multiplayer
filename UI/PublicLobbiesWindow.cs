@@ -38,39 +38,51 @@ namespace Multiplayer.UI
             var lobbyIds = await response.Content.ReadFromJsonAsync<List<int>>();
             foreach (int id in lobbyIds)
             {
-                await LobbyManager.GetLobby(id);
+                Lobby lobby = await LobbyManager.GetLobby(id);
+                await lobby.Update();
             }
-
-            var publicLobbies = LobbyManager.PublicLobbies;
 
             RemoveAllButtons(true);
             AddRefreshButton();
 
-            ReturnButton.Contents = publicLobbies.Count > 0 ? MainDescription : EmptyDescription;
+            ReturnButton.Contents = LobbyManager.PublicLobbies.Count > 0 ? MainDescription : EmptyDescription;
             ButtonsLobbies.Clear();
 
-            foreach (Lobby lobby in publicLobbies)
+            foreach (Lobby lobby in LobbyManager.PublicLobbies)
             {
-                ForumObject button = AddButton(new($"{lobby.Name} ({lobby.Players.Count}/{lobby.MaxPlayers})"), UIManager.LobbyWindow, MainDescription);
+                ForumObject button = AddButton(new($"{lobby.Name} ({lobby.Players.Count}/{lobby.MaxPlayers})"), null, MainDescription);
                 ButtonsLobbies.Add(button, lobby);
             }
         }
+
+        /// <summary>
+        /// Refreshes current public lobbies and displays the updated list.
+        /// </summary>
+        private async void Refresh()
+        {
+            UIManager.Debounce = true;
+
+            await Update();
+
+            Main.Dispatcher.Enqueue(() => 
+            {
+                UIManager.Debounce = false;
+                Window.Show();
+            });
+        }
+
         internal override void OnButtonClick(IListWindow window, int objectIndex)
         {
-            ForumObject button = Window.ForumObjects[objectIndex];
+            base.OnButtonClick(window, objectIndex);
 
-            if (ButtonsLobbies.TryGetValue(button, out Lobby lobby))
-            {
-                UIManager.LobbyWindow.Update(lobby);
-            }
+            ForumObject button = Window.ForumObjects[objectIndex];
 
             if (button == RefreshButton)
             {
-                Update();
-                base.OnButtonClick(window, objectIndex);
-            } else
+                Refresh();
+            } else if (ButtonsLobbies.TryGetValue(button, out Lobby lobby))
             {
-                base.OnButtonClick(window, objectIndex);
+                OpenLobbyWindow(lobby);
             }
         }
     }

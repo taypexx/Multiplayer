@@ -3,7 +3,6 @@ using Il2CppAssets.Scripts.UI.Panels;
 using Multiplayer.Data;
 using UnityEngine;
 using UnityEngine.UI;
-using HarmonyLib;
 
 namespace Multiplayer.Managers
 {
@@ -41,20 +40,14 @@ namespace Multiplayer.Managers
             }
 
             PnlMessage.FinishMessage();
-
-            _ = PatchAchievements();
+            PatchAchievements();
         }
 
         /// <summary>
         /// Patches the default achievement animation and replaces the text to the custom one.
         /// </summary>
-        private static async Task PatchAchievements()
+        private static void PatchAchievements()
         {
-            while (PnlMessage.layout.transform.childCount != QueuedAchievements.Count)
-            {
-                await Task.Delay(100);
-            }
-
             int i = 0;
             foreach (Transform cell in PnlMessage.layout.transform)
             {
@@ -85,11 +78,6 @@ namespace Multiplayer.Managers
 
             localPlayer.MultiplayerStats.Achievements.Add(DateTime.UtcNow,achievement);
             PlayerManager.SyncLocalPlayer();
-
-            if (UIManager.ProfileWindow.Player == localPlayer)
-            {
-                UIManager.AchievementsWindow.Update(localPlayer);
-            }
 
             QueuedAchievements.Add(achievement);
             if (instantAnim) PlayAchievementAnimation();

@@ -11,8 +11,7 @@ namespace Multiplayer.Patches
         {
             private static void Postfix()
             {
-                if (PlayerManager.LocalPlayer is null) return;
-                //if (LobbyManager.LocalLobby is null) return; temporary off for testing
+                if (PlayerManager.LocalPlayer is null || LobbyManager.LocalLobby is null) return;
 
                 BattleManager.BattleSyncStart();
             }

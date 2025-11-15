@@ -19,28 +19,36 @@ namespace Multiplayer.UI
 
         internal void CreateButtons()
         {
-            PublicLobbiesButton = AddButton(Localization.Get("Lobbies", "PublicButton"), UIManager.PublicLobbiesWindow, MainDescription);
+            PublicLobbiesButton = AddButton(Localization.Get("Lobbies", "PublicButton"), null, MainDescription);
             PrivateLobbyButton = AddButton(Localization.Get("Lobbies", "PrivateButton"), null, MainDescription);
             CreateLobbyButton = AddButton(Localization.Get("Lobbies", "CreateButton"), null, MainDescription);
             AddReturnButton(MainDescription);
         }
 
+        /// <summary>
+        /// Opens <see cref="PublicLobbiesWindow"/> and displays refreshed public lobbies.
+        /// </summary>
+        private async void OpenPublicLobbies()
+        {
+            UIManager.Debounce = true;
+
+            await UIManager.PublicLobbiesWindow.Update();
+
+            Main.Dispatcher.Enqueue(() => 
+            {
+                UIManager.Debounce = false;
+                UIManager.PublicLobbiesWindow.Window.Show();
+            });
+        }
+
         internal override void OnButtonClick(IListWindow window, int objectIndex)
         {
-            ForumObject button = Window.ForumObjects[objectIndex];
+            base.OnButtonClick(window, objectIndex);
 
+            ForumObject button = Window.ForumObjects[objectIndex];
             if (button == PublicLobbiesButton)
             {
-                UIManager.PublicLobbiesWindow.Update().ContinueWith(t =>
-                {
-                    Main.Dispatcher.Enqueue(() =>
-                    {
-                        base.OnButtonClick(window, objectIndex);
-                    });
-                });
-            } else
-            {
-                base.OnButtonClick(window, objectIndex);
+                OpenPublicLobbies();
             }
         }
     }

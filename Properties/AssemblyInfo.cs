@@ -7,11 +7,11 @@ using Main = Multiplayer.Main;
 [assembly: MelonColor(255, 255, 0, 255)]
 
 [assembly: AssemblyTitle(Main.Name)]
-[assembly: AssemblyDescription("It is real guys.")]
+[assembly: AssemblyDescription("Muse Dash Multiplayer client mod that allows you to play against other players. ")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Muse Dash Modding Community")]
 [assembly: AssemblyProduct(Main.Name)]
-[assembly: AssemblyCopyright("Copyright © taypexx, 7OU 2025")]
+[assembly: AssemblyCopyright("Copyright © taypexx & 7OU 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

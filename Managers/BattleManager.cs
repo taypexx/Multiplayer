@@ -1,57 +1,100 @@
-﻿using Il2CppAssets.Scripts.Database;
-using Il2CppAssets.Scripts.GameCore.HostComponent;
-using Il2CppAssets.Scripts.PeroTools.Commons;
+﻿using Il2CppAssets.Scripts.GameCore.HostComponent;
 using Multiplayer.Data.Stats;
+using System.Buffers.Binary;
 using System.Text;
 
 namespace Multiplayer.Managers
 {
     internal static class BattleManager
     {
-        internal static bool Synchronizing { get; private set; } = false;
+        internal static CancellationTokenSource CancellationTokenSource { get; private set; }
         private static TimeSpan SyncInterval = TimeSpan.FromMilliseconds(300);
 
+        private static BattleStats BattleStats => PlayerManager.LocalPlayer?.BattleStats;
+        private static TaskStageTarget TaskStageTarget;
+        private static BattleRoleAttributeComponent BattleRoleAttributeComponent;
+        private static byte[] Datagram;
+        private static byte[] ReceivedDatagram;
+
         /// <summary>
-        /// Sends datagrams to the server and recieving the current battle data.
+        /// Sends datagrams to the server and recieves stats of other players.
         /// Datagram structure: 4B score, 4B acc, 1B FC, 2B perfects, 2B greats, 2B Earlies, 2B Lates, 2B Misses, 32B Uid, 40B Token. Total 91 bytes.
         /// </summary>
         /// <returns></returns>
-        private static async Task ServerSync()
+        private static async Task<byte[]> ServerSync()
         {
-            BattleStats stats = PlayerManager.LocalPlayer.BattleStats;
-            TaskStageTarget task = TaskStageTarget.instance;
-            BattleRoleAttributeComponent role = BattleRoleAttributeComponent.instance;
-            byte[] datagram = new byte[91];
+            Span<byte> span = Datagram;
 
-            while (Synchronizing)
+            BinaryPrimitives.WriteUInt32LittleEndian(span.Slice(0), BattleStats.Score);
+            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(4), BattleStats.Accuracy);
+            span[8] = (byte)(BattleStats.FC ? 1 : 0);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(9), BattleStats.Perfects);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(11), BattleStats.Greats);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(13), BattleStats.Earlies);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(15), BattleStats.Lates); 
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(17), BattleStats.Misses);
+            Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(19, 32));
+            Encoding.UTF8.GetBytes(Client.Token, span.Slice(51, 40));
+
+            return await Client.UdpSendAsync(Datagram, CancellationTokenSource.Token);
+        }
+
+        /// <summary>
+        /// Gets local battle information and updates <see cref="Data.Stats.BattleStats"/> of the local player.
+        /// </summary>
+        private static void UpdateLocalBattleStats()
+        {
+            int num1 = TaskStageTarget.GetHitCountByResult(2u) 
+                + TaskStageTarget.GetHitCountByResult(4u) 
+                + TaskStageTarget.GetHitCountByResult(5u) 
+                + TaskStageTarget.m_Block + TaskStageTarget.m_MusicCount + TaskStageTarget.m_EnergyCount;
+            int num2 = TaskStageTarget.GetHitCountByResult(3u);
+            int num3 = TaskStageTarget.GetHitCountByResult(1u);
+
+            BattleStats.Score = (uint)TaskStageTarget.m_Score;
+            BattleStats.Accuracy = (float)((num1 + num2 / 2.0) / (num1 + num2 + num3) * 100.0);
+            BattleStats.FC = TaskStageTarget.IsFullCombo();
+            BattleStats.Perfects = (ushort)TaskStageTarget.m_PerfectResult;
+            BattleStats.Greats = (ushort)TaskStageTarget.m_GreatResult;
+            BattleStats.Earlies = (ushort)BattleRoleAttributeComponent.early;
+            BattleStats.Lates = (ushort)BattleRoleAttributeComponent.late;
+            BattleStats.Misses = (ushort)TaskStageTarget.GetComboMiss();
+        }
+
+        /// <summary>
+        /// Updates battle stats of every other player in the lobby.
+        /// </summary>
+        private static void UpdateOthersBattleStats()
+        {
+            if (ReceivedDatagram is null) return;
+            // Decode the RecievedDatagram, loop through local lobby and update each player's battlestats with the provided by the datagram
+        }
+
+        /// <summary>
+        /// Runs an async loop and handles data sending/recieving.
+        /// </summary>
+        /// <returns></returns>
+        private static async Task StartSyncLoop()
+        {
+            while (true)
             {
-                int num1 = task.GetHitCountByResult(2u) + task.GetHitCountByResult(4u) + task.GetHitCountByResult(5u) + task.m_Block + task.m_MusicCount + task.m_EnergyCount;
-                int num2 = task.GetHitCountByResult(3u);
-                int num3 = task.GetHitCountByResult(1u);
+                try
+                {
+                    Main.Dispatcher.Enqueue(() =>
+                    {
+                        UpdateLocalBattleStats();
+                        UpdateOthersBattleStats();
+                    });
 
-                stats.Score = (uint)task.m_Score;
-                stats.Accuracy = (float)((num1 + num2 / 2.0) / (num1 + num2 + num3) * 100.0);
-                stats.FC = task.IsFullCombo();
-                stats.Perfects = (ushort)task.m_PerfectResult;
-                stats.Greats = (ushort)task.m_GreatResult;
-                stats.Earlies = (ushort)role.early;
-                stats.Lates = (ushort)role.late;
-                stats.Misses = (ushort)task.GetComboMiss();
-
-                Array.Copy(BitConverter.GetBytes(stats.Score), 0, datagram, 0, 4);
-                Array.Copy(BitConverter.GetBytes(stats.Accuracy), 0, datagram, 4, 4);
-                Array.Copy(BitConverter.GetBytes(stats.FC), 0, datagram, 8, 1);
-                Array.Copy(BitConverter.GetBytes(stats.Perfects), 0, datagram, 9, 2);
-                Array.Copy(BitConverter.GetBytes(stats.Greats), 0, datagram, 11, 2);
-                Array.Copy(BitConverter.GetBytes(stats.Earlies), 0, datagram, 13, 2);
-                Array.Copy(BitConverter.GetBytes(stats.Lates), 0, datagram, 15, 2);
-                Array.Copy(BitConverter.GetBytes(stats.Misses), 0, datagram, 17, 2);
-                Array.Copy(Encoding.UTF8.GetBytes(stats.Player.Uid), 0, datagram, 19, 32);
-                Array.Copy(Encoding.UTF8.GetBytes(Client.Token), 0, datagram, 51, 40);
-
-                byte[] response = await Client.UdpSendAsync(datagram);
-
-                await Task.Delay(SyncInterval);
+                    ReceivedDatagram = await ServerSync();
+                    await Task.Delay(SyncInterval, CancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    CancellationTokenSource.Dispose();
+                    CancellationTokenSource = null;
+                    return;
+                }
             }
         }
 
@@ -60,10 +103,13 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void BattleSyncStart()
         {
-            if (Synchronizing || LobbyManager.LocalLobby is null || PlayerManager.LocalPlayer is null) return;
+            if (CancellationTokenSource is not null || LobbyManager.LocalLobby is null || PlayerManager.LocalPlayer is null) return;
 
-            Synchronizing = true;
-            _ = ServerSync();
+            TaskStageTarget = TaskStageTarget.instance;
+            BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;
+
+            CancellationTokenSource = new();
+            _ = StartSyncLoop();
             Main.Logger.Msg("Battle synchronization started!");
         }
 
@@ -72,13 +118,13 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void BattleSyncStop()
         {
-            Synchronizing = false;
+            CancellationTokenSource?.Cancel();
             Main.Logger.Msg("Battle synchronization ended!");
         }
 
         internal static void Init()
         {
-
+            Datagram = new byte[91];
         }
     }
 }

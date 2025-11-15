@@ -6,11 +6,11 @@ namespace Multiplayer
     {
         public delegate void DispatcherCallbackDelegate();
 
-        private readonly List<Exception> dispatcherExceptions = new();
+        private readonly List<Exception> DispatcherExceptions = new();
         private readonly ConcurrentQueue<DispatcherCallbackDelegate> _threadQueue = new();
         public void Update()
         {
-            dispatcherExceptions.Clear();
+            DispatcherExceptions.Clear();
             while (_threadQueue.TryDequeue(out var f))
             {
                 try
@@ -19,12 +19,12 @@ namespace Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    dispatcherExceptions.Add(ex);
+                    DispatcherExceptions.Add(ex);
                 }
             }
-            if (dispatcherExceptions.Count != 0)
+            if (DispatcherExceptions.Count != 0)
             {
-                throw new AggregateException("Caught one or more errors while invoking callbacks", dispatcherExceptions);
+                throw new AggregateException("Caught one or more errors while invoking callbacks", DispatcherExceptions);
             }
         }
         public void Enqueue(DispatcherCallbackDelegate del)

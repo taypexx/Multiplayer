@@ -88,6 +88,76 @@ namespace Multiplayer.UI
             AvatarHeadItem.m_ImgLock.gameObject.SetActive(false);
         }
 
+        /// <summary>
+        /// Refreshes current <see cref="Data.Player"/> and displays updated profile.
+        /// </summary>
+        private async void Refresh()
+        {
+            UIManager.Debounce = true;
+
+            await Update(Player, true);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                UIManager.Debounce = false;
+                Window.Show();
+            });
+        }
+
+        /// <summary>
+        /// Updates the <see cref="ProfileWindow"/> to display the information about the given <see cref="Data.Player"/>.
+        /// </summary>
+        /// <param name="player"><see cref="Data.Player"/> whose stats will now appear in the window.</param>
+        /// <param name="updatePlayer">Whether to update the <see cref="Data.Player"/> as well.</param>
+        internal async Task Update(Player player, bool updatePlayer = true)
+        {
+            Player = player;
+            if (updatePlayer)
+            {
+                await player.Update(true);
+            }
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                StatsButton.Contents = new
+                (
+                    $"{Player.MultiplayerStats.Bio}\n\n" +
+
+                    $"[ LVL ]: <color=1eff00ff>{Player.MultiplayerStats.Level}</color>\n" +
+                    $"[ RL ]: <color=1eff00ff>{Player.MoeStats.RL}</color>\n" +
+                    $"[ ELO ]: <color=1eff00ff>{Player.MultiplayerStats.ELO}</color>\n" +
+                    $"[ Rank ]: <color=fff700ff>{Player.MultiplayerStats.Rank}</color>\n" +
+                    $"[ Records ]: <color=fff700ff>{Player.MoeStats.Records}</color>\n" +
+                    $"[ APs ]: <color=fff700ff>{Player.MoeStats.APs}</color>\n" +
+                    $"[ Average Accuracy ]: <color=fff700ff>{Player.MoeStats.AverageAccuracy}%</color>"
+                );
+                AchievementsButton.Contents = StatsButton.Contents;
+                FriendsButton.Contents = StatsButton.Contents;
+                FriendRequestButton.Contents = StatsButton.Contents;
+                RefreshButton.Contents = StatsButton.Contents;
+                ReturnButton.Contents = StatsButton.Contents;
+
+                UIManager.FriendsWindow.Update(player);
+                UIManager.AchievementsWindow.Update(player);
+
+                Title = Player.MultiplayerStats.NameLocal;
+                AvatarHeadItem.m_ImgHead.sprite = PnlHead.GetSprite(Player.MultiplayerStats.AvatarName);
+
+                Player localPlayer = PlayerManager.LocalPlayer;
+
+                FriendButtonState =
+                    Player == localPlayer ? 4 :
+                    localPlayer.MultiplayerStats.FriendRequests.TryGetValue(Player.Uid, out _) ? 0 :
+                    Player.MultiplayerStats.FriendRequests.TryGetValue(localPlayer.Uid, out _) ? 1 :
+                    Player.MultiplayerStats.Friends.Contains(localPlayer) || localPlayer.MultiplayerStats.Friends.Contains(Player) ? 2 :
+                    3;
+
+                FriendRequestButton.Titles = FriendButtonTitles[FriendButtonState];
+                FriendRequestPrompt.Title = Player.MultiplayerStats.NameLocal;
+                UnfriendPrompt.Title = Player.MultiplayerStats.NameLocal;
+            });
+        }
+
         private async void OnFriendActionDecided(BaseWindow window = null)
         {
             if (window == null || (window == FriendRequestPrompt && FriendRequestPrompt.Result == true) || (window == UnfriendPrompt && UnfriendPrompt.Result == true))
@@ -113,9 +183,11 @@ namespace Multiplayer.UI
                     msg = Localization.Get("Warning", "Unknown");
                 }
 
-                await PlayerManager.LocalPlayer.Update();
-                await Player.Update();
-                await Update(Player);
+                if (Player != PlayerManager.LocalPlayer)
+                {
+                    await PlayerManager.LocalPlayer.Update();
+                }
+                await Update(Player, true);
 
                 PopupUtils.ShowInfoAndLog(msg);
 
@@ -127,12 +199,12 @@ namespace Multiplayer.UI
 
         internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
+            base.OnButtonClick(window, objectIndex);
+
             ForumObject button = Window.ForumObjects[objectIndex];
 
             if (button == FriendRequestButton) 
             {
-                base.OnButtonClick(window, objectIndex);
-                Window.ForceClose();
                 if (FriendButtonState == 0)
                 {
                     FriendRequestPrompt.Show();
@@ -145,18 +217,7 @@ namespace Multiplayer.UI
                 }
             } else if (button == RefreshButton)
             {
-                Player.Update(true).ContinueWith(t =>
-                {
-                    Main.Dispatcher.Enqueue(() =>
-                    {
-                        _ = Update(Player);
-                        base.OnButtonClick(window, objectIndex);
-                    });
-                });
-            }
-            else
-            {
-                base.OnButtonClick(window, objectIndex);
+                Refresh();
             }
         }
 
@@ -170,53 +231,6 @@ namespace Multiplayer.UI
         {
             base.OnCompletion(window);
             AvatarBox.SetActive(false);
-        }
-
-        /// <summary>
-        /// Updates the profile window to display the information about the given <see cref="Data.Player"/>.
-        /// </summary>
-        /// <param name="player"><see cref="Data.Player"/> whose stats will now appear in the window.</param>
-        internal async Task Update(Player player)
-        {
-            Player = player;
-            await player.Update(true);
-
-            StatsButton.Contents = new
-            (
-                $"{Player.MultiplayerStats.Bio}\n\n" +
-
-                $"[ LVL ]: <color=1eff00ff>{Player.MultiplayerStats.Level}</color>\n" +
-                $"[ RL ]: <color=1eff00ff>{Player.MoeStats.RL}</color>\n" +
-                $"[ ELO ]: <color=1eff00ff>{Player.MultiplayerStats.ELO}</color>\n" +
-                $"[ Rank ]: <color=fff700ff>{Player.MultiplayerStats.Rank}</color>\n" +
-                $"[ Records ]: <color=fff700ff>{Player.MoeStats.Records}</color>\n" +
-                $"[ APs ]: <color=fff700ff>{Player.MoeStats.APs}</color>\n" +
-                $"[ Average Accuracy ]: <color=fff700ff>{Player.MoeStats.AverageAccuracy}%</color>"
-            );
-            AchievementsButton.Contents = StatsButton.Contents;
-            FriendsButton.Contents = StatsButton.Contents;
-            FriendRequestButton.Contents = StatsButton.Contents;
-            RefreshButton.Contents = StatsButton.Contents;
-            ReturnButton.Contents = StatsButton.Contents;
-
-            UIManager.FriendsWindow.Update(player);
-            UIManager.AchievementsWindow.Update(player);
-
-            Title = Player.MultiplayerStats.NameLocal;
-            AvatarHeadItem.m_ImgHead.sprite = PnlHead.GetSprite(Player.MultiplayerStats.AvatarName);
-
-            Player localPlayer = PlayerManager.LocalPlayer;
-
-            FriendButtonState =
-                Player == localPlayer ? 4 :
-                localPlayer.MultiplayerStats.FriendRequests.TryGetValue(Player.Uid, out _) ? 0 :
-                Player.MultiplayerStats.FriendRequests.TryGetValue(localPlayer.Uid, out _) ? 1 :
-                Player.MultiplayerStats.Friends.Contains(localPlayer) || localPlayer.MultiplayerStats.Friends.Contains(Player) ? 2 :
-                3;
-
-            FriendRequestButton.Titles = FriendButtonTitles[FriendButtonState];
-            FriendRequestPrompt.Title = Player.MultiplayerStats.NameLocal;
-            UnfriendPrompt.Title = Player.MultiplayerStats.NameLocal;
         }
     }
 }

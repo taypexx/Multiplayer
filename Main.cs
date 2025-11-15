@@ -1,7 +1,7 @@
 ﻿using MelonLoader;
 using Multiplayer.Managers;
 using CustomAlbums.Utilities;
-using Multiplayer.Data;
+using Il2CppAssets.Scripts.Database;
 
 namespace Multiplayer
 {
@@ -9,6 +9,7 @@ namespace Multiplayer
     {
         public const string Name = "Multiplayer";
         public const string Version = "1.0.0";
+        public const string Testers = "UntrustedURL, ???, ???";
 
         internal static Dispatcher Dispatcher { get; private set; }
         internal static Logger Logger { get; private set; }
@@ -29,6 +30,9 @@ namespace Multiplayer
             Logger.Msg(Name + " was successfully initialized.");
         }
 
+        /// <summary>
+        /// Initializes before everything else.
+        /// </summary>
         private static void InitGlobal()
         {
             Settings.Load();
@@ -38,6 +42,9 @@ namespace Multiplayer
             //DiscordManager.Init();
         }
 
+        /// <summary>
+        /// Initializes after connecting to the server.
+        /// </summary>
         internal static void InitConnect()
         {
             AchievementManager.Init();
@@ -49,17 +56,17 @@ namespace Multiplayer
         {
             base.OnSceneWasLoaded(buildIndex, sceneName);
 
-            if (BattleManager.Synchronizing && sceneName != "GameMain")
+            if (BattleManager.CancellationTokenSource != null && sceneName != "GameMain")
             {
                 BattleManager.BattleSyncStop();
             }
 
             if (sceneName == "UISystem_PC")
             {
-                DiscordManager.SetRPC(LobbyManager.LocalLobby is null ? RPCState.Idle : LobbyManager.LocalLobby.IsPrivate ? RPCState.InPrivateLobby : RPCState.InLobby);
                 UIManager.Init();
                 UIManager.InitUISystemMain();
 
+                PlayerManager.LocalPlayerLVL = DataHelper.Level;
                 AchievementManager.Check();
                 PlayerManager.SyncLocalPlayer();
             } else if (sceneName == "GameMain")

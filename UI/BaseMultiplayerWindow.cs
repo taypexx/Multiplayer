@@ -1,5 +1,4 @@
-﻿using DiscordRPC;
-using Il2CppAssets.Scripts.UI.Tips;
+﻿using Il2CppAssets.Scripts.UI.Tips;
 using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
@@ -130,42 +129,85 @@ namespace Multiplayer.UI
             ReturnButton = AddButton(Localization.Get("Window", HasReturnWindow ? "ReturnButton" : "ExitButton"),null,content);
         }
 
-        internal virtual void OnReturnButtonClick()
+        /// <summary>
+        /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/> of the given <paramref name="uid"/>.
+        /// </summary>
+        /// <param name="uid">Uid of a <see cref="Player"/>.</param>
+        internal static async void OpenProfileWindow(string uid)
         {
-            Window.ForceClose();
-            if (HasReturnWindow)
+            UIManager.Debounce = true;
+
+            Player player = await PlayerManager.GetPlayer(uid);
+            await UIManager.ProfileWindow.Update(player);
+
+            Main.Dispatcher.Enqueue(() =>
             {
-                ReturnWindow.Window.Show();
-            }
+                UIManager.Debounce = false;
+                UIManager.ProfileWindow.Window.Show();
+            });
+        }
+
+        /// <summary>
+        /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/>.
+        /// </summary>
+        /// <param name="player"><see cref="Player"/> whose profile will show.</param>
+        internal static async void OpenProfileWindow(Player player)
+        {
+            UIManager.Debounce = true;
+
+            await UIManager.ProfileWindow.Update(player);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                UIManager.Debounce = false;
+                UIManager.ProfileWindow.Window.Show();
+            });
+        }
+
+        /// <summary>
+        /// Opens the <see cref="LobbyWindow"/> and displays information and members of the <see cref="Lobby"/>.
+        /// </summary>
+        /// <param name="lobby"><see cref="Lobby"/> which will be displayed.</param>
+        internal static async void OpenLobbyWindow(Lobby lobby)
+        {
+            UIManager.Debounce = true;
+
+            await UIManager.LobbyWindow.Update(lobby,true);
+
+            Main.Dispatcher.Enqueue(() => 
+            {
+                UIManager.Debounce = false;
+                UIManager.LobbyWindow.Window.Show();
+            });
         }
 
         internal virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
             ForumObject forumObject = Window.ForumObjects[objectIndex];
 
-            if (forumObject == ReturnButton)
+            Window.ForceClose();
+
+            if (forumObject == ReturnButton && HasReturnButton)
             {
-                OnReturnButtonClick();
+                ReturnWindow.Window.Show();
             } else
             {
                 object windowToOpen = ButtonsWindows[forumObject];
-                if (windowToOpen != null)
+                if (windowToOpen is null) 
                 {
-                    Window.ForceClose();
-
-                    if (windowToOpen is BaseMultiplayerWindow)
-                    {
-                        ((BaseMultiplayerWindow)windowToOpen).Window.Show();
-                    }
-                    else if (windowToOpen is BaseWindow)
-                    {
-                        ((BaseWindow)windowToOpen).Show();
-                    }
-                    else if (windowToOpen is AbstractMessageBox)
-                    {
-                        ((AbstractMessageBox)windowToOpen).Show();
-                    }
-                    else return;
+                    return;
+                }
+                else if (windowToOpen is BaseMultiplayerWindow)
+                {
+                    ((BaseMultiplayerWindow)windowToOpen).Window.Show();
+                }
+                else if (windowToOpen is BaseWindow)
+                {
+                    ((BaseWindow)windowToOpen).Show();
+                }
+                else if (windowToOpen is AbstractMessageBox)
+                {
+                    ((AbstractMessageBox)windowToOpen).Show();
                 }
             }
         }

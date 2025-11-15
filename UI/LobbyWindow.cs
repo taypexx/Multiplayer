@@ -6,7 +6,6 @@ using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using PopupLib.UI.Windows.Interfaces;
-using System.Net.Http.Json;
 
 namespace Multiplayer.UI
 {
@@ -62,6 +61,74 @@ namespace Multiplayer.UI
             ActionButton = AddButton(ActionButtonTitles[0],null, MainDescription);
         }
 
+        private async Task AutoUpdateStart()
+        {
+            IsAutoUpdating = true;
+
+            while (IsAutoUpdating)
+            {
+                await Task.Delay(AutoUpdateInterval);
+                await Update(Lobby);
+            }
+        }
+
+        /// <summary>
+        /// Updates the <see cref="LobbyWindow"/> to display the information about the given <see cref="Data.Lobby"/>.
+        /// </summary>
+        /// <param name="lobby"><see cref="Data.Lobby"/> that will now appear in the window.</param>
+        /// <param name="updatePlayers">Whether to update players in the lobby.</param>
+        internal async Task Update(Lobby lobby, bool updatePlayers = false)
+        {
+            if (UpdateDebounce || lobby is null) return;
+            UpdateDebounce = true;
+
+            Lobby = lobby;
+            await lobby.Update(updatePlayers);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                RemoveAllButtons(true, ActionButton);
+                ButtonsPlayers.Clear();
+
+                ActionButtonIsJoin = !lobby.IsMember(PlayerManager.LocalPlayer);
+                ActionButton.Titles = ActionButtonIsJoin ? ActionButtonTitles[0] : Lobby.Host == PlayerManager.LocalPlayer ? ActionButtonTitles[2] : ActionButtonTitles[1];
+
+                MainDescription = new(string.Format(
+                    Localization.Get("Lobby", "Description").ToString(),
+                    lobby.Name,
+                    lobby.Host.MultiplayerStats.Name,
+                    lobby.Players.Count, lobby.MaxPlayers,
+                    lobby.IsPrivate ? "f542adff" : "1eff00ff",
+                    lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString()
+                ));
+
+                Title = Lobby.NameLocal;
+                JoinPrompt.Title = Title;
+                LeavePrompt.Title = Title;
+                DisbandPrompt.Title = Title;
+                ReturnButton.Contents = MainDescription;
+
+                foreach (string playerUid in lobby.Players)
+                {
+                    Player player = PlayerManager.GetCachedPlayer(playerUid);
+                    if (ButtonsPlayers.ContainsValue(player)) continue;
+
+                    ForumObject button = AddButton(
+                        lobby.Host == player ? new($"<color=fff700ff>{player.MultiplayerStats.Name}</color>") : player.MultiplayerStats.NameLocal,
+                        UIManager.ProfileWindow, MainDescription
+                    );
+                    ButtonsPlayers.Add(button, player);
+                }
+
+                if (!lobby.IsPrivate)
+                {
+                    // TODO: update the specific button related to the current lobby
+                }
+
+                UpdateDebounce = false;
+            });
+        }
+
         private async void OnActionDecided(BaseWindow window)
         {
             if (window == JoinPrompt && JoinPrompt.Result == true)
@@ -88,15 +155,15 @@ namespace Multiplayer.UI
                 }
 
                 UpdateDebounce = false;
-                Update(Lobby);
                 LobbyManager.LocalLobby = Lobby;
-                if (!Lobby.IsPrivate) UIManager.PublicLobbiesWindow.Update();
+                await Update(Lobby);
 
                 PopupUtils.ShowInfoAndLog(msg);
 
                 UIManager.Debounce = false;
                 Window.Show();
-            } else if ((window == LeavePrompt && LeavePrompt.Result == true) || (window == DisbandPrompt && DisbandPrompt.Result == true))
+            }
+            else if ((window == LeavePrompt && LeavePrompt.Result == true) || (window == DisbandPrompt && DisbandPrompt.Result == true))
             {
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
@@ -119,82 +186,28 @@ namespace Multiplayer.UI
                 }
 
                 UpdateDebounce = false;
-                Update(Lobby);
                 LobbyManager.LocalLobby = null;
-                if (!Lobby.IsPrivate) UIManager.PublicLobbiesWindow.Update();
+                await Update(Lobby);
 
                 PopupUtils.ShowInfoAndLog(msg);
 
                 UIManager.Debounce = false;
                 ReturnWindow.Window.Show();
-            } else
+            }
+            else
             {
                 Window.Show();
             }
         }
 
-        private async Task AutoUpdateStart()
-        {
-            IsAutoUpdating = true;
-
-            while (IsAutoUpdating)
-            {
-                await Task.Delay(AutoUpdateInterval);
-                Update(Lobby);
-            }
-        }
-
-        internal async void Update(Lobby lobby)
-        {
-            if (UpdateDebounce || lobby is null) return;
-            UpdateDebounce = true;
-
-            Lobby = lobby;
-            await lobby.Update();
-
-            RemoveAllButtons(true,ActionButton);
-            ButtonsPlayers.Clear();
-
-            ActionButtonIsJoin = !lobby.IsMember(PlayerManager.LocalPlayer);
-            ActionButton.Titles = ActionButtonIsJoin ? ActionButtonTitles[0] : Lobby.Host == PlayerManager.LocalPlayer ? ActionButtonTitles[2] : ActionButtonTitles[1];
-
-            MainDescription = new(string.Format(
-                Localization.Get("Lobby","Description").ToString(),
-                lobby.Name,
-                lobby.Host.MultiplayerStats.Name,
-                lobby.Players.Count, lobby.MaxPlayers,
-                lobby.IsPrivate ? "f542adff" : "1eff00ff",
-                lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString()
-            ));
-
-            Title = Lobby.NameLocal;
-            JoinPrompt.Title = Title;
-            LeavePrompt.Title = Title;
-            DisbandPrompt.Title = Title;
-            ReturnButton.Contents = MainDescription;
-
-            foreach (string playerUid in lobby.Players)
-            {
-                Player player = await PlayerManager.GetPlayer(playerUid);
-                if (ButtonsPlayers.ContainsValue(player)) continue;
-
-                ForumObject button = AddButton(
-                    lobby.Host == player ? new($"<color=fff700ff>{player.MultiplayerStats.Name}</color>") : player.MultiplayerStats.NameLocal, 
-                    UIManager.ProfileWindow, MainDescription
-                );
-                ButtonsPlayers.Add(button, player);
-            }
-
-            UpdateDebounce = false;
-        }
-
         internal override void OnButtonClick(IListWindow window, int objectIndex)
         {
+            base.OnButtonClick(window, objectIndex);
+
             ForumObject button = Window.ForumObjects[objectIndex];
 
             if (button == ActionButton)
             {
-                Window.ForceClose();
                 if (ActionButtonIsJoin)
                 {
                     JoinPrompt.Show();
@@ -206,12 +219,7 @@ namespace Multiplayer.UI
             }
             else if (ButtonsPlayers.TryGetValue(button, out Player player))
             {
-                base.OnButtonClick(window, objectIndex);
-                UIManager.ProfileWindow.Update(player);
-            }
-            else 
-            {
-                base.OnButtonClick(window, objectIndex);
+                OpenProfileWindow(player);
             }
         }
 

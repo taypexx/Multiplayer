@@ -24,8 +24,7 @@
     "FriendRequests": "Friend Requests",
     "Lobbies": "Lobbies",
     "Competitive": "Competitive",
-    "CreditsTitle": "Credits",
-    "Credits": "———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\nUntrustedURL, ???, ???"
+    "CreditsTitle": "Credits"
   },
   "ProfileWindow": {
     "Title": "Profile",

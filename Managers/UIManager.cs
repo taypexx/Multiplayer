@@ -1,10 +1,8 @@
 ﻿using LocalizeLib;
 using Multiplayer.UI;
-using PopupLib.UI;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Multiplayer.Managers

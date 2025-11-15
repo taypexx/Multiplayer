@@ -26,7 +26,7 @@ namespace Multiplayer.UI
 
             foreach (Player friend in player.MultiplayerStats.Friends)
             {
-                ForumObject button = AddButton(friend.MultiplayerStats.NameLocal, UIManager.ProfileWindow);
+                ForumObject button = AddButton(friend.MultiplayerStats.NameLocal);
                 ButtonsFriends.Add(button, friend);
             }
         }
@@ -35,10 +35,9 @@ namespace Multiplayer.UI
         {
             base.OnButtonClick(window, objectIndex);
 
-            // Should come after the base method or else it desyncs and breaks :bleh:
             if (ButtonsFriends.TryGetValue(Window.ForumObjects[objectIndex], out Player player))
             {
-                UIManager.ProfileWindow.Update(player);
+                OpenProfileWindow(player);
             }
         }
     }

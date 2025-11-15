@@ -13,14 +13,7 @@ namespace Multiplayer.Data.Stats
         public LocalString NameLocal { get; private set; }
         public string AvatarName { get; internal set; }
         public string Bio { get; internal set; }
-        public int Level { 
-            get { 
-                return Player == PlayerManager.LocalPlayer ? DataHelper.Level : field; 
-            } private set {
-                if (Player == PlayerManager.LocalPlayer) return;
-                field = value;
-            } 
-        }
+        public int Level { get; private set; }
 
         public List<Player> Friends { get; internal set; }
         public Dictionary<string, string> FriendRequests { get; private set; }
@@ -33,7 +26,7 @@ namespace Multiplayer.Data.Stats
         public MultiplayerStats(Player player)
         {
             Player = player;
-            Name = DataHelper.nickname ?? player.Uid;
+            Name = PlayerManager.LocalPlayerName ?? player.Uid;
             NameLocal = new(Name);
             AvatarName = "head_0";
             Bio = "This player did not set their bio.";
@@ -51,18 +44,18 @@ namespace Multiplayer.Data.Stats
         /// Synchronizes <see cref="MultiplayerStats"/> with the server.
         /// </summary>
         /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
-        internal async Task Update()
+        internal async Task<bool> Update()
         {
             var payload = new
             {
-                SelfUid = PlayerManager.LocalPlayer?.Uid ?? Player.Uid,
+                SelfUid = PlayerManager.LocalPlayerUid ?? Player.Uid,
                 TargetUid = Player.Uid,
-                Name = DataHelper.nickname,
+                Name = PlayerManager.LocalPlayerName,
                 Token = Client.Token
             };
 
             var response = await Client.PostAsync("getPlayer",payload);
-            if (response == null) return;
+            if (response == null) return false;
 
             var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
 
@@ -70,7 +63,7 @@ namespace Multiplayer.Data.Stats
             NameLocal = new(Name);
             AvatarName = updatedData["AvatarName"].GetString();
             Bio = updatedData["Bio"].GetString();
-            Level = updatedData["Level"].GetInt32();
+            Level = Player == PlayerManager.LocalPlayer ? PlayerManager.LocalPlayerLVL : updatedData["Level"].GetInt32();
 
             Friends.Clear();
             var updatedFriends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"].GetRawText());
@@ -105,6 +98,8 @@ namespace Multiplayer.Data.Stats
 
             ELO = updatedData["ELO"].GetUInt16();
             Banned = updatedData["Banned"].GetBoolean();
+
+            return true;
         }
 
         private string GetRank(bool includingSubrank = false)

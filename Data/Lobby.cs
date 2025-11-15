@@ -31,8 +31,9 @@ namespace Multiplayer.Data
         /// <summary>
         /// Synchronizes the <see cref="Lobby"/> with the server.
         /// </summary>
+        /// <param name="updatePlayers">Whether to updates players of the lobby.</param>
         /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
-        internal async Task<bool> Update()
+        internal async Task<bool> Update(bool updatePlayers = false)
         {
             var payload = new
             {
@@ -59,6 +60,14 @@ namespace Multiplayer.Data
             catch (Exception e)
             {
                 //Main.Logger.Warning(e.ToString());
+            }
+
+            if (updatePlayers)
+            {
+                foreach (string playerUid in Players)
+                {
+                    await PlayerManager.GetPlayer(playerUid);
+                }
             }
 
             return true;

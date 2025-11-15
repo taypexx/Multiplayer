@@ -35,7 +35,7 @@ namespace Multiplayer.UI
                     CachedNames.Add(playerName, localString);
                 }
 
-                ForumObject button = AddButton(localString, UIManager.ProfileWindow);
+                ForumObject button = AddButton(localString);
                 ButtonsUids.Add(button, playerUid);
             }
         }
@@ -46,8 +46,7 @@ namespace Multiplayer.UI
 
             if (ButtonsUids.TryGetValue(Window.ForumObjects[objectIndex], out string playerUid))
             {
-                Player player = PlayerManager.GetPlayer(playerUid).Result;
-                _ = UIManager.ProfileWindow.Update(player);
+                OpenProfileWindow(playerUid);
             }
         }
     }
