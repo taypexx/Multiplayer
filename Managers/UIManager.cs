@@ -30,6 +30,8 @@ namespace Multiplayer.Managers
         internal static LobbyWindow LobbyWindow { get; private set; }
         internal static PublicLobbiesWindow PublicLobbiesWindow { get; private set; }
 
+        internal static MainLobbyDisplay MainLobbyDisplay { get; private set; }
+
 
         /// <summary>
         /// Displays a warning popup with the given <see cref="LocalString"/>.
@@ -75,6 +77,9 @@ namespace Multiplayer.Managers
 
             MainMenuOpenButton.Create();
             ProfileWindow.CreateAvatarBox();
+
+            MainLobbyDisplay.Destroy();
+            if (LobbyManager.LocalLobby != null) MainLobbyDisplay.Create(LobbyManager.LocalLobby);
         }
 
         internal static void Init()
@@ -103,6 +108,8 @@ namespace Multiplayer.Managers
             LobbiesWindow = new();
             PublicLobbiesWindow = new();
             LobbyWindow = new();
+
+            MainLobbyDisplay = new();
 
             ProfileWindow.CreateButtons();
             LobbiesWindow.CreateButtons();

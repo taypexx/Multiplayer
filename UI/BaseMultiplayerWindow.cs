@@ -187,7 +187,7 @@ namespace Multiplayer.UI
 
             Window.ForceClose();
 
-            if (forumObject == ReturnButton && HasReturnButton)
+            if (HasReturnButton && forumObject == ReturnButton)
             {
                 ReturnWindow.Window.Show();
             } else

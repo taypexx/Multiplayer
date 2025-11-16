@@ -42,7 +42,7 @@ namespace Multiplayer.UI
             MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, MainDescription);
             AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), PnlHead, MainDescription);
             BioButton = AddButton(Localization.Get("MainMenu", "Bio"), BioWindow, MainDescription);
-            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), UIManager.FriendRequestsWindow, MainDescription);
+            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), MainDescription);
             LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
             CreditsButton = AddButton(Localization.Get("MainMenu", "CreditsTitle"), null, Credits);
@@ -64,6 +64,22 @@ namespace Multiplayer.UI
 
                 UIManager.Debounce = false;
                 Open();
+            });
+        }
+
+        /// <summary>
+        /// Updates and opens the <see cref="FriendRequestsWindow"/>.
+        /// </summary>
+        private async void OpenFriendRequests()
+        {
+            UIManager.Debounce = true;
+
+            await PlayerManager.LocalPlayer.Update();
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                UIManager.Debounce = false;
+                UIManager.FriendRequestsWindow.Window.Show();
             });
         }
 
@@ -134,9 +150,10 @@ namespace Multiplayer.UI
 
         internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
-            base.OnButtonClick(window, objectIndex);
-
             ForumObject button = Window.ForumObjects[objectIndex];
+
+            if (button == CreditsButton) return;
+            base.OnButtonClick(window, objectIndex);
 
             if (button == AvatarButton)
             {
@@ -150,6 +167,9 @@ namespace Multiplayer.UI
                 {
                     OpenLobbyWindow(LobbyManager.LocalLobby);
                 }
+            } else if (button == FriendRequestsButton)
+            {
+                OpenFriendRequests();
             }
         }
     }

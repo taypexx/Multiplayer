@@ -21,6 +21,29 @@ namespace Multiplayer.UI
             AddRefreshButton();
         }
 
+        private string GetLobbyString(Lobby lobby)
+        {
+            return $"{lobby.Name} ({lobby.Players.Count}/{lobby.MaxPlayers})";
+        }
+
+        /// <summary>
+        /// Finds a button related to the <see cref="Lobby"/> and updates it.
+        /// </summary>
+        /// <param name="lobby"></param>
+        internal void UpdateLobbyButton(Lobby lobby)
+        {
+            if (!ButtonsLobbies.ContainsValue(lobby)) return;
+            
+            foreach ((ForumObject button, Lobby lobby_) in ButtonsLobbies)
+            {
+                if (lobby == lobby_)
+                {
+                    button.Titles = new(GetLobbyString(lobby));
+                    return;
+                }
+            }
+        }
+
         /// <summary>
         /// Updates current public lobbies.
         /// </summary>
@@ -43,14 +66,13 @@ namespace Multiplayer.UI
             }
 
             RemoveAllButtons(true);
-            AddRefreshButton();
-
             ReturnButton.Contents = LobbyManager.PublicLobbies.Count > 0 ? MainDescription : EmptyDescription;
+            RefreshButton.Contents = ReturnButton.Contents;
             ButtonsLobbies.Clear();
 
             foreach (Lobby lobby in LobbyManager.PublicLobbies)
             {
-                ForumObject button = AddButton(new($"{lobby.Name} ({lobby.Players.Count}/{lobby.MaxPlayers})"), null, MainDescription);
+                ForumObject button = AddButton(new(GetLobbyString(lobby)), null, MainDescription);
                 ButtonsLobbies.Add(button, lobby);
             }
         }

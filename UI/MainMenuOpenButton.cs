@@ -1,5 +1,4 @@
 ﻿using Il2Cpp;
-using Il2CppAssets.Scripts.PeroTools.Nice.Events;
 using Il2CppAssets.Scripts.UI.Panels.Menu;
 using Multiplayer.Managers;
 using UnityEngine;
@@ -8,7 +7,7 @@ using UnityEngine.UI;
 
 namespace Multiplayer.UI
 {
-    internal class MainMenuOpenButton
+    internal sealed class MainMenuOpenButton
     {
         internal GameObject Button;
         internal Button ButtonComponent;

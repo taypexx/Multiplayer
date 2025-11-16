@@ -51,7 +51,7 @@
   },
   "Lobbies": {
     "Title": "Lobbies",
-    "Description": "<color=1eff00ff>Public</color> lobbies are open to everyone as long as they are not full.\n\n<color=f542adff>Private</color> lobbies require you to enter their name and password in order to join.\n\nIf you don't want to join someone's lobby you can create your own.",
+    "Description": "<color=1eff00ff>Public</color> lobbies are open to everyone as long as\nthey are not full.\n\n<color=f542adff>Private</color> lobbies require you to enter their name\nand password in order to join.\n\nIf you don't want to join someone's lobby you can create your own.",
     "PublicButton": "Public Lobbies",
     "PrivateButton": "Join Private Lobby",
     "CreateButton": "Create a Lobby"
@@ -64,16 +64,21 @@
   "Lobby": {
     "Title": "Lobby",
     "Description": "<color=f542adff>{0}</color>\n\nHost: <color=fff700ff>{1}</color>\nPlayers: {2}/{3}\nStatus: <color={4}>{5}</color>",
+    "Full": "- Lobby is full -",
     "Join": "— Join —",
     "Leave": "— Leave —",
     "Disband": "— Disband —",
     "JoinPrompt": "Join the lobby?",
+    "PasswordPrompt": "Enter the lobby password:",
     "LeavePrompt": "Are you sure you want to leave this lobby?",
     "DisbandPrompt": "Are you sure you want to disband this lobby? Everyone will be kicked out.",
+    "FullMessage": "This lobby is full!",
     "JoinSuccess": "You've joined the lobby!",
     "LeaveSuccess": "You've left the lobby!",
     "DisbandSuccess": "You've disbanded the lobby!",
+    "IncorrectPassword": "Incorrect password!",
     "PublicStatus": "Public",
-    "PrivateStatus": "Private"
+    "PrivateStatus": "Private",
+    "AlreadyInLobby": "You have a lobby already!"
   }
 }

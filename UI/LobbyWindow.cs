@@ -21,13 +21,13 @@ namespace Multiplayer.UI
         private ForumObject ActionButton;
 
         private PromptWindow JoinPrompt;
+        private InputWindow PasswordPrompt;
         private PromptWindow LeavePrompt;
         private PromptWindow DisbandPrompt;
 
         private Lobby Lobby;
-        private bool IsAutoUpdating = false;
-        private bool UpdateDebounce = false;
-        private TimeSpan AutoUpdateInterval = TimeSpan.FromSeconds(5);
+        internal bool IsAutoUpdating { get; private set; } = false;
+        internal bool UpdateDebounce { get; private set; } = false;
 
         internal LobbyWindow() : base(Localization.Get("Lobby", "Title"), UIManager.PublicLobbiesWindow, "Lobbies.png")
         {
@@ -36,18 +36,24 @@ namespace Multiplayer.UI
             {
                 [0] = Localization.Get("Lobby", "Join"),
                 [1] = Localization.Get("Lobby", "Leave"),
-                [2] = Localization.Get("Lobby", "Disband")
+                [2] = Localization.Get("Lobby", "Disband"),
+                [3] = Localization.Get("Lobby", "Full")
             };
             ActionButtonResponses = new()
             {
                 [0] = Localization.Get("Lobby", "JoinSuccess"),
                 [1] = Localization.Get("Lobby", "LeaveSuccess"),
-                [2] = Localization.Get("Lobby", "DisbandSuccess")
+                [2] = Localization.Get("Lobby", "DisbandSuccess"),
+                [3] = Localization.Get("Lobby", "FullMessage")
             };
 
             JoinPrompt = new(Localization.Get("Lobby","JoinPrompt"));
             JoinPrompt.AutoReset = true;
             JoinPrompt.OnCompletion += OnActionDecided;
+
+            PasswordPrompt = new(Localization.Get("Lobby","PasswordPrompt"));
+            PasswordPrompt.AutoReset = true;
+            PasswordPrompt.OnCompletion += OnActionDecided;
 
             LeavePrompt = new(Localization.Get("Lobby", "LeavePrompt"));
             LeavePrompt.AutoReset = true;
@@ -58,16 +64,20 @@ namespace Multiplayer.UI
             DisbandPrompt.OnCompletion += OnActionDecided;
 
             AddReturnButton();
-            ActionButton = AddButton(ActionButtonTitles[0],null, MainDescription);
+            ActionButton = AddButton(ActionButtonTitles[0], null, MainDescription);
         }
 
+        /// <summary>
+        /// Starts the auto update loop and updates the lobby every <see cref="AutoUpdateInterval"/>.
+        /// </summary>
+        /// <returns></returns>
         private async Task AutoUpdateStart()
         {
             IsAutoUpdating = true;
 
             while (IsAutoUpdating)
             {
-                await Task.Delay(AutoUpdateInterval);
+                await Task.Delay(LobbyManager.AutoUpdateInterval);
                 await Update(Lobby);
             }
         }
@@ -91,7 +101,7 @@ namespace Multiplayer.UI
                 ButtonsPlayers.Clear();
 
                 ActionButtonIsJoin = !lobby.IsMember(PlayerManager.LocalPlayer);
-                ActionButton.Titles = ActionButtonIsJoin ? ActionButtonTitles[0] : Lobby.Host == PlayerManager.LocalPlayer ? ActionButtonTitles[2] : ActionButtonTitles[1];
+                ActionButton.Titles = ActionButtonIsJoin ? (lobby.Players.Count < lobby.MaxPlayers ? ActionButtonTitles[0] : ActionButtonTitles[3]) : (lobby.Host == PlayerManager.LocalPlayer ? ActionButtonTitles[2] : ActionButtonTitles[1]);
 
                 MainDescription = new(string.Format(
                     Localization.Get("Lobby", "Description").ToString(),
@@ -102,11 +112,12 @@ namespace Multiplayer.UI
                     lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString()
                 ));
 
-                Title = Lobby.NameLocal;
+                Title = lobby.NameLocal;
                 JoinPrompt.Title = Title;
                 LeavePrompt.Title = Title;
                 DisbandPrompt.Title = Title;
                 ReturnButton.Contents = MainDescription;
+                ActionButton.Contents = MainDescription;
 
                 foreach (string playerUid in lobby.Players)
                 {
@@ -115,14 +126,14 @@ namespace Multiplayer.UI
 
                     ForumObject button = AddButton(
                         lobby.Host == player ? new($"<color=fff700ff>{player.MultiplayerStats.Name}</color>") : player.MultiplayerStats.NameLocal,
-                        UIManager.ProfileWindow, MainDescription
+                        null, MainDescription
                     );
                     ButtonsPlayers.Add(button, player);
                 }
 
                 if (!lobby.IsPrivate)
                 {
-                    // TODO: update the specific button related to the current lobby
+                    UIManager.PublicLobbiesWindow.UpdateLobbyButton(lobby);
                 }
 
                 UpdateDebounce = false;
@@ -131,73 +142,47 @@ namespace Multiplayer.UI
 
         private async void OnActionDecided(BaseWindow window)
         {
-            if (window == JoinPrompt && JoinPrompt.Result == true)
+            if ((window == JoinPrompt && JoinPrompt.Result == true) || (window == PasswordPrompt && !string.IsNullOrEmpty(PasswordPrompt.Result)))
             {
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
-                var payload = new
-                {
-                    Uid = PlayerManager.LocalPlayer.Uid,
-                    Token = Client.Token,
-                    Id = Lobby.Id
-                };
-
-                LocalString msg;
-                var response = await Client.PostAsync("joinLobby", payload);
-                if (response != null)
-                {
-                    msg = ActionButtonResponses[0];
-                }
-                else
-                {
-                    msg = Localization.Get("Warning", "Unknown");
-                }
+                bool success = await LobbyManager.JoinLobby(Lobby);
+                LocalString msg = success ? ActionButtonResponses[0] : window == PasswordPrompt ? Localization.Get("Lobby","IncorrectPassword") : Localization.Get("Warning", "Unknown");
 
                 UpdateDebounce = false;
-                LobbyManager.LocalLobby = Lobby;
-                await Update(Lobby);
+                if (success) await Update(Lobby);
 
-                PopupUtils.ShowInfoAndLog(msg);
+                Main.Dispatcher.Enqueue(() => 
+                {
+                    UIManager.MainLobbyDisplay.Create(Lobby);
+                    PopupUtils.ShowInfoAndLog(msg);
 
-                UIManager.Debounce = false;
-                Window.Show();
+                    UIManager.Debounce = false;
+                    Window.Show();
+                });
             }
             else if ((window == LeavePrompt && LeavePrompt.Result == true) || (window == DisbandPrompt && DisbandPrompt.Result == true))
             {
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
-                var payload = new
-                {
-                    Uid = PlayerManager.LocalPlayer.Uid,
-                    Token = Client.Token
-                };
-
-                LocalString msg;
-                var response = await Client.PostAsync("leaveLobby", payload);
-                if (response != null)
-                {
-                    msg = ActionButtonResponses[window == LeavePrompt ? 1 : 2];
-                }
-                else
-                {
-                    msg = Localization.Get("Warning", "Unknown");
-                }
+                bool success = await LobbyManager.LeaveLobby(Lobby);
+                LocalString msg = success ? ActionButtonResponses[window == LeavePrompt ? 1 : 2] : Localization.Get("Warning", "Unknown");
 
                 UpdateDebounce = false;
-                LobbyManager.LocalLobby = null;
-                await Update(Lobby);
+                if (success) await Update(Lobby);
 
-                PopupUtils.ShowInfoAndLog(msg);
+                Main.Dispatcher.Enqueue(() =>
+                {
+                    UIManager.MainLobbyDisplay.Destroy();
+                    PopupUtils.ShowInfoAndLog(msg);
 
-                UIManager.Debounce = false;
-                ReturnWindow.Window.Show();
+                    UIManager.Debounce = false;
+                    ReturnWindow.Window.Show();
+                });
             }
-            else
-            {
-                Window.Show();
-            }
+            else Window.Show();
         }
 
         internal override void OnButtonClick(IListWindow window, int objectIndex)
@@ -208,13 +193,26 @@ namespace Multiplayer.UI
 
             if (button == ActionButton)
             {
-                if (ActionButtonIsJoin)
+                // If the local player is in another lobby
+                if (LobbyManager.LocalLobby != null && LobbyManager.LocalLobby != Lobby)
                 {
-                    JoinPrompt.Show();
+                    PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "AlreadyInLobby"));
+                    Window.Show();
+                    return;
                 }
-                else
+
+                if (ActionButtonIsJoin && Lobby.Players.Count < Lobby.MaxPlayers)
+                {
+                    if (Lobby.IsPrivate) PasswordPrompt.Show();
+                    else JoinPrompt.Show();
+                }
+                else if (!ActionButtonIsJoin)
                 {
                     (Lobby.Host == PlayerManager.LocalPlayer ? DisbandPrompt : LeavePrompt).Show();
+                } else
+                {
+                    PopupUtils.ShowInfoAndLog(ActionButtonResponses[3]);
+                    Window.Show();
                 }
             }
             else if (ButtonsPlayers.TryGetValue(button, out Player player))
@@ -228,14 +226,12 @@ namespace Multiplayer.UI
             base.OnShow(window);
 
             UIManager.ProfileWindow.ReturnWindow = this;
-
             _ = AutoUpdateStart();
         }
 
         internal override void OnCompletion(BaseWindow window)
         {
             base.OnCompletion(window);
-
             IsAutoUpdating = false;
         }
     }

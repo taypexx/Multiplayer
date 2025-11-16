@@ -60,9 +60,6 @@ namespace Multiplayer.UI
             UnfriendPrompt = new(Localization.Get("ProfileWindow", "DecideUnfriendPrompt"));
             UnfriendPrompt.AutoReset = true;
             UnfriendPrompt.OnCompletion += OnFriendActionDecided;
-
-            Window.OnEarlyInternalShow += OnShow;
-            Window.OnCompletion += OnCompletion;
         }
 
         internal void CreateButtons()
@@ -199,9 +196,10 @@ namespace Multiplayer.UI
 
         internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
-            base.OnButtonClick(window, objectIndex);
-
             ForumObject button = Window.ForumObjects[objectIndex];
+
+            if (button == StatsButton) return;
+            base.OnButtonClick(window, objectIndex);
 
             if (button == FriendRequestButton) 
             {

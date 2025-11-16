@@ -8,7 +8,7 @@ namespace Multiplayer.Managers
     internal static class BattleManager
     {
         internal static CancellationTokenSource CancellationTokenSource { get; private set; }
-        private static TimeSpan SyncInterval = TimeSpan.FromMilliseconds(300);
+        private static TimeSpan SyncInterval = Settings.Config.SlowNetworkMode ? TimeSpan.FromSeconds(1) : TimeSpan.FromMilliseconds(300);
 
         private static BattleStats BattleStats => PlayerManager.LocalPlayer?.BattleStats;
         private static TaskStageTarget TaskStageTarget;

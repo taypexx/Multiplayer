@@ -23,6 +23,8 @@ namespace Multiplayer.Managers
         }
         internal static Lobby LocalLobby { get; set; }
 
+        internal static TimeSpan AutoUpdateInterval => Settings.Config.SlowNetworkMode ? TimeSpan.FromSeconds(8) : TimeSpan.FromSeconds(4);
+
         /// <summary>
         /// Finds a <see cref="Lobby"/> by their <paramref name="id"/>.
         /// </summary>
@@ -46,6 +48,43 @@ namespace Multiplayer.Managers
             await newLobby.Update(false);
 
             return newLobby;
+        }
+
+        /// <summary>
+        /// Sends a request to the server to join the lobby.
+        /// </summary>
+        /// <param name="lobby"></param>
+        /// <returns></returns>
+        internal static async Task<bool> JoinLobby(Lobby lobby, string passwordGuess = null)
+        {
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                Token = Client.Token,
+                Id = lobby.Id,
+                PasswordGuess = passwordGuess
+            };
+
+            var response = await Client.PostAsync("joinLobby", payload);
+            bool success = response != null;
+
+            if (success) LocalLobby = lobby;
+            return success;
+        }
+
+        internal static async Task<bool> LeaveLobby(Lobby lobby)
+        {
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                Token = Client.Token
+            };
+
+            var response = await Client.PostAsync("leaveLobby", payload);
+            bool success = response != null;
+
+            if (success) LocalLobby = null;
+            return success;
         }
 
         /// <summary>

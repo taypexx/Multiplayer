@@ -1,5 +1,6 @@
 ﻿using Multiplayer.Data;
 using Multiplayer.Managers;
+using PopupLib.UI.Windows.Interfaces;
 
 namespace Multiplayer.UI
 {
@@ -32,6 +33,11 @@ namespace Multiplayer.UI
                     $"[ {Localization.Get("Achievements", "AchievedOn")} ]: <color=fff700ff>{date.ToLocalTime()}</color>"
                 ));
             }
+        }
+
+        internal override void OnButtonClick(IListWindow window, int objectIndex)
+        {
+            if (Window.ForumObjects[objectIndex] == ReturnButton) base.OnButtonClick(window, objectIndex);
         }
     }
 }
