@@ -1,4 +1,7 @@
 {
+  "Global": {
+    "PnlPreparationLocked": "Waiting for host..."
+  },
   "Warning": {
     "Title": "Warning",
     "NoAccount": "You are not logged in! Please log in to play multiplayer.",
@@ -23,6 +26,7 @@
     "BioDescription": "Enter your bio",
     "FriendRequests": "Friend Requests",
     "Lobbies": "Lobbies",
+    "MyLobby": "My Lobby",
     "Competitive": "Competitive",
     "CreditsTitle": "Credits"
   },
@@ -32,6 +36,7 @@
     "Friends": "Friends",
     "Achievements": "Achievements",
     "HQStats": "Headquarters Stats",
+    "MDMoe": "Musedash.moe",
     "RequestSend": "Send a friend request",
     "RemoveFriend": "Unfriend",
     "DecideFriendRequest": "Accept/reject friend request",
@@ -54,7 +59,9 @@
     "Description": "<color=1eff00ff>Public</color> lobbies are open to everyone as long as\nthey are not full.\n\n<color=f542adff>Private</color> lobbies require you to enter their name\nand password in order to join.\n\nIf you don't want to join someone's lobby you can create your own.",
     "PublicButton": "Public Lobbies",
     "PrivateButton": "Join Private Lobby",
-    "CreateButton": "Create a Lobby"
+    "CreateButton": "Create a Lobby",
+    "IDPrompt": "Enter the lobby ID:",
+    "IncorrectID": "Lobby with this ID doesn't exist!"
   },
   "PublicLobbies": {
     "Title": "Public Lobbies",
@@ -63,7 +70,7 @@
   },
   "Lobby": {
     "Title": "Lobby",
-    "Description": "<color=f542adff>{0}</color>\n\nHost: <color=fff700ff>{1}</color>\nPlayers: {2}/{3}\nStatus: <color={4}>{5}</color>",
+    "Description": "<color=f542adff>{0}</color>\nID: {1}\n\nHost: <color=fff700ff>{2}</color>\nPlayers: {3}/{4}\nStatus: <color={5}>{6}</color>",
     "Full": "- Lobby is full -",
     "Join": "— Join —",
     "Leave": "— Leave —",
@@ -79,6 +86,7 @@
     "IncorrectPassword": "Incorrect password!",
     "PublicStatus": "Public",
     "PrivateStatus": "Private",
-    "AlreadyInLobby": "You have a lobby already!"
+    "AlreadyInLobby": "You have a lobby already!",
+    "LobbyIsLocked": "This lobby is locked!"
   }
 }

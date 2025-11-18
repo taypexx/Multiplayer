@@ -11,13 +11,13 @@
 
         public static List<Rank> RanksList = new()
         {
-            new(3000, "Autoplayer", 0),
-            new(2500, "Master"),
-            new(2000, "Advanced"),
-            new(1500, "Apprentice"),
-            new(1000, "Trainee"),
-            new(500, "Rookie"),
-            new(0, "Rookie", 0)
+            new(3000, "Sleepwalker", 0),
+            new(2500, ""),
+            new(2000, ""),
+            new(1500, ""),
+            new(1000, ""),
+            new(500, ""),
+            new(0, "", 0)
         };
 
         public static ushort TopRankELO 

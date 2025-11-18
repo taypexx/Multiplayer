@@ -1,4 +1,5 @@
-﻿using LocalizeLib;
+﻿using Il2CppAssets.Scripts.PeroTools.UI;
+using LocalizeLib;
 using Multiplayer.UI;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
@@ -60,6 +61,24 @@ namespace Multiplayer.Managers
 
             WarningChooseAction.Invoke(WarningChoose.Result);
             WarningChooseAction = null;
+        }
+
+        /// <summary>
+        /// Locks/unlocks PnlPreparation depending on the local lobby.
+        /// </summary>
+        internal static void UpdatePnlPreparation()
+        {
+            bool isPanelLocked = LobbyManager.LocalLobby != null && LobbyManager.LocalLobby.Host != PlayerManager.LocalPlayer;
+
+            var playButton = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
+
+            playButton.transform.Find("TxtStart").GetComponent<Text>().text =
+                isPanelLocked ? Localization.Get("Global", "PnlPreparationLocked").ToString() : "PLAY!";
+
+            playButton.GetComponent<Button>().enabled = !isPanelLocked;
+            playButton.GetComponent<InputKeyBinding>().enabled = !isPanelLocked;
+
+            playButton.transform.Find("TxtStart/ImgBtnA").gameObject.SetActive(!isPanelLocked);
         }
 
         /// <summary>

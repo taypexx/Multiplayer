@@ -1,5 +1,4 @@
 ﻿using LocalizeLib;
-using Multiplayer.Data;
 using Multiplayer.Managers;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows.Interfaces;

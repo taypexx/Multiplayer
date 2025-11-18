@@ -106,6 +106,7 @@ namespace Multiplayer.UI
                 MainDescription = new(string.Format(
                     Localization.Get("Lobby", "Description").ToString(),
                     lobby.Name,
+                    lobby.Id,
                     lobby.Host.MultiplayerStats.Name,
                     lobby.Players.Count, lobby.MaxPlayers,
                     lobby.IsPrivate ? "f542adff" : "1eff00ff",
@@ -116,8 +117,10 @@ namespace Multiplayer.UI
                 JoinPrompt.Title = Title;
                 LeavePrompt.Title = Title;
                 DisbandPrompt.Title = Title;
-                ReturnButton.Contents = MainDescription;
                 ActionButton.Contents = MainDescription;
+
+                ReturnButton.Contents = MainDescription;
+                ReturnWindow = LobbyManager.LocalLobby == Lobby ? UIManager.MainMenu : Lobby.IsPrivate ? UIManager.LobbiesWindow : UIManager.PublicLobbiesWindow;
 
                 foreach (string playerUid in lobby.Players)
                 {
@@ -131,10 +134,7 @@ namespace Multiplayer.UI
                     ButtonsPlayers.Add(button, player);
                 }
 
-                if (!lobby.IsPrivate)
-                {
-                    UIManager.PublicLobbiesWindow.UpdateLobbyButton(lobby);
-                }
+                if (!lobby.IsPrivate) UIManager.PublicLobbiesWindow.UpdateLobbyButton(lobby);
 
                 UpdateDebounce = false;
             });
@@ -147,7 +147,7 @@ namespace Multiplayer.UI
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
-                bool success = await LobbyManager.JoinLobby(Lobby);
+                bool success = await LobbyManager.JoinLobby(Lobby,PasswordPrompt.Result);
                 LocalString msg = success ? ActionButtonResponses[0] : window == PasswordPrompt ? Localization.Get("Lobby","IncorrectPassword") : Localization.Get("Warning", "Unknown");
 
                 UpdateDebounce = false;
@@ -155,7 +155,6 @@ namespace Multiplayer.UI
 
                 Main.Dispatcher.Enqueue(() => 
                 {
-                    UIManager.MainLobbyDisplay.Create(Lobby);
                     PopupUtils.ShowInfoAndLog(msg);
 
                     UIManager.Debounce = false;
@@ -167,7 +166,7 @@ namespace Multiplayer.UI
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
-                bool success = await LobbyManager.LeaveLobby(Lobby);
+                bool success = await LobbyManager.LeaveLobby();
                 LocalString msg = success ? ActionButtonResponses[window == LeavePrompt ? 1 : 2] : Localization.Get("Warning", "Unknown");
 
                 UpdateDebounce = false;
@@ -175,11 +174,10 @@ namespace Multiplayer.UI
 
                 Main.Dispatcher.Enqueue(() =>
                 {
-                    UIManager.MainLobbyDisplay.Destroy();
                     PopupUtils.ShowInfoAndLog(msg);
 
                     UIManager.Debounce = false;
-                    ReturnWindow.Window.Show();
+                    UIManager.LobbiesWindow.Window.Show();
                 });
             }
             else Window.Show();
@@ -197,6 +195,13 @@ namespace Multiplayer.UI
                 if (LobbyManager.LocalLobby != null && LobbyManager.LocalLobby != Lobby)
                 {
                     PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "AlreadyInLobby"));
+                    Window.Show();
+                    return;
+                }
+                // If the lobby is locked
+                if (Lobby.Locked)
+                {
+                    PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "LobbyIsLocked"));
                     Window.Show();
                     return;
                 }

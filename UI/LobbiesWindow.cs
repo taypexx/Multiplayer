@@ -1,6 +1,11 @@
-﻿using LocalizeLib;
+﻿using Il2CppSirenix.Serialization.Utilities;
+using LocalizeLib;
+using Multiplayer.Data;
 using Multiplayer.Managers;
+using PopupLib.UI;
 using PopupLib.UI.Components;
+using PopupLib.UI.Windows;
+using PopupLib.UI.Windows.Abstract;
 using PopupLib.UI.Windows.Interfaces;
 
 namespace Multiplayer.UI
@@ -11,10 +16,15 @@ namespace Multiplayer.UI
         private ForumObject PrivateLobbyButton;
         private ForumObject CreateLobbyButton;
 
+        private InputWindow IDPrompt;
+
         private static LocalString MainDescription => Localization.Get("Lobbies", "Description");
 
         internal LobbiesWindow() : base(Localization.Get("Lobbies", "Title"), UIManager.MainMenu, "Lobbies.png")
         {
+            IDPrompt = new(Localization.Get("Lobbies", "IDPrompt"));
+            IDPrompt.AutoReset = true;
+            IDPrompt.OnCompletion += OnIDEnter;
         }
 
         internal void CreateButtons()
@@ -34,11 +44,37 @@ namespace Multiplayer.UI
 
             await UIManager.PublicLobbiesWindow.Update();
 
-            Main.Dispatcher.Enqueue(() => 
+            Main.Dispatcher.Enqueue(() =>
             {
                 UIManager.Debounce = false;
                 UIManager.PublicLobbiesWindow.Window.Show();
             });
+        }
+
+        private async void OnIDEnter(BaseWindow window)
+        {
+            if (IDPrompt.Result.IsNullOrWhitespace() || !Int32.TryParse(IDPrompt.Result, out _))
+            {
+                Window.Show();
+            } else
+            {
+                UIManager.Debounce = true;
+
+                Lobby lobby = await LobbyManager.GetLobby(Int32.Parse(IDPrompt.Result), true);
+
+                Main.Dispatcher.Enqueue(() =>
+                {
+                    UIManager.Debounce = false;
+                    if (lobby is null)
+                    {
+                        PopupUtils.ShowInfoAndLog(Localization.Get("Lobbies", "IncorrectID"));
+                        Window.Show();
+                    } else
+                    {
+                        OpenLobbyWindow(lobby);
+                    }
+                });
+            }
         }
 
         internal override void OnButtonClick(IListWindow window, int objectIndex)
@@ -49,6 +85,9 @@ namespace Multiplayer.UI
             if (button == PublicLobbiesButton)
             {
                 OpenPublicLobbies();
+            } else if (button == PrivateLobbyButton)
+            {
+                IDPrompt.Show();
             }
         }
     }

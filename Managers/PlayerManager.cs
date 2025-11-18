@@ -13,14 +13,30 @@ namespace Multiplayer.Managers
         internal static int LocalPlayerLVL { get; set; }
 
         /// <summary>
-        /// Finds a <see cref="Player"/> by their <paramref name="uid"/> in cache.
+        /// Synchronizes local <see cref="Player"/>'s stats with the server. Should be called when field(s) need(s) to be updated.
         /// </summary>
-        /// <param name="uid">UID of a <see cref="Player"/>.</param>
-        /// <returns>A cached <see cref="Player"/>.</returns>
-        internal static Player GetCachedPlayer(string uid)
+        internal static void SyncLocalPlayer()
         {
-            if (CachedPlayers.TryGetValue(uid,out Player player)) return player;
-            else return null;
+            if (!Client.Connected) return;
+
+            var achievementsConverted = new Dictionary<long, byte>();
+            foreach ((DateTime timestamp, Achievement achievement) in LocalPlayer.MultiplayerStats.Achievements)
+            {
+                achievementsConverted.Add(new DateTimeOffset(timestamp.ToUniversalTime()).ToUnixTimeSeconds(), achievement.Id);
+            }
+
+            var payload = new
+            {
+                Uid = LocalPlayer.Uid,
+                Name = LocalPlayer.MultiplayerStats.Name,
+                AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
+                Bio = LocalPlayer.MultiplayerStats.Bio,
+                Level = LocalPlayer.MultiplayerStats.Level,
+                Achievements = achievementsConverted,
+                Token = Client.Token,
+            };
+
+            _ = Client.PostAsync("updatePlayer", payload);
         }
 
         /// <summary>
@@ -44,30 +60,14 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Synchronizes local <see cref="Player"/>'s stats with the server. Should be called when field(s) need(s) to be updated.
+        /// Finds a <see cref="Player"/> by their <paramref name="uid"/> in cache.
         /// </summary>
-        internal static void SyncLocalPlayer()
+        /// <param name="uid">UID of a <see cref="Player"/>.</param>
+        /// <returns>A cached <see cref="Player"/>.</returns>
+        internal static Player GetCachedPlayer(string uid)
         {
-            if (!Client.Connected) return;
-
-            var achievementsConverted = new Dictionary<long, byte>();
-            foreach ((DateTime timestamp, Achievement achievement) in LocalPlayer.MultiplayerStats.Achievements)
-            {
-                achievementsConverted.Add(new DateTimeOffset(timestamp.ToUniversalTime()).ToUnixTimeSeconds(),achievement.Id);
-            }
-
-            var payload = new 
-            {
-                Uid = LocalPlayer.Uid,
-                Name = LocalPlayer.MultiplayerStats.Name,
-                AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
-                Bio = LocalPlayer.MultiplayerStats.Bio,
-                Level = LocalPlayer.MultiplayerStats.Level,
-                Achievements = achievementsConverted,
-                Token = Client.Token,
-            };
-
-            _ = Client.PostAsync("updatePlayer", payload);
+            if (CachedPlayers.TryGetValue(uid, out Player player)) return player;
+            return null;
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if <see cref="Player"/> was successfully cached or <see langword="false"/> if they were cached already.</returns>
         private static bool CachePlayer(Player player)
         {
-            if (CachedPlayers.TryGetValue(player.Uid, out _)) return false;
+            if (CachedPlayers.ContainsKey(player.Uid)) return false;
 
             CachedPlayers.Add(player.Uid, player);
             return true;
@@ -91,6 +91,7 @@ namespace Multiplayer.Managers
             Task.Run(async () => 
             {
                 LocalPlayer = await GetPlayer(LocalPlayerUid);
+                UIManager.MainMenu.Open();
             });
         }
     }

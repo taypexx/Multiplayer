@@ -2,6 +2,7 @@
 using Multiplayer.Managers;
 using CustomAlbums.Utilities;
 using Il2CppAssets.Scripts.Database;
+using Multiplayer.Patches;
 
 namespace Multiplayer
 {
@@ -69,9 +70,10 @@ namespace Multiplayer
                 PlayerManager.LocalPlayerLVL = DataHelper.Level;
                 AchievementManager.Check();
                 PlayerManager.SyncLocalPlayer();
+                _ = LobbyManager.SetReady(false);
             } else if (sceneName == "GameMain")
             {
-
+                BattlePatch.BattleSceneLoaded();
             }
         }
 
@@ -83,11 +85,11 @@ namespace Multiplayer
 
         public override void OnDeinitializeMelon()
         {
-            base.OnDeinitializeMelon();
-
             Settings.Save();
-            Client.Disconnect();
             DiscordManager.Dispose();
+            LobbyManager.LeaveLobby().ContinueWith(t => Client.Disconnect());
+
+            base.OnDeinitializeMelon();
         }
 
         public override void OnApplicationQuit()

@@ -63,7 +63,6 @@ namespace Multiplayer.UI
                 if (Client.Connected) Main.InitConnect();
 
                 UIManager.Debounce = false;
-                Open();
             });
         }
 
@@ -81,6 +80,14 @@ namespace Multiplayer.UI
                 UIManager.Debounce = false;
                 UIManager.FriendRequestsWindow.Window.Show();
             });
+        }
+
+        /// <summary>
+        /// Updates the <see cref="LobbiesButton"/> and changes its title.
+        /// </summary>
+        internal void UpdateLobbiesButton()
+        {
+            LobbiesButton.Titles = LobbyManager.LocalLobby is null ? Localization.Get("MainMenu", "Lobbies") : Localization.Get("MainMenu", "MyLobby");
         }
 
         /// <summary>
@@ -160,7 +167,7 @@ namespace Multiplayer.UI
                 PnlHeadWasOpened = true;
             } else if (button == LobbiesButton)
             {
-                if (LobbyManager.LocalLobby is null)
+                if (LobbyManager.LocalLobby is null) 
                 {
                     UIManager.LobbiesWindow.Window.Show();
                 } else

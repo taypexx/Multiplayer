@@ -7,6 +7,7 @@ using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace Multiplayer.UI
         private ForumObject FriendsButton;
         private ForumObject AchievementsButton;
         private ForumObject HQStatsButton;
+        private ForumObject MDMoeButton;
         private ForumObject FriendRequestButton;
 
         private PromptWindow FriendRequestPrompt;
@@ -68,6 +70,7 @@ namespace Multiplayer.UI
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"), UIManager.FriendsWindow);
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
+            MDMoeButton = AddButton(Localization.Get("ProfileWindow","MDMoe"));
             FriendRequestButton = AddButton(Localization.Get("ProfileWindow", "AddFriend"));
             AddRefreshButton();
             AddReturnButton();
@@ -102,6 +105,21 @@ namespace Multiplayer.UI
         }
 
         /// <summary>
+        /// Opens the <see href="https://musedash.moe"/> profile of the player in the browser.
+        /// </summary>
+        private void OpenMDMoe()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("https://musedash.moe/player/" + Player.Uid) { UseShellExecute = true });
+            }
+            catch (Exception e)
+            {
+                Main.Logger.Warning(e.ToString());
+            }
+        }
+
+        /// <summary>
         /// Updates the <see cref="ProfileWindow"/> to display the information about the given <see cref="Data.Player"/>.
         /// </summary>
         /// <param name="player"><see cref="Data.Player"/> whose stats will now appear in the window.</param>
@@ -131,6 +149,7 @@ namespace Multiplayer.UI
                 AchievementsButton.Contents = StatsButton.Contents;
                 FriendsButton.Contents = StatsButton.Contents;
                 FriendRequestButton.Contents = StatsButton.Contents;
+                MDMoeButton.Contents = StatsButton.Contents;
                 RefreshButton.Contents = StatsButton.Contents;
                 ReturnButton.Contents = StatsButton.Contents;
 
@@ -199,6 +218,12 @@ namespace Multiplayer.UI
             ForumObject button = Window.ForumObjects[objectIndex];
 
             if (button == StatsButton) return;
+            else if (button == MDMoeButton)
+            {
+                OpenMDMoe(); 
+                return;
+            }
+
             base.OnButtonClick(window, objectIndex);
 
             if (button == FriendRequestButton) 

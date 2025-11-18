@@ -6,7 +6,6 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Net.Http.Json;
 using PopupLib.UI;
-using Multiplayer.UI;
 using System.Text.Json;
 using LocalizeLib;
 using System.Net.Sockets;
@@ -85,7 +84,7 @@ namespace Multiplayer
             catch (Exception)
             {
                 Main.Logger.Error("Couldn't perform a GET request!");
-                //Disconnect();
+                Disconnect();
                 return null;
             }
         }
@@ -116,7 +115,7 @@ namespace Multiplayer
             catch (Exception)
             {
                 Main.Logger.Error("Couldn't perform a POST request!");
-                //Disconnect();
+                Disconnect();
                 return null;
             }
         }
@@ -161,13 +160,13 @@ namespace Multiplayer
 
                 Token = content["Token"].GetString();
                 Connected = true;
+                response.Dispose();
                 Main.Logger.Success("Connected to the server successfully!");
             }
             else
             {
                 Main.Logger.Error("Failed to connect to the server!");
             }
-            response.Dispose();
 
             /*
             var moeDiffs = await GetAsync("https://api.musedash.moe/diffdiff", true);
@@ -179,12 +178,12 @@ namespace Multiplayer
                 {
                     MoeDifficulties.Add((string)chartStats[0], (float)chartStats[4]); // Key - Uid, Value - RL
                 }
+                moeDiffs.Dispose();
                 Main.Logger.Success("Recieved chart difficulties from musedash.moe successfully!");
             } else
             {
                 Main.Logger.Error("Failed to recieve chart difficulties from musedash.moe!");
             }
-            moeDiffs.Dispose();
             */
         }
 
