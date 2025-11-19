@@ -1,8 +1,10 @@
 ﻿using Multiplayer.Data;
 using Multiplayer.Managers;
+using Multiplayer.Static;
+using Multiplayer.UI.Abstract;
 using PopupLib.UI.Windows.Interfaces;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.ProfileWindows
 {
     internal sealed class AchievementsWindow : BaseMultiplayerWindow
     {

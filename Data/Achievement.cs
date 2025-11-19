@@ -1,4 +1,5 @@
 ﻿using LocalizeLib;
+using Multiplayer.Static;
 
 namespace Multiplayer.Data
 {

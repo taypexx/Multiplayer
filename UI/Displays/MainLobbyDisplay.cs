@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using Multiplayer.UI.Abstract;
+using UnityEngine;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.Displays
 {
     internal sealed class MainLobbyDisplay : BaseLobbyDisplay
     {

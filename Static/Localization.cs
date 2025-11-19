@@ -1,16 +1,15 @@
 ﻿using LocalizeLib;
 using Multiplayer.Managers;
-using System.Reflection;
 using System.Text.Json;
 
-namespace Multiplayer
+namespace Multiplayer.Static
 {
     internal static class Localization
     {
-        private static Dictionary<string, Dictionary<string,LocalString>> Strings = new();
+        private static Dictionary<string, Dictionary<string, LocalString>> Strings = new();
         private static LocalString Empty = new();
-        private static Dictionary<int,string> Languages = new() 
-        { 
+        private static Dictionary<int, string> Languages = new()
+        {
             [0] = "English",
             [1] = "Japanese",
             [2] = "Korean",

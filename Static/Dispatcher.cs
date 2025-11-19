@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Multiplayer
+namespace Multiplayer.Static
 {
     internal class Dispatcher
     {

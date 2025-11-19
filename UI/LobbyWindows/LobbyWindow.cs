@@ -1,13 +1,15 @@
 ﻿using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
+using Multiplayer.Static;
+using Multiplayer.UI.Abstract;
 using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using PopupLib.UI.Windows.Interfaces;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.LobbyWindows
 {
     internal sealed class LobbyWindow : BaseMultiplayerWindow
     {
@@ -15,8 +17,8 @@ namespace Multiplayer.UI
         private LocalString MainDescription;
 
         private bool ActionButtonIsJoin;
-        private Dictionary<int,LocalString> ActionButtonTitles;
-        private Dictionary<int,LocalString> ActionButtonResponses;
+        private Dictionary<int, LocalString> ActionButtonTitles;
+        private Dictionary<int, LocalString> ActionButtonResponses;
 
         private ForumObject ActionButton;
 
@@ -47,11 +49,11 @@ namespace Multiplayer.UI
                 [3] = Localization.Get("Lobby", "FullMessage")
             };
 
-            JoinPrompt = new(Localization.Get("Lobby","JoinPrompt"));
+            JoinPrompt = new(Localization.Get("Lobby", "JoinPrompt"));
             JoinPrompt.AutoReset = true;
             JoinPrompt.OnCompletion += OnActionDecided;
 
-            PasswordPrompt = new(Localization.Get("Lobby","PasswordPrompt"));
+            PasswordPrompt = new(Localization.Get("Lobby", "PasswordPrompt"));
             PasswordPrompt.AutoReset = true;
             PasswordPrompt.OnCompletion += OnActionDecided;
 
@@ -101,7 +103,7 @@ namespace Multiplayer.UI
                 ButtonsPlayers.Clear();
 
                 ActionButtonIsJoin = !lobby.IsMember(PlayerManager.LocalPlayer);
-                ActionButton.Titles = ActionButtonIsJoin ? (lobby.Players.Count < lobby.MaxPlayers ? ActionButtonTitles[0] : ActionButtonTitles[3]) : (lobby.Host == PlayerManager.LocalPlayer ? ActionButtonTitles[2] : ActionButtonTitles[1]);
+                ActionButton.Titles = ActionButtonIsJoin ? lobby.Players.Count < lobby.MaxPlayers ? ActionButtonTitles[0] : ActionButtonTitles[3] : lobby.Host == PlayerManager.LocalPlayer ? ActionButtonTitles[2] : ActionButtonTitles[1];
 
                 MainDescription = new(string.Format(
                     Localization.Get("Lobby", "Description").ToString(),
@@ -109,8 +111,9 @@ namespace Multiplayer.UI
                     lobby.Id,
                     lobby.Host.MultiplayerStats.Name,
                     lobby.Players.Count, lobby.MaxPlayers,
-                    lobby.IsPrivate ? "f542adff" : "1eff00ff",
-                    lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString()
+                    lobby.IsPrivate ? Constants.Red : Constants.Green,
+                    lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString(),
+                    lobby.Locked ? Localization.Get("Global", "Yes").ToString() : Localization.Get("Global", "No").ToString()
                 ));
 
                 Title = lobby.NameLocal;
@@ -128,7 +131,7 @@ namespace Multiplayer.UI
                     if (ButtonsPlayers.ContainsValue(player)) continue;
 
                     ForumObject button = AddButton(
-                        lobby.Host == player ? new($"<color=fff700ff>{player.MultiplayerStats.Name}</color>") : player.MultiplayerStats.NameLocal,
+                        lobby.Host == player ? new($"<color={Constants.Yellow}>{player.MultiplayerStats.Name}</color>") : player.MultiplayerStats.NameLocal,
                         null, MainDescription
                     );
                     ButtonsPlayers.Add(button, player);
@@ -142,26 +145,26 @@ namespace Multiplayer.UI
 
         private async void OnActionDecided(BaseWindow window)
         {
-            if ((window == JoinPrompt && JoinPrompt.Result == true) || (window == PasswordPrompt && !string.IsNullOrEmpty(PasswordPrompt.Result)))
+            if (window == JoinPrompt && JoinPrompt.Result == true || window == PasswordPrompt && !string.IsNullOrEmpty(PasswordPrompt.Result))
             {
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
-                bool success = await LobbyManager.JoinLobby(Lobby,PasswordPrompt.Result);
-                LocalString msg = success ? ActionButtonResponses[0] : window == PasswordPrompt ? Localization.Get("Lobby","IncorrectPassword") : Localization.Get("Warning", "Unknown");
+                bool success = await LobbyManager.JoinLobby(Lobby, PasswordPrompt.Result);
+                LocalString msg = success ? ActionButtonResponses[0] : window == PasswordPrompt ? Localization.Get("Lobby", "IncorrectPassword") : Localization.Get("Warning", "Unknown");
 
                 UpdateDebounce = false;
                 if (success) await Update(Lobby);
 
-                Main.Dispatcher.Enqueue(() => 
+                Main.Dispatcher.Enqueue(() =>
                 {
-                    PopupUtils.ShowInfoAndLog(msg);
+                    PopupUtils.ShowInfo(msg);
 
                     UIManager.Debounce = false;
                     Window.Show();
                 });
             }
-            else if ((window == LeavePrompt && LeavePrompt.Result == true) || (window == DisbandPrompt && DisbandPrompt.Result == true))
+            else if (window == LeavePrompt && LeavePrompt.Result == true || window == DisbandPrompt && DisbandPrompt.Result == true)
             {
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
@@ -174,7 +177,7 @@ namespace Multiplayer.UI
 
                 Main.Dispatcher.Enqueue(() =>
                 {
-                    PopupUtils.ShowInfoAndLog(msg);
+                    PopupUtils.ShowInfo(msg);
 
                     UIManager.Debounce = false;
                     UIManager.LobbiesWindow.Window.Show();
@@ -214,7 +217,8 @@ namespace Multiplayer.UI
                 else if (!ActionButtonIsJoin)
                 {
                     (Lobby.Host == PlayerManager.LocalPlayer ? DisbandPrompt : LeavePrompt).Show();
-                } else
+                }
+                else
                 {
                     PopupUtils.ShowInfoAndLog(ActionButtonResponses[3]);
                     Window.Show();

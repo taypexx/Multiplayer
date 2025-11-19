@@ -3,6 +3,8 @@ using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppSirenix.Serialization.Utilities;
 using LocalizeLib;
 using Multiplayer.Managers;
+using Multiplayer.Static;
+using Multiplayer.UI.Abstract;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using UnityEngine;
@@ -34,7 +36,7 @@ namespace Multiplayer.UI
 
             PnlHead.onClose += (Action)OnPnlHeadClose;
 
-            Credits = new(string.Format("———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\n{0}",Main.Testers));
+            Credits = new(string.Format("———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\n{0}",Constants.Testers));
         }
 
         internal void CreateButtons()

@@ -11,16 +11,16 @@ using LocalizeLib;
 using System.Net.Sockets;
 using Il2CppSirenix.Serialization.Utilities;
 
-namespace Multiplayer
+namespace Multiplayer.Static
 {
     internal static class Client
     {
         internal static bool Connected { get; private set; } = false;
         internal static bool TriedConnecting { get; private set; } = false;
 
-        internal static bool Outdated => ServerVersion != null && ServerVersion != Main.Version;
+        internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
         internal static string ServerVersion { get; private set; }
-        private static LocalString OutdatedWarning; 
+        private static LocalString OutdatedWarning;
 
         internal static string Token { get; private set; } = string.Empty;
         private static readonly string APIEndpoint = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/api/";
@@ -148,12 +148,12 @@ namespace Multiplayer
             var response = await PostAsync("connect", new { Uid = uid });
             if (response != null)
             {
-                var content = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();
+                var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
 
                 ServerVersion = content["Version"].GetString();
                 if (Outdated)
                 {
-                    OutdatedWarning = new(string.Format(Localization.Get("Warning", "Outdated").ToString(), Main.Version, ServerVersion));
+                    OutdatedWarning = new(string.Format(Localization.Get("Warning", "Outdated").ToString(), Constants.Version, ServerVersion));
                     Main.Logger.Error("Outdated version of the mod, cannot proceed!");
                     return;
                 }
@@ -189,7 +189,7 @@ namespace Multiplayer
 
         internal static void Disconnect()
         {
-            if (Connected) 
+            if (Connected)
             {
                 Main.Logger.Msg("Disconnecting from the server...");
             }
@@ -205,7 +205,7 @@ namespace Multiplayer
             }
 
             UIManager.WarningChooseAction = ReconnectOption;
-            UIManager.WarnChooseNotification(Localization.Get("Warning","Offline"));
+            UIManager.WarnChooseNotification(Localization.Get("Warning", "Offline"));
         }
 
         private static void ReconnectOption(bool? doReconnect)

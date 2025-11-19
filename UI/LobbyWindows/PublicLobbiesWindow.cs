@@ -1,11 +1,13 @@
 ﻿using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
+using Multiplayer.Static;
+using Multiplayer.UI.Abstract;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows.Interfaces;
 using System.Net.Http.Json;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.LobbyWindows
 {
     internal sealed class PublicLobbiesWindow : BaseMultiplayerWindow
     {
@@ -14,7 +16,7 @@ namespace Multiplayer.UI
         private static LocalString MainDescription => Localization.Get("PublicLobbies", "Description");
         private static LocalString EmptyDescription => Localization.Get("PublicLobbies", "DescriptionEmpty");
 
-        internal PublicLobbiesWindow() : base(Localization.Get("PublicLobbies","Title"), UIManager.LobbiesWindow, "Lobbies.png")
+        internal PublicLobbiesWindow() : base(Localization.Get("PublicLobbies", "Title"), UIManager.LobbiesWindow, "Lobbies.png")
         {
             ButtonsLobbies = new();
             AddReturnButton();
@@ -33,7 +35,7 @@ namespace Multiplayer.UI
         internal void UpdateLobbyButton(Lobby lobby)
         {
             if (!ButtonsLobbies.ContainsValue(lobby)) return;
-            
+
             foreach ((ForumObject button, Lobby lobby_) in ButtonsLobbies)
             {
                 if (lobby == lobby_)
@@ -51,8 +53,8 @@ namespace Multiplayer.UI
         {
             var payload = new
             {
-                Token = Client.Token,
-                Uid = PlayerManager.LocalPlayer.Uid
+                Client.Token,
+                PlayerManager.LocalPlayer.Uid
             };
 
             var response = await Client.PostAsync("getLobbies", payload);
@@ -86,7 +88,7 @@ namespace Multiplayer.UI
 
             await Update();
 
-            Main.Dispatcher.Enqueue(() => 
+            Main.Dispatcher.Enqueue(() =>
             {
                 UIManager.Debounce = false;
                 Window.Show();
@@ -102,7 +104,8 @@ namespace Multiplayer.UI
             if (button == RefreshButton)
             {
                 Refresh();
-            } else if (ButtonsLobbies.TryGetValue(button, out Lobby lobby))
+            }
+            else if (ButtonsLobbies.TryGetValue(button, out Lobby lobby))
             {
                 OpenLobbyWindow(lobby);
             }

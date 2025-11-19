@@ -1,5 +1,7 @@
 {
   "Global": {
+    "Yes": "Yes",
+    "No": "No",
     "PnlPreparationLocked": "Waiting for host..."
   },
   "Warning": {
@@ -12,11 +14,12 @@
   "Window": {
     "RefreshButton": "— Refresh —",
     "ReturnButton": "— Back —",
-    "ExitButton": "— Exit —"
+    "ExitButton": "— Exit —",
+    "Empty": "—"
   },
   "MainMenu": {
     "Title": "Multiplayer",
-    "Description": "Welcome to the <color=f542adff>Multiplayer</color>!\n\nHere you can play against other players,\ncustomize your profile, earn achievements,\nadd friends and more!\n\nClick \"Lobbies\" to play with your friends or \n\"Competitive\" to play against random people.",
+    "Description": "Welcome to the <color=f5428aff>Multiplayer</color>!\n\nHere you can play against other players,\ncustomize your profile, earn achievements,\nadd friends and more!\n\nClick \"Lobbies\" to play with your friends or \n\"Competitive\" to play against random people.",
     "Open": "Multiplayer",
     "Connecting": "Connecting to the server...",
     "LocalPlayerBanned": "You have been banned from multiplayer servers. If you wish to appeal please contact @cvle. or @taypexx in discord.",
@@ -56,7 +59,7 @@
   },
   "Lobbies": {
     "Title": "Lobbies",
-    "Description": "<color=1eff00ff>Public</color> lobbies are open to everyone as long as\nthey are not full.\n\n<color=f542adff>Private</color> lobbies require you to enter their name\nand password in order to join.\n\nIf you don't want to join someone's lobby you can create your own.",
+    "Description": "<color=1eff00ff>Public</color> lobbies are open to everyone as long as\nthey are not full.\n\n<color=f5428aff>Private</color> lobbies require you to enter their name\nand password in order to join.\n\nIf you don't want to join someone's lobby you can create your own.",
     "PublicButton": "Public Lobbies",
     "PrivateButton": "Join Private Lobby",
     "CreateButton": "Create a Lobby",
@@ -66,11 +69,41 @@
   "PublicLobbies": {
     "Title": "Public Lobbies",
     "Description": "Pick the one you like the most. ;)",
-    "DescirptionEmpty": "There are no public lobbies available right now. :("
+    "DescriptionEmpty": "There are no public lobbies available right now. :("
+  },
+  "LobbyCreation": {
+    "Title": "Create a lobby",
+    "Description": "<color=f5428aff>{0}</color>\n\n[ Max Players ]: <color={1}>{2}</color>\n[ Password ]: <color={3}>{4}</color>\n[ Goal ]: <color={5}>{6}</color>\n[ Play Type ]: <color={7}>{8}</color>\n[ Chart Selection Mode ]: <color={9}>{10}</color>",
+    "Set": "Set",
+    "NotSet": "Not set (Public)",
+    "LobbyName": "Lobby Name",
+    "LobbyNameInvalid": "Lobby name length must be between {0} and {1}!",
+    "MaxPlayers": "Max Players",
+    "MaxPlayersInvalid": "Maximum amount of players in lobby must be between {0} and {1}!",
+    "Password": "Password",
+    "PasswordInvalid": "Password length must be between {0} and {1}!",
+    "Create": "Create",
+    "CreateButton": "— Create —",
+    "CreateConfirm": "Create the lobby?",
+    "Goal": "Goal",
+    "GoalDescription": "Lobby goal determines what is going to be\nthevictory condition.",
+    "PlayType": "Play Type",
+    "PlayTypeDescription": "Lobby play type determines which kind of charts\neveryone will play.",
+    "ChartSelection": "Chart Selection",
+    "ChartSelectionDescription": "Lobby chart selection mode determines the way\ncharts are going to be queued and played.",
+    "Accuracy": "Accuracy",
+    "Score": "Score",
+    "Custom": "Custom",
+    "All": "All",
+    "VanillaOnly": "Vanilla Only",
+    "CustomOnly": "Custom Only",
+    "HostOnly": "Host Only",
+    "Playlist": "Playlist",
+    "Random": "Random"
   },
   "Lobby": {
     "Title": "Lobby",
-    "Description": "<color=f542adff>{0}</color>\nID: {1}\n\nHost: <color=fff700ff>{2}</color>\nPlayers: {3}/{4}\nStatus: <color={5}>{6}</color>",
+    "Description": "<color=f5428aff>{0}</color>\nID: {1}\n\n[ Host ]: <color=fff700ff>{2}</color>\n[ Players ]: {3}/{4}\n[ Status ]: <color={5}>{6}</color>\n[ Locked ]: {7}",
     "Full": "- Lobby is full -",
     "Join": "— Join —",
     "Leave": "— Leave —",

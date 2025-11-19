@@ -1,7 +1,7 @@
 ﻿using Tomlet;
 using Tomlet.Attributes;
 
-namespace Multiplayer
+namespace Multiplayer.Static
 {
     internal static class Settings
     {

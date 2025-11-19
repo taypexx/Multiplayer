@@ -2,13 +2,15 @@
 using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
+using Multiplayer.Static;
+using Multiplayer.UI.Abstract;
 using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using PopupLib.UI.Windows.Interfaces;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.LobbyWindows
 {
     internal sealed class LobbiesWindow : BaseMultiplayerWindow
     {
@@ -53,14 +55,16 @@ namespace Multiplayer.UI
 
         private async void OnIDEnter(BaseWindow window)
         {
-            if (IDPrompt.Result.IsNullOrWhitespace() || !Int32.TryParse(IDPrompt.Result, out _))
+            int? id = Utilities.GetValidNumber(IDPrompt.Result);
+            if (id is null)
             {
                 Window.Show();
-            } else
+            }
+            else
             {
                 UIManager.Debounce = true;
 
-                Lobby lobby = await LobbyManager.GetLobby(Int32.Parse(IDPrompt.Result), true);
+                Lobby lobby = await LobbyManager.GetLobby((int)id, true);
 
                 Main.Dispatcher.Enqueue(() =>
                 {
@@ -69,10 +73,8 @@ namespace Multiplayer.UI
                     {
                         PopupUtils.ShowInfoAndLog(Localization.Get("Lobbies", "IncorrectID"));
                         Window.Show();
-                    } else
-                    {
-                        OpenLobbyWindow(lobby);
                     }
+                    else OpenLobbyWindow(lobby);
                 });
             }
         }
@@ -80,14 +82,23 @@ namespace Multiplayer.UI
         internal override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
+            if (LobbyManager.LocalLobby != null)
+            {
+                OpenLobbyWindow(LobbyManager.LocalLobby);
+                return;
+            }
 
             ForumObject button = Window.ForumObjects[objectIndex];
             if (button == PublicLobbiesButton)
             {
                 OpenPublicLobbies();
-            } else if (button == PrivateLobbyButton)
+            }
+            else if (button == PrivateLobbyButton)
             {
                 IDPrompt.Show();
+            } else if (button == CreateLobbyButton)
+            {
+                UIManager.LobbyCreationWindow.Window.Show();
             }
         }
     }

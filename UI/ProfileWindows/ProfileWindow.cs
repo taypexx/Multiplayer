@@ -3,6 +3,8 @@ using Il2CppAssets.Scripts.UI.Panels;
 using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
+using Multiplayer.Static;
+using Multiplayer.UI.Abstract;
 using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
@@ -11,7 +13,7 @@ using System.Diagnostics;
 using System.Net.Http.Json;
 using UnityEngine;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.ProfileWindows
 {
     internal sealed class ProfileWindow : BaseMultiplayerWindow
     {
@@ -35,7 +37,7 @@ namespace Multiplayer.UI
         // The Player whose stats are displayed in this window.
         internal Player Player;
 
-        internal ProfileWindow() : base(Localization.Get("ProfileWindow","Title"), UIManager.MainMenu, "Profile.png") 
+        internal ProfileWindow() : base(Localization.Get("ProfileWindow", "Title"), UIManager.MainMenu, "Profile.png")
         {
             FriendButtonTitles = new()
             {
@@ -43,7 +45,7 @@ namespace Multiplayer.UI
                 [1] = Localization.Get("ProfileWindow", "CancelFriendRequest"),
                 [2] = Localization.Get("ProfileWindow", "RemoveFriend"),
                 [3] = Localization.Get("ProfileWindow", "RequestSend"),
-                [4] = null,
+                [4] = Localization.Get("Window", "Empty"),
             };
 
             FriendButtonResponses = new()
@@ -52,7 +54,7 @@ namespace Multiplayer.UI
                 [1] = Localization.Get("ProfileWindow", "CancelFriendRequestSuccess"),
                 [2] = Localization.Get("ProfileWindow", "RemoveFriendSuccess"),
                 [3] = Localization.Get("ProfileWindow", "RequestSendSuccess"),
-                [4] = null
+                [4] = Localization.Get("Window", "Empty"),
             };
 
             FriendRequestPrompt = new(Localization.Get("ProfileWindow", "DecideFriendRequestPrompt"));
@@ -70,7 +72,7 @@ namespace Multiplayer.UI
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"), UIManager.FriendsWindow);
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
-            MDMoeButton = AddButton(Localization.Get("ProfileWindow","MDMoe"));
+            MDMoeButton = AddButton(Localization.Get("ProfileWindow", "MDMoe"));
             FriendRequestButton = AddButton(Localization.Get("ProfileWindow", "AddFriend"));
             AddRefreshButton();
             AddReturnButton();
@@ -78,7 +80,7 @@ namespace Multiplayer.UI
 
         internal void CreateAvatarBox()
         {
-            AvatarBox = GameObject.Instantiate(
+            AvatarBox = UnityEngine.Object.Instantiate(
                 GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>().headGridView.templateHeadItem.m_Button.gameObject,
                 UIManager.WindowTitle.transform
             );
@@ -176,14 +178,14 @@ namespace Multiplayer.UI
 
         private async void OnFriendActionDecided(BaseWindow window = null)
         {
-            if (window == null || (window == FriendRequestPrompt && FriendRequestPrompt.Result == true) || (window == UnfriendPrompt && UnfriendPrompt.Result == true))
+            if (window == null || window == FriendRequestPrompt && FriendRequestPrompt.Result == true || window == UnfriendPrompt && UnfriendPrompt.Result == true)
             {
                 UIManager.Debounce = true;
 
                 var payload = new
                 {
-                    Uid = PlayerManager.LocalPlayer.Uid,
-                    Token = Client.Token,
+                    PlayerManager.LocalPlayer.Uid,
+                    Client.Token,
                     FriendUid = Player.Uid
                 };
 
@@ -194,7 +196,8 @@ namespace Multiplayer.UI
                 {
                     var actionDid = await response.Content.ReadFromJsonAsync<int>();
                     msg = FriendButtonResponses[FriendButtonState];
-                } else
+                }
+                else
                 {
                     msg = Localization.Get("Warning", "Unknown");
                 }
@@ -220,25 +223,28 @@ namespace Multiplayer.UI
             if (button == StatsButton) return;
             else if (button == MDMoeButton)
             {
-                OpenMDMoe(); 
+                OpenMDMoe();
                 return;
             }
 
             base.OnButtonClick(window, objectIndex);
 
-            if (button == FriendRequestButton) 
+            if (button == FriendRequestButton)
             {
                 if (FriendButtonState == 0)
                 {
                     FriendRequestPrompt.Show();
-                } else if (FriendButtonState == 2)
+                }
+                else if (FriendButtonState == 2)
                 {
                     UnfriendPrompt.Show();
-                } else if (FriendButtonState != 4)
+                }
+                else if (FriendButtonState != 4)
                 {
                     OnFriendActionDecided();
                 }
-            } else if (button == RefreshButton)
+            }
+            else if (button == RefreshButton)
             {
                 Refresh();
             }

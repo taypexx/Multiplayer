@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using Multiplayer.Static;
+using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace Multiplayer.Data.Stats

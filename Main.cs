@@ -3,15 +3,12 @@ using Multiplayer.Managers;
 using CustomAlbums.Utilities;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Patches;
+using Multiplayer.Static;
 
 namespace Multiplayer
 {
     public class Main : MelonMod
     {
-        public const string Name = "Multiplayer";
-        public const string Version = "1.0.0";
-        public const string Testers = "UntrustedURL, ???, ???";
-
         internal static Dispatcher Dispatcher { get; private set; }
         internal static Logger Logger { get; private set; }
 
@@ -24,11 +21,11 @@ namespace Multiplayer
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
-            Logger = new(Name);
+            Logger = new(Constants.ModName);
 
             InitGlobal();
 
-            Logger.Msg(Name + " was successfully initialized.");
+            Logger.Msg(Constants.ModName + " was successfully initialized.");
         }
 
         /// <summary>

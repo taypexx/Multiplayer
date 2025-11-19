@@ -1,6 +1,7 @@
 ﻿using LocalizeLib;
 using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
+using Multiplayer.Static;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -32,7 +33,7 @@ namespace Multiplayer.Data
             IsPrivate = true;
             PlayType = LobbyPlayType.All;
             ChartSelection = LobbyChartSelection.HostOnly;
-            Goal = LobbyGoal.Score;
+            Goal = LobbyGoal.Accuracy;
 
             Locked = false;
             EveryoneReady = false;

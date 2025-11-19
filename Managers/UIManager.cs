@@ -1,6 +1,10 @@
 ﻿using Il2CppAssets.Scripts.PeroTools.UI;
 using LocalizeLib;
+using Multiplayer.Static;
 using Multiplayer.UI;
+using Multiplayer.UI.Displays;
+using Multiplayer.UI.LobbyWindows;
+using Multiplayer.UI.ProfileWindows;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using UnityEngine;
@@ -30,6 +34,11 @@ namespace Multiplayer.Managers
         internal static LobbiesWindow LobbiesWindow { get; private set; }
         internal static LobbyWindow LobbyWindow { get; private set; }
         internal static PublicLobbiesWindow PublicLobbiesWindow { get; private set; }
+
+        internal static LobbyCreationWindow LobbyCreationWindow { get; private set; }
+        internal static LobbyGoalWindow LobbyGoalWindow { get; private set; }
+        internal static LobbyPlayTypeWindow LobbyPlayTypeWindow { get; private set; }
+        internal static LobbyChartSelectionWindow LobbyChartSelectionWindow { get; private set; }
 
         internal static MainLobbyDisplay MainLobbyDisplay { get; private set; }
 
@@ -128,10 +137,16 @@ namespace Multiplayer.Managers
             PublicLobbiesWindow = new();
             LobbyWindow = new();
 
+            LobbyCreationWindow = new();
+            LobbyGoalWindow = new();
+            LobbyPlayTypeWindow = new();
+            LobbyChartSelectionWindow = new();
+
             MainLobbyDisplay = new();
 
             ProfileWindow.CreateButtons();
             LobbiesWindow.CreateButtons();
+            LobbyCreationWindow.CreateButtons();
 
             MainMenu.CreateButtons();
         }

@@ -2,13 +2,16 @@
 using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
+using Multiplayer.Static;
+using Multiplayer.UI.LobbyWindows;
+using Multiplayer.UI.ProfileWindows;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.Abstract
 {
     internal abstract class BaseMultiplayerWindow
     {
@@ -25,12 +28,12 @@ namespace Multiplayer.UI
         internal ForumObject RefreshButton { get; private set; }
         internal bool HasRefreshButton => RefreshButton != null;
 
-        internal Dictionary<ForumObject,object> ButtonsWindows { get; private set; }
+        internal Dictionary<ForumObject, object> ButtonsWindows { get; private set; }
 
         /// <param name="title">Title of the window.</param>
         /// <param name="returnWindow">(Optional) Window to open after this one is closed.</param>
         /// <param name="bannerAssetName">(Optional) Path to the image asset relative to "Multiplayer.Assets.UI".</param>
-        internal BaseMultiplayerWindow(LocalString title, BaseMultiplayerWindow returnWindow = null, string bannerAssetName = null) 
+        internal BaseMultiplayerWindow(LocalString title, BaseMultiplayerWindow returnWindow = null, string bannerAssetName = null)
         {
             Title = title;
             if (bannerAssetName != null) Banner = AssetManager.GetImageAsset("UI." + bannerAssetName);
@@ -78,7 +81,8 @@ namespace Multiplayer.UI
             if (button == ReturnButton)
             {
                 ReturnButton = null;
-            } else if (button == RefreshButton)
+            }
+            else if (button == RefreshButton)
             {
                 RefreshButton = null;
             }
@@ -126,7 +130,7 @@ namespace Multiplayer.UI
         internal void AddReturnButton(LocalString content = null)
         {
             if (ReturnButton != null) return;
-            ReturnButton = AddButton(Localization.Get("Window", HasReturnWindow ? "ReturnButton" : "ExitButton"),null,content);
+            ReturnButton = AddButton(Localization.Get("Window", HasReturnWindow ? "ReturnButton" : "ExitButton"), null, content);
         }
 
         /// <summary>
@@ -172,9 +176,9 @@ namespace Multiplayer.UI
         {
             UIManager.Debounce = true;
 
-            await UIManager.LobbyWindow.Update(lobby,true);
+            await UIManager.LobbyWindow.Update(lobby, true);
 
-            Main.Dispatcher.Enqueue(() => 
+            Main.Dispatcher.Enqueue(() =>
             {
                 UIManager.Debounce = false;
                 UIManager.LobbyWindow.Window.Show();
@@ -183,19 +187,24 @@ namespace Multiplayer.UI
 
         internal virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
-            ForumObject forumObject = Window.ForumObjects[objectIndex];
+            ForumObject button = Window.ForumObjects[objectIndex];
 
             Window.ForceClose();
 
-            if (HasReturnButton && forumObject == ReturnButton)
+            if (HasReturnButton && button == ReturnButton)
             {
                 ReturnWindow.Window.Show();
-            } else
+            }
+            else
             {
-                object windowToOpen = ButtonsWindows[forumObject];
-                if (windowToOpen is null) 
+                object windowToOpen = ButtonsWindows[button];
+                if (windowToOpen is null)
                 {
                     return;
+                }
+                else if (windowToOpen is MainMenu)
+                {
+                    ((MainMenu)windowToOpen).Open();
                 }
                 else if (windowToOpen is BaseMultiplayerWindow)
                 {

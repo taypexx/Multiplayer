@@ -1,6 +1,7 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using LocalizeLib;
 using Multiplayer.Managers;
+using Multiplayer.Static;
 using System.Net.Http.Json;
 using System.Text.Json;
 

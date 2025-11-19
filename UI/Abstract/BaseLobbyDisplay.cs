@@ -3,7 +3,7 @@ using Multiplayer.Managers;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.Abstract
 {
     internal abstract class BaseLobbyDisplay
     {
@@ -18,7 +18,7 @@ namespace Multiplayer.UI
         internal TextAnchor TextAnchor;
 
         internal Text Title;
-        internal Dictionary<object,Text> TextList;
+        internal Dictionary<object, Text> TextList;
 
         internal Lobby Lobby;
 
@@ -40,10 +40,10 @@ namespace Multiplayer.UI
                 return null;
             }
 
-            GameObject newTextObj = GameObject.Instantiate(TextReference,Parent);
+            GameObject newTextObj = UnityEngine.Object.Instantiate(TextReference, Parent);
             newTextObj.name = "LobbyEntry";
-            Component.Destroy(newTextObj.GetComponent<Il2CppAssets.Scripts.PeroTools.GeneralLocalization.Localization>());
-            newTextObj.transform.localPosition = AnchorPosition + (Step * TextList.Count);
+            UnityEngine.Object.Destroy(newTextObj.GetComponent<Il2CppAssets.Scripts.PeroTools.GeneralLocalization.Localization>());
+            newTextObj.transform.localPosition = AnchorPosition + Step * TextList.Count;
 
             Text text = newTextObj.GetComponent<Text>();
             text.alignment = TextAnchor;
@@ -63,7 +63,7 @@ namespace Multiplayer.UI
             if (text != null)
             {
                 GameObject obj = text.gameObject;
-                if (obj != null) GameObject.Destroy(obj);
+                if (obj != null) UnityEngine.Object.Destroy(obj);
             }
 
             if (realignAfter) RealignText();
@@ -91,7 +91,7 @@ namespace Multiplayer.UI
             for (int i = 0; i < TextList.Count; i++)
             {
                 Text text = TextList.ElementAt(i).Value;
-                text.transform.localPosition = AnchorPosition + (Step * i);
+                text.transform.localPosition = AnchorPosition + Step * i;
             }
         }
 
@@ -136,7 +136,7 @@ namespace Multiplayer.UI
                 await Lobby.Update();
             }
 
-            Main.Dispatcher.Enqueue(() => 
+            Main.Dispatcher.Enqueue(() =>
             {
                 if (Title) Title.text = $"{Lobby.Name} " +
                  $"<color=#fff700ff>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color> " +
