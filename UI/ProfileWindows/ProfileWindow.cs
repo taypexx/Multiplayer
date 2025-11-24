@@ -220,7 +220,7 @@ namespace Multiplayer.UI.ProfileWindows
         {
             ForumObject button = Window.ForumObjects[objectIndex];
 
-            if (button == StatsButton) return;
+            if (button == StatsButton || (button == FriendRequestButton && FriendButtonState == 4)) return;
             else if (button == MDMoeButton)
             {
                 OpenMDMoe();

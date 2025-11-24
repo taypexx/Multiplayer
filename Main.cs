@@ -2,8 +2,8 @@
 using Multiplayer.Managers;
 using CustomAlbums.Utilities;
 using Il2CppAssets.Scripts.Database;
-using Multiplayer.Patches;
 using Multiplayer.Static;
+using Multiplayer.Patches;
 
 namespace Multiplayer
 {
@@ -70,7 +70,9 @@ namespace Multiplayer
                 _ = LobbyManager.SetReady(false);
             } else if (sceneName == "GameMain")
             {
-                BattlePatch.BattleSceneLoaded();
+                UIManager.InitGameMain();
+
+                BattlePatch.SceneLoaded();
             }
         }
 

@@ -44,7 +44,7 @@ namespace Multiplayer.UI
             MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, MainDescription);
             AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), PnlHead, MainDescription);
             BioButton = AddButton(Localization.Get("MainMenu", "Bio"), BioWindow, MainDescription);
-            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), MainDescription);
+            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), null, MainDescription);
             LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
             CreditsButton = AddButton(Localization.Get("MainMenu", "CreditsTitle"), null, Credits);
@@ -89,7 +89,7 @@ namespace Multiplayer.UI
         /// </summary>
         internal void UpdateLobbiesButton()
         {
-            LobbiesButton.Titles = LobbyManager.LocalLobby is null ? Localization.Get("MainMenu", "Lobbies") : Localization.Get("MainMenu", "MyLobby");
+            LobbiesButton.Titles = LobbyManager.IsInLobby ? Localization.Get("MainMenu", "MyLobby") : Localization.Get("MainMenu", "Lobbies");
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Multiplayer.UI
                     UIManager.WarnNotification(Localization.Get("MainMenu", "LocalPlayerBanned"));
                 } else
                 {
-                    if (LobbyManager.LocalLobby == null) Window.Show();
+                    if (!LobbyManager.IsInLobby) Window.Show();
                     else OpenLobbyWindow(LobbyManager.LocalLobby);
                 }
             } else
@@ -169,12 +169,12 @@ namespace Multiplayer.UI
                 PnlHeadWasOpened = true;
             } else if (button == LobbiesButton)
             {
-                if (LobbyManager.LocalLobby is null) 
-                {
-                    UIManager.LobbiesWindow.Window.Show();
-                } else
+                if (LobbyManager.IsInLobby) 
                 {
                     OpenLobbyWindow(LobbyManager.LocalLobby);
+                } else
+                {
+                    UIManager.LobbiesWindow.Window.Show();
                 }
             } else if (button == FriendRequestsButton)
             {

@@ -1,5 +1,7 @@
 ﻿using Multiplayer.Data;
+using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Static;
+using System.Net.Http.Json;
 
 namespace Multiplayer.Managers
 {
@@ -22,9 +24,29 @@ namespace Multiplayer.Managers
             } 
             private set; 
         }
+
         internal static Lobby LocalLobby { get; set; }
+        internal static bool IsInLobby => LocalLobby != null;
 
         internal static TimeSpan AutoUpdateInterval => Settings.Config.SlowNetworkMode ? TimeSpan.FromSeconds(6) : TimeSpan.FromSeconds(3);
+        internal static bool IsAutoUpdating = false;
+
+        /// <summary>
+        /// Starts the auto update loop and updates the lobby every <see cref="AutoUpdateInterval"/>.
+        /// </summary>
+        /// <returns></returns>
+        internal static async Task AutoUpdateStart(Lobby lobby)
+        {
+            IsAutoUpdating = true;
+
+            while (IsAutoUpdating && Client.Connected)
+            {
+                await Task.Delay(AutoUpdateInterval);
+                await UIManager.LobbyWindow.Update(lobby);
+                
+                if (lobby == LocalLobby) await UIManager.MainLobbyDisplay.Update(false);
+            }
+        }
 
         /// <summary>
         /// Sends a ready request to the server indicating that you are ready to play the chart (or not).
@@ -32,7 +54,7 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if ready was set, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> SetReady(bool isReady)
         {
-            if (!Client.Connected || LocalLobby is null) return false;
+            if (!Client.Connected || !IsInLobby) return false;
 
             var payload = new
             {
@@ -48,12 +70,12 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Sends a lock request to lock the current lobby.
+        /// Sends a lock request to the server to lock the current lobby.
         /// </summary>
         /// <returns><see langword="true"/> if the state was changed, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> LockLobby(bool isLocked)
         {
-            if (!Client.Connected || LocalLobby is null || LocalLobby.Host != PlayerManager.LocalPlayer) return false;
+            if (!Client.Connected || !IsInLobby || LocalLobby.Host != PlayerManager.LocalPlayer) return false;
 
             var payload = new
             {
@@ -64,8 +86,50 @@ namespace Multiplayer.Managers
 
             var response = await Client.PostAsync("lobbyLock", payload);
             bool success = response != null;
-
             if (success) LocalLobby.Locked = isLocked;
+            return success;
+        }
+
+        /// <summary>
+        /// Sends a create request to the server
+        /// </summary>
+        /// <returns><see langword="true"/> if it was created successfully, otherwise <see langword="false"/>.</returns>
+        internal static async Task<bool> CreateLobby(int maxPlayers, LobbyGoal goal, LobbyPlayType playType, LobbyChartSelection chartSelection, string name, string password = null)
+        {
+            if (!Client.Connected || IsInLobby) return false;
+
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                Token = Client.Token,
+                MaxPlayers = maxPlayers,
+                Goal = (byte)goal,
+                PlayType = (byte)playType,
+                ChartSelection = (byte)chartSelection,
+                Name = name,
+                Password = password
+            };
+
+            var response = await Client.PostAsync("createLobby", payload);
+            bool success = response != null;
+            if (success)
+            {
+                int id = await response.Content.ReadFromJsonAsync<int>();
+                if (id != 0)
+                {
+                    Lobby lobby = await GetLobby(id);
+                    LocalLobby = lobby;
+                    _ = AutoUpdateStart(lobby);
+
+                    Main.Dispatcher.Enqueue(() =>
+                    {
+                        UIManager.MainLobbyDisplay.Create(lobby);
+                        UIManager.UpdatePnlPreparation();
+                        UIManager.MainMenu.UpdateLobbiesButton();
+                    });
+                } 
+                else return false;
+            }
             return success;
         }
 
@@ -76,7 +140,7 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if join was successful, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> JoinLobby(Lobby lobby, string passwordGuess = null)
         {
-            if (!Client.Connected || LocalLobby != null || lobby is null || lobby.Locked) return false;
+            if (!Client.Connected || IsInLobby || lobby is null || lobby.Locked) return false;
 
             var payload = new
             {
@@ -92,10 +156,13 @@ namespace Multiplayer.Managers
             if (success)
             {
                 LocalLobby = lobby;
+                _ = AutoUpdateStart(lobby);
+
                 Main.Dispatcher.Enqueue(() => 
                 {
                     UIManager.MainLobbyDisplay.Create(lobby);
                     UIManager.UpdatePnlPreparation();
+                    UIManager.MainMenu.UpdateLobbiesButton();
                 });
             }
             return success;
@@ -108,7 +175,7 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if left successfully, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> LeaveLobby(bool leaveAnyway = false)
         {
-            if (!Client.Connected || LocalLobby is null) return false;
+            if (!Client.Connected || !IsInLobby) return false;
 
             var payload = new
             {
@@ -122,10 +189,13 @@ namespace Multiplayer.Managers
             if (success || leaveAnyway)
             {
                 LocalLobby = null;
+                IsAutoUpdating = false;
+
                 Main.Dispatcher.Enqueue(() => 
                 {
                     UIManager.MainLobbyDisplay.Destroy();
                     UIManager.UpdatePnlPreparation();
+                    UIManager.MainMenu.UpdateLobbiesButton();
                 });
             }
             return success;
@@ -174,11 +244,24 @@ namespace Multiplayer.Managers
         /// </summary>
         /// <param name="lobby"><see cref="Lobby"/> to cache.</param>
         /// <returns><see langword="true"/> if <see cref="Lobby"/> was successfully cached or <see langword="false"/> if it was cached already.</returns>
-        private static bool CacheLobby(Lobby lobby)
+        internal static bool CacheLobby(Lobby lobby)
         {
             if (CachedLobbies.ContainsKey(lobby.Id)) return false;
 
             CachedLobbies.Add(lobby.Id,lobby);
+            return true;
+        }
+
+        /// <summary>
+        /// Removes the <see cref="Lobby"/> from cache.
+        /// </summary>
+        /// <param name="lobby"><see cref="Lobby"/> to remove.</param>
+        /// <returns><see langword="true"/> if <see cref="Lobby"/> was successfully removed or <see langword="false"/> if it wasn't cached.</returns>
+        internal static bool ClearLobbyFromCache(Lobby lobby)
+        {
+            if (!CachedLobbies.ContainsKey(lobby.Id)) return false;
+
+            CachedLobbies.Remove(lobby.Id);
             return true;
         }
 

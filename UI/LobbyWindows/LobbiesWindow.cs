@@ -82,7 +82,7 @@ namespace Multiplayer.UI.LobbyWindows
         internal override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
-            if (LobbyManager.LocalLobby != null)
+            if (LobbyManager.IsInLobby)
             {
                 OpenLobbyWindow(LobbyManager.LocalLobby);
                 return;

@@ -60,12 +60,14 @@ namespace Multiplayer.Data
             if (response == null) 
             {
                 // Lobby was disbanded
-                if (this == LobbyManager.LocalLobby)
+                if (Host == PlayerManager.LocalPlayer)
                 {
                     UIManager.Debounce = true;
                     await LobbyManager.LeaveLobby(true);
                     UIManager.Debounce = false;
                 }
+                LobbyManager.ClearLobbyFromCache(this);
+
                 return false; 
             }
 

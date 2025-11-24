@@ -28,7 +28,6 @@ namespace Multiplayer.UI.LobbyWindows
         private PromptWindow DisbandPrompt;
 
         private Lobby Lobby;
-        internal bool IsAutoUpdating { get; private set; } = false;
         internal bool UpdateDebounce { get; private set; } = false;
 
         internal LobbyWindow() : base(Localization.Get("Lobby", "Title"), UIManager.PublicLobbiesWindow, "Lobbies.png")
@@ -67,21 +66,6 @@ namespace Multiplayer.UI.LobbyWindows
 
             AddReturnButton();
             ActionButton = AddButton(ActionButtonTitles[0], null, MainDescription);
-        }
-
-        /// <summary>
-        /// Starts the auto update loop and updates the lobby every <see cref="AutoUpdateInterval"/>.
-        /// </summary>
-        /// <returns></returns>
-        private async Task AutoUpdateStart()
-        {
-            IsAutoUpdating = true;
-
-            while (IsAutoUpdating)
-            {
-                await Task.Delay(LobbyManager.AutoUpdateInterval);
-                await Update(Lobby);
-            }
         }
 
         /// <summary>
@@ -195,7 +179,7 @@ namespace Multiplayer.UI.LobbyWindows
             if (button == ActionButton)
             {
                 // If the local player is in another lobby
-                if (LobbyManager.LocalLobby != null && LobbyManager.LocalLobby != Lobby)
+                if (LobbyManager.IsInLobby && LobbyManager.LocalLobby != Lobby)
                 {
                     PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "AlreadyInLobby"));
                     Window.Show();
@@ -235,13 +219,15 @@ namespace Multiplayer.UI.LobbyWindows
             base.OnShow(window);
 
             UIManager.ProfileWindow.ReturnWindow = this;
-            _ = AutoUpdateStart();
+
+            if (Lobby != LobbyManager.LocalLobby) _ = LobbyManager.AutoUpdateStart(Lobby);
         }
 
         internal override void OnCompletion(BaseWindow window)
         {
             base.OnCompletion(window);
-            IsAutoUpdating = false;
+
+            if (Lobby != LobbyManager.LocalLobby) LobbyManager.IsAutoUpdating = false;
         }
     }
 }

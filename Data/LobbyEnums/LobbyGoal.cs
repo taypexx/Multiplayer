@@ -1,6 +1,6 @@
 ﻿namespace Multiplayer.Data.LobbyEnums
 {
-    public enum LobbyGoal
+    public enum LobbyGoal : byte
     {
         Accuracy,
         Score,

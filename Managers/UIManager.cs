@@ -42,6 +42,8 @@ namespace Multiplayer.Managers
 
         internal static MainLobbyDisplay MainLobbyDisplay { get; private set; }
 
+        internal static PnlAwait PnlAwait { get; private set; }
+
 
         /// <summary>
         /// Displays a warning popup with the given <see cref="LocalString"/>.
@@ -77,7 +79,7 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void UpdatePnlPreparation()
         {
-            bool isPanelLocked = LobbyManager.LocalLobby != null && LobbyManager.LocalLobby.Host != PlayerManager.LocalPlayer;
+            bool isPanelLocked = LobbyManager.IsInLobby && LobbyManager.LocalLobby.Host != PlayerManager.LocalPlayer;
 
             var playButton = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
 
@@ -106,22 +108,31 @@ namespace Multiplayer.Managers
             MainMenuOpenButton.Create();
             ProfileWindow.CreateAvatarBox();
 
+            //UIManager.BattleLobbyDisplay.Destroy();
+            if (LobbyManager.IsInLobby) MainLobbyDisplay.Create(LobbyManager.LocalLobby);
+        }
+
+        /// <summary>
+        /// Initializes every time a GameMain scene gets loaded.
+        /// </summary>
+        internal static void InitGameMain()
+        {
             MainLobbyDisplay.Destroy();
-            if (LobbyManager.LocalLobby != null) MainLobbyDisplay.Create(LobbyManager.LocalLobby);
+            //if (LobbyManager.IsInLobby) UIManager.BattleLobbyDisplay.Create(LobbyManager.LocalLobby);
+
+            if (LobbyManager.IsInLobby) PnlAwait.Create();
         }
 
         internal static void Init()
         {
             if (MainMenu != null) return;
 
-            Warning = new(new(), Localization.Get("Warning","Title"))
-            {
-                AutoReset = true
-            };
-            WarningChoose = new(new(), Localization.Get("Warning", "Title"))
-            {
-                AutoReset = true
-            };
+            Warning = new(new(), Localization.Get("Warning", "Title"));
+            Warning.AutoReset = true;
+
+            WarningChoose = new(new(), Localization.Get("Warning", "Title"));
+            WarningChoose.AutoReset = true;
+
             WarningChoose.OnCompletion += WarningChooseCompletion;
 
             MainMenu = new();
@@ -143,6 +154,8 @@ namespace Multiplayer.Managers
             LobbyChartSelectionWindow = new();
 
             MainLobbyDisplay = new();
+
+            PnlAwait = new();
 
             ProfileWindow.CreateButtons();
             LobbiesWindow.CreateButtons();

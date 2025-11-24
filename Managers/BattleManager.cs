@@ -1,4 +1,5 @@
 ﻿using Il2CppAssets.Scripts.GameCore.HostComponent;
+using Multiplayer.Data;
 using Multiplayer.Data.Stats;
 using Multiplayer.Static;
 using System.Buffers.Binary;
@@ -64,11 +65,34 @@ namespace Multiplayer.Managers
 
         /// <summary>
         /// Updates battle stats of every other player in the lobby.
+        /// Recieved datagram structure: 19B BattleStats, 32B Uid. Total 51 bytes for each player of the lobby.
         /// </summary>
         private static void UpdateOthersBattleStats()
         {
             if (ReceivedDatagram is null) return;
             // Decode the RecievedDatagram, loop through local lobby and update each player's battlestats with the provided by the datagram
+
+            Span<byte> span = ReceivedDatagram;
+
+            for (int i = 0; i < ReceivedDatagram.Length/51; i++)
+            {
+                int startAt = i * 51;
+                string uid = Encoding.UTF8.GetString(span.Slice(startAt + 19, 32));
+
+                Player player = PlayerManager.GetCachedPlayer(uid);
+                if (player is null) continue;
+                BattleStats battleStats = player.BattleStats;
+                if (battleStats is null) continue;
+
+                battleStats.Score = BinaryPrimitives.ReadUInt32LittleEndian(span.Slice(startAt));
+                battleStats.Accuracy = BinaryPrimitives.ReadSingleLittleEndian(span.Slice(startAt+4));
+                battleStats.FC = span[8] != 0;
+                battleStats.Perfects = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+9));
+                battleStats.Greats = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+11));
+                battleStats.Earlies = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+13));
+                battleStats.Lates = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+15));
+                battleStats.Misses = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+17));
+            }
         }
 
         /// <summary>
@@ -77,7 +101,7 @@ namespace Multiplayer.Managers
         /// <returns></returns>
         private static async Task StartSyncLoop()
         {
-            while (true)
+            while (Client.Connected)
             {
                 try
                 {
@@ -104,7 +128,7 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void BattleSyncStart()
         {
-            if (CancellationTokenSource is not null || LobbyManager.LocalLobby is null || PlayerManager.LocalPlayer is null) return;
+            if (CancellationTokenSource is not null || !LobbyManager.IsInLobby || PlayerManager.LocalPlayer is null) return;
 
             TaskStageTarget = TaskStageTarget.instance;
             BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;

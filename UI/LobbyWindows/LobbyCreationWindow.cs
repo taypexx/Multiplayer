@@ -98,7 +98,7 @@ namespace Multiplayer.UI.LobbyWindows
             UpdateDescription();
         }
 
-        private void OnCreate(BaseWindow window)
+        private async void OnCreate(BaseWindow window)
         {
             if (CreatePrompt.Result != true) 
             {
@@ -106,7 +106,17 @@ namespace Multiplayer.UI.LobbyWindows
                 return;
             };
 
-            // add debounce here
+            UIManager.Debounce = true;
+
+            bool success = await LobbyManager.CreateLobby(MaxPlayersField,GoalField,PlayTypeField,ChartSelectionField,NameField,PasswordField);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                UIManager.Debounce = false;
+
+                if (success) OpenLobbyWindow(LobbyManager.LocalLobby);
+                else UIManager.LobbiesWindow.Window.Show();
+            });
         }
 
         private void OnNameFieldChanged(BaseWindow window)
@@ -167,9 +177,9 @@ namespace Multiplayer.UI.LobbyWindows
                     Constants.Yellow, MaxPlayersField,
                     PasswordField is null ? Constants.Green : Constants.Yellow, 
                     PasswordField is null ? Localization.Get("LobbyCreation", "NotSet").ToString() : PasswordField,
-                    GoalColors[UIManager.LobbyGoalWindow.Value], UIManager.LobbyGoalWindow.Value,
-                    PlayTypeColors[UIManager.LobbyPlayTypeWindow.Value], UIManager.LobbyPlayTypeWindow.Value,
-                    ChartSelectionColors[UIManager.LobbyChartSelectionWindow.Value], UIManager.LobbyChartSelectionWindow.Value
+                    GoalColors[GoalField], GoalField,
+                    PlayTypeColors[PlayTypeField], PlayTypeField,
+                    ChartSelectionColors[ChartSelectionField], ChartSelectionField
                  )
             );
 

@@ -106,7 +106,7 @@ namespace Multiplayer.Static
                 HttpResponseMessage response = await Http.PostAsync(isFullPath ? path : APIEndpoint + path, sendContent);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Main.Logger.Error($"{response.StatusCode}: {response.ReasonPhrase}");
+                    Main.Logger.Error($"{(int)response.StatusCode}: {response.ReasonPhrase}");
                     //Disconnect();
                     return null;
                 }
@@ -197,6 +197,7 @@ namespace Multiplayer.Static
 
             Http.Dispose();
             Udp.Dispose();
+            LobbyManager.LocalLobby = null;
 
             if (Outdated)
             {

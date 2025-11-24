@@ -1,5 +1,7 @@
 ﻿using Multiplayer.Data;
+using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
+using Multiplayer.Static;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,12 +21,14 @@ namespace Multiplayer.UI.Abstract
 
         internal Text Title;
         internal Dictionary<object, Text> TextList;
+        internal List<object> PositionList;
 
         internal Lobby Lobby;
 
         internal BaseLobbyDisplay()
         {
             TextList = new();
+            PositionList = new();
         }
 
         /// <summary>
@@ -47,7 +51,9 @@ namespace Multiplayer.UI.Abstract
 
             Text text = newTextObj.GetComponent<Text>();
             text.alignment = TextAnchor;
+            text.raycastTarget = false;
             TextList.Add(key, text);
+            PositionList.Add(key);
             return text;
         }
 
@@ -60,6 +66,7 @@ namespace Multiplayer.UI.Abstract
         {
             Text text = TextList[key];
             TextList.Remove(key);
+            PositionList.Remove(key);
             if (text != null)
             {
                 GameObject obj = text.gameObject;
@@ -88,26 +95,39 @@ namespace Multiplayer.UI.Abstract
         /// </summary>
         internal void RealignText()
         {
-            for (int i = 0; i < TextList.Count; i++)
+            foreach(object key in PositionList)
             {
-                Text text = TextList.ElementAt(i).Value;
-                text.transform.localPosition = AnchorPosition + Step * i;
+                Text text = TextList[key];
+                text.transform.localPosition = AnchorPosition + Step * PositionList.IndexOf(key);
             }
         }
 
         /// <summary>
-        /// Starts the auto update loop and updates the lobby every <see cref="AutoUpdateInterval"/>.
+        /// Sorts the <see cref="PositionList"/> according to the provided <see cref="LobbyGoal"/>.
         /// </summary>
-        /// <returns></returns>
-        private async Task AutoUpdateStart()
+        /// <param name="goal"></param>
+        internal void SortAccordingTo(LobbyGoal goal)
         {
-            while (Lobby != null)
+            switch (goal)
             {
-                await Task.Delay(LobbyManager.AutoUpdateInterval);
-                if (UIManager.LobbyWindow.IsAutoUpdating || UIManager.LobbyWindow.UpdateDebounce) continue;
-
-                await Update(true);
+                case LobbyGoal.Accuracy:
+                    PositionList.Sort((t1,t2) => 
+                    {
+                        if (t1 is not Player || t2 is not Player) return 0;
+                        return ((Player)t1).BattleStats.Accuracy.CompareTo(((Player)t2).BattleStats.Accuracy);
+                    });
+                    break;
+                case LobbyGoal.Score:
+                    PositionList.Sort((t1, t2) =>
+                    {
+                        if (t1 is not Player || t2 is not Player) return 0;
+                        return ((Player)t1).BattleStats.Score.CompareTo(((Player)t2).BattleStats.Score);
+                    });
+                    break;
+                case LobbyGoal.Custom:
+                    break;
             }
+            RealignText();
         }
 
         /// <summary>
@@ -121,7 +141,6 @@ namespace Multiplayer.UI.Abstract
 
             Title = AddText(lobby);
             _ = Update(false);
-            _ = AutoUpdateStart();
         }
 
         /// <summary>
@@ -130,7 +149,7 @@ namespace Multiplayer.UI.Abstract
         /// <param name="updateLobby">Whether to update the <see cref="Data.Lobby"/> as well.</param>
         internal async Task Update(bool updateLobby = false)
         {
-            if (Lobby is null) return;
+            if (Lobby is null) { Destroy(); return; }
             if (updateLobby)
             {
                 await Lobby.Update();
@@ -138,6 +157,8 @@ namespace Multiplayer.UI.Abstract
 
             Main.Dispatcher.Enqueue(() =>
             {
+                if (Lobby is null) { Destroy(); return; }
+
                 if (Title) Title.text = $"{Lobby.Name} " +
                  $"<color=#fff700ff>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color> " +
                  $"<color=#{(Lobby.IsPrivate ? "f542adff" : "1eff00ff")}>({(Lobby.IsPrivate ? "Private" : "Public")})</color>";
