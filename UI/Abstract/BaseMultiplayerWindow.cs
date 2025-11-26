@@ -94,15 +94,15 @@ namespace Multiplayer.UI.Abstract
         /// Removes all buttons of the window.
         /// </summary>
         /// <param name="keepCoreButtons">Whether to keep the ReturnButton and the RefreshButton and not remove it.</param>
-        /// <param name="keepButton">A button which won't be removed.</param>
+        /// <param name="keepButtons">An array of buttons which need to be kept.</param>
         /// <returns><see langword="true"/> if all buttons were successfully removed, otherwise <see langword="false"/>.</returns>
-        internal bool RemoveAllButtons(bool keepCoreButtons = false, ForumObject keepButton = null)
+        internal bool RemoveAllButtons(bool keepCoreButtons = false, ForumObject[] keepButtons = null)
         {
             bool success = true;
             List<ForumObject> toRemove = new();
             foreach (ForumObject button in Window.ForumObjects)
             {
-                if (button == keepButton && button != null) continue;
+                if (keepButtons != null && button != null && keepButtons.Contains(button)) continue;
                 if (keepCoreButtons && (button == ReturnButton || button == RefreshButton)) continue;
                 toRemove.Add(button);
             }

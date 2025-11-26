@@ -22,9 +22,9 @@ namespace Multiplayer.UI.LobbyWindows
         internal LobbyGoalWindow() : base(Localization.Get("LobbyCreation", "Goal"), UIManager.LobbyCreationWindow, "Lobbies.png")
         {
             AddReturnButton(MainDescription);
-            AccuracyButton = AddButton(Localization.Get("LobbyCreation", "Accuracy"), null, MainDescription);
-            ScoreButton = AddButton(Localization.Get("LobbyCreation", "Score"), null, MainDescription);
-            CustomButton = AddButton(Localization.Get("LobbyCreation", "Custom"), null, MainDescription);
+            AccuracyButton = AddButton(Localization.Get("Lobby", "Accuracy"), null, MainDescription);
+            ScoreButton = AddButton(Localization.Get("Lobby", "Score"), null, MainDescription);
+            CustomButton = AddButton(Localization.Get("Lobby", "Custom"), null, MainDescription);
 
             GoalValues = new()
             {

@@ -2,7 +2,7 @@
 {
     public enum LobbyChartSelection : byte
     {
-        HostOnly,
+        HostPlaylist,
         Playlist,
         Random
     }

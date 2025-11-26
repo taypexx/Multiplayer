@@ -46,25 +46,6 @@ namespace Multiplayer.UI.LobbyWindows
         internal const int PasswordCharactersMin = 4;
         internal const int PasswordCharactersMax = 16;
 
-        private Dictionary<LobbyGoal, string> GoalColors = new()
-        {
-            [LobbyGoal.Accuracy] = Constants.Yellow,
-            [LobbyGoal.Score] = Constants.Pink,
-            [LobbyGoal.Custom] = Constants.Blue,
-        };
-        private Dictionary<LobbyPlayType, string> PlayTypeColors = new()
-        {
-            [LobbyPlayType.All] = Constants.Yellow,
-            [LobbyPlayType.VanillaOnly] = Constants.Blue,
-            [LobbyPlayType.CustomOnly] = Constants.Pink,
-        };
-        private Dictionary<LobbyChartSelection, string> ChartSelectionColors = new()
-        {
-            [LobbyChartSelection.HostOnly] = Constants.Yellow,
-            [LobbyChartSelection.Playlist] = Constants.Pink,
-            [LobbyChartSelection.Random] = Constants.Blue,
-        };
-
         internal LobbyCreationWindow() : base(Localization.Get("LobbyCreation", "Title"), UIManager.LobbiesWindow, "Lobbies.png")
         {
             CreatePrompt = new(Localization.Get("LobbyCreation", "CreateConfirm"), Localization.Get("LobbyCreation", "Create"));
@@ -177,9 +158,9 @@ namespace Multiplayer.UI.LobbyWindows
                     Constants.Yellow, MaxPlayersField,
                     PasswordField is null ? Constants.Green : Constants.Yellow, 
                     PasswordField is null ? Localization.Get("LobbyCreation", "NotSet").ToString() : PasswordField,
-                    GoalColors[GoalField], GoalField,
-                    PlayTypeColors[PlayTypeField], PlayTypeField,
-                    ChartSelectionColors[ChartSelectionField], ChartSelectionField
+                    Constants.GoalColors[GoalField], GoalField,
+                    Constants.PlayTypeColors[PlayTypeField], PlayTypeField,
+                    Constants.ChartSelectionColors[ChartSelectionField], ChartSelectionField
                  )
             );
 

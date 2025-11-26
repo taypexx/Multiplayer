@@ -4,6 +4,7 @@ using CustomAlbums.Utilities;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Static;
 using Multiplayer.Patches;
+using Multiplayer.UI.Displays;
 
 namespace Multiplayer
 {
@@ -11,6 +12,7 @@ namespace Multiplayer
     {
         internal static Dispatcher Dispatcher { get; private set; }
         internal static Logger Logger { get; private set; }
+        internal static string CurrentScene { get; private set; }
 
         public override void OnEarlyInitializeMelon()
         {
@@ -48,11 +50,13 @@ namespace Multiplayer
             AchievementManager.Init();
             PlayerManager.Init();
             LobbyManager.Init();
+            ChartManager.Init();
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             base.OnSceneWasLoaded(buildIndex, sceneName);
+            CurrentScene = sceneName;
 
             if (BattleManager.CancellationTokenSource != null && sceneName != "GameMain")
             {
@@ -73,6 +77,10 @@ namespace Multiplayer
                 UIManager.InitGameMain();
 
                 BattlePatch.SceneLoaded();
+            } else if (LobbyManager.IsInLobby)
+            {
+                UIManager.MainLobbyDisplay.Destroy();
+                UIManager.BattleLobbyDisplay.Destroy();
             }
         }
 

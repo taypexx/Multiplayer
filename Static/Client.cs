@@ -17,7 +17,7 @@ namespace Multiplayer.Static
     {
         internal static bool Connected { get; private set; } = false;
         internal static bool TriedConnecting { get; private set; } = false;
-
+        internal static TimeSpan Ping { get; private set; }
         internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
         internal static string ServerVersion { get; private set; }
         private static LocalString OutdatedWarning;
@@ -51,8 +51,12 @@ namespace Multiplayer.Static
         {
             try
             {
+                var startTime = DateTime.Now;
+
                 await Udp.SendAsync(data, data.Length, Settings.Config.ServerIP, Settings.Config.PortUdp);
                 var result = await Udp.ReceiveAsync();
+
+                Ping = DateTime.Now - startTime;
                 return result.Buffer;
             }
             catch (Exception ex)

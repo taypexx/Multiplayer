@@ -1,4 +1,6 @@
-﻿using LocalizeLib;
+﻿using Harmony;
+using Il2CppAssets.Scripts.Database;
+using LocalizeLib;
 using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -24,6 +26,9 @@ namespace Multiplayer.Data
         public List<string> Players { get; private set; }
         public ushort MaxPlayers { get; private set; }
 
+        public List<PlaylistEntry> Playlist { get; private set; }
+        public PlaylistEntry CurrentPlaylistEntry => Playlist?.First();
+
         internal Lobby(int id)
         {
             Id = id;
@@ -32,7 +37,7 @@ namespace Multiplayer.Data
 
             IsPrivate = true;
             PlayType = LobbyPlayType.All;
-            ChartSelection = LobbyChartSelection.HostOnly;
+            ChartSelection = LobbyChartSelection.HostPlaylist;
             Goal = LobbyGoal.Accuracy;
 
             Locked = false;
@@ -40,6 +45,31 @@ namespace Multiplayer.Data
             Host = null;
             Players = new();
             MaxPlayers = 2;
+
+            Playlist = new();
+        }
+
+        internal bool IsMember(Player player)
+        {
+            return Players.Contains(player.Uid);
+        }
+
+        internal bool HasInPlaylist(string entry)
+        {
+            foreach (var playlistEntry in Playlist)
+            {
+                if (playlistEntry.Entry == entry) return true;
+            }
+            return false;
+        }
+
+        internal PlaylistEntry GetFromPlaylist(string entry)
+        {
+            foreach (var playlistEntry in Playlist)
+            {
+                if (playlistEntry.Entry == entry) return playlistEntry;
+            }
+            return null;
         }
 
         /// <summary>
@@ -85,15 +115,10 @@ namespace Multiplayer.Data
             Host = await PlayerManager.GetPlayer(updatedData["HostUid"].GetString());
             MaxPlayers = updatedData["MaxPlayers"].GetUInt16();
 
-            try
-            {
+            try {
                 Players = JsonSerializer.Deserialize<List<string>>(updatedData["Players"].GetRawText());
-                EveryoneReady = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"].GetRawText()).Count == Players.Count;
             }
-            catch (Exception e)
-            {
-                //Main.Logger.Warning(e.ToString());
-            }
+            finally {}
 
             foreach (string playerUid in Players)
             {
@@ -104,12 +129,43 @@ namespace Multiplayer.Data
                 } else if (updatePlayers) await player.Update();
             }
 
-            return true;
-        }
+            if (this == LobbyManager.LocalLobby)
+            {
+                try {
+                    EveryoneReady = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"].GetRawText()).Count == Players.Count;
+                }
+                finally { }
 
-        internal bool IsMember(Player player)
-        {
-            return Players.Contains(player.Uid);
+                try {
+                    var playlist = JsonSerializer.Deserialize<List<string>>(updatedData["Playlist"].GetRawText());
+
+                    // Add the new entries from other players
+                    foreach (string entry in playlist)
+                    {
+                        string[] str = entry.Split("#");
+                        MusicInfo musicInfo = ChartManager.GetMusicInfo(str[0]);
+                        int difficulty = int.Parse(str[1]);
+
+                        if (HasInPlaylist(entry)) continue;
+
+                        PlaylistEntry playlistEntry = new(musicInfo, difficulty, entry);
+                        if (playlistEntry is null) continue;
+                        Playlist.Add(playlistEntry);
+                    }
+
+                    // Remove the entries that were removed by other players
+                    foreach (var playlistEntry in Playlist)
+                    {
+                        if (!playlist.Contains(playlistEntry.Entry))
+                        {
+                            Playlist.Remove(playlistEntry);
+                        }
+                    }
+                }
+                finally { }
+            }
+
+            return true;
         }
     }
 }

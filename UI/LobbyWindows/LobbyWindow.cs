@@ -1,5 +1,7 @@
-﻿using LocalizeLib;
+﻿using Il2Cpp;
+using LocalizeLib;
 using Multiplayer.Data;
+using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -21,6 +23,8 @@ namespace Multiplayer.UI.LobbyWindows
         private Dictionary<int, LocalString> ActionButtonResponses;
 
         private ForumObject ActionButton;
+        private ForumObject PlaylistButton;
+        private ForumObject PlayButton;
 
         private PromptWindow JoinPrompt;
         private InputWindow PasswordPrompt;
@@ -50,19 +54,19 @@ namespace Multiplayer.UI.LobbyWindows
 
             JoinPrompt = new(Localization.Get("Lobby", "JoinPrompt"));
             JoinPrompt.AutoReset = true;
-            JoinPrompt.OnCompletion += OnActionDecided;
+            JoinPrompt.OnCompletion += (BaseWindow window) => _ = OnActionDecided(window);
 
             PasswordPrompt = new(Localization.Get("Lobby", "PasswordPrompt"));
             PasswordPrompt.AutoReset = true;
-            PasswordPrompt.OnCompletion += OnActionDecided;
+            PasswordPrompt.OnCompletion += (BaseWindow window) => _ = OnActionDecided(window);
 
             LeavePrompt = new(Localization.Get("Lobby", "LeavePrompt"));
             LeavePrompt.AutoReset = true;
-            LeavePrompt.OnCompletion += OnActionDecided;
+            LeavePrompt.OnCompletion += (BaseWindow window) => _ = OnActionDecided(window);
 
             DisbandPrompt = new(Localization.Get("Lobby", "DisbandPrompt"));
             DisbandPrompt.AutoReset = true;
-            DisbandPrompt.OnCompletion += OnActionDecided;
+            DisbandPrompt.OnCompletion += (BaseWindow window) => _ = OnActionDecided(window);
 
             AddReturnButton();
             ActionButton = AddButton(ActionButtonTitles[0], null, MainDescription);
@@ -78,12 +82,42 @@ namespace Multiplayer.UI.LobbyWindows
             if (UpdateDebounce || lobby is null) return;
             UpdateDebounce = true;
 
+            int prevPlayers = lobby.Players.Count;
+
             Lobby = lobby;
             await lobby.Update(updatePlayers);
 
             Main.Dispatcher.Enqueue(() =>
             {
-                RemoveAllButtons(true, ActionButton);
+                ForumObject[] keepButtons = new ForumObject[3];
+                keepButtons[0] = ActionButton;
+
+                if (lobby.Host == PlayerManager.LocalPlayer || (lobby == LobbyManager.LocalLobby && lobby.ChartSelection == LobbyChartSelection.Playlist))
+                {
+                    if (PlaylistButton is null)
+                    {
+                        PlaylistButton = AddButton(Localization.Get("Lobby", "PlaylistButton"), null, MainDescription);
+                    }
+
+                    keepButtons[1] = PlaylistButton;
+                } else
+                {
+                    PlaylistButton = null;
+                }
+                if (lobby.Host == PlayerManager.LocalPlayer)
+                {
+                    if (PlayButton is null)
+                    {
+                        PlayButton = AddButton(Localization.Get("Lobby", "Play"), null, MainDescription);
+                    }
+
+                    keepButtons[2] = PlayButton;
+                } else
+                {
+                    PlayButton = null;
+                }
+
+                RemoveAllButtons(true, keepButtons);
                 ButtonsPlayers.Clear();
 
                 ActionButtonIsJoin = !lobby.IsMember(PlayerManager.LocalPlayer);
@@ -97,6 +131,7 @@ namespace Multiplayer.UI.LobbyWindows
                     lobby.Players.Count, lobby.MaxPlayers,
                     lobby.IsPrivate ? Constants.Red : Constants.Green,
                     lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString(),
+                    Constants.PlayTypeColors[lobby.PlayType], Localization.Get("Lobby", lobby.PlayType.ToString()), 
                     lobby.Locked ? Localization.Get("Global", "Yes").ToString() : Localization.Get("Global", "No").ToString()
                 ));
 
@@ -123,18 +158,27 @@ namespace Multiplayer.UI.LobbyWindows
 
                 if (!lobby.IsPrivate) UIManager.PublicLobbiesWindow.UpdateLobbyButton(lobby);
 
+                if (prevPlayers != lobby.Players.Count && prevPlayers != 0)
+                {
+                    Window.ForceClose();
+                    Window.Show();
+                }
+
                 UpdateDebounce = false;
             });
         }
 
-        private async void OnActionDecided(BaseWindow window)
+        private async Task OnActionDecided(BaseWindow window)
         {
-            if (window == JoinPrompt && JoinPrompt.Result == true || window == PasswordPrompt && !string.IsNullOrEmpty(PasswordPrompt.Result))
+            if ((window == JoinPrompt && JoinPrompt.Result == true) || (window == PasswordPrompt && !string.IsNullOrEmpty(PasswordPrompt.Result)))
             {
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
-                bool success = await LobbyManager.JoinLobby(Lobby, PasswordPrompt.Result);
+                string passwordGuess = null;
+                if (PasswordPrompt.Completed) passwordGuess = PasswordPrompt.Result;
+
+                bool success = await LobbyManager.JoinLobby(Lobby, passwordGuess);
                 LocalString msg = success ? ActionButtonResponses[0] : window == PasswordPrompt ? Localization.Get("Lobby", "IncorrectPassword") : Localization.Get("Warning", "Unknown");
 
                 UpdateDebounce = false;
@@ -148,7 +192,7 @@ namespace Multiplayer.UI.LobbyWindows
                     Window.Show();
                 });
             }
-            else if (window == LeavePrompt && LeavePrompt.Result == true || window == DisbandPrompt && DisbandPrompt.Result == true)
+            else if ((window == LeavePrompt && LeavePrompt.Result == true) || (window == DisbandPrompt && DisbandPrompt.Result == true))
             {
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
@@ -170,44 +214,79 @@ namespace Multiplayer.UI.LobbyWindows
             else Window.Show();
         }
 
+        private void OnActionButtonClick()
+        {
+            // If the local player is in another lobby
+            if (LobbyManager.IsInLobby && LobbyManager.LocalLobby != Lobby)
+            {
+                PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "AlreadyInLobby"));
+                Window.Show();
+                return;
+            }
+            // If the lobby is locked
+            if (Lobby.Locked)
+            {
+                PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "LobbyIsLocked"));
+                Window.Show();
+                return;
+            }
+
+            if (ActionButtonIsJoin && Lobby.Players.Count < Lobby.MaxPlayers)
+            {
+                if (Lobby.IsPrivate) PasswordPrompt.Show();
+                else JoinPrompt.Show();
+            }
+            else if (!ActionButtonIsJoin)
+            {
+                (Lobby.Host == PlayerManager.LocalPlayer ? DisbandPrompt : LeavePrompt).Show();
+            }
+            else
+            {
+                PopupUtils.ShowInfoAndLog(ActionButtonResponses[3]);
+                Window.Show();
+            }
+        }
+
+        private void OnPlaylistButtonClick()
+        {
+            UIManager.LobbyPlaylistWindow.Update(Lobby);
+            UIManager.LobbyPlaylistWindow.Window.Show();
+        }
+
+        private async Task OnPlayButtonClick()
+        {
+            if (Lobby.Host != PlayerManager.LocalPlayer)
+            {
+                Window.Show();
+                return;
+            }
+
+            if (Lobby.Playlist.Count == 0)
+            {
+                PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "PlaylistEmpty"));
+                Window.Show();
+                return;
+            }
+
+            UIManager.Debounce = true;
+            await LobbyManager.LockLobby(true);
+
+            Main.Dispatcher.Enqueue(() => 
+            {
+                UIManager.PnlPreparation.OnBattleStart();
+                UIManager.Debounce = false;
+            });
+        }
+
         internal override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
 
             ForumObject button = Window.ForumObjects[objectIndex];
 
-            if (button == ActionButton)
-            {
-                // If the local player is in another lobby
-                if (LobbyManager.IsInLobby && LobbyManager.LocalLobby != Lobby)
-                {
-                    PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "AlreadyInLobby"));
-                    Window.Show();
-                    return;
-                }
-                // If the lobby is locked
-                if (Lobby.Locked)
-                {
-                    PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "LobbyIsLocked"));
-                    Window.Show();
-                    return;
-                }
-
-                if (ActionButtonIsJoin && Lobby.Players.Count < Lobby.MaxPlayers)
-                {
-                    if (Lobby.IsPrivate) PasswordPrompt.Show();
-                    else JoinPrompt.Show();
-                }
-                else if (!ActionButtonIsJoin)
-                {
-                    (Lobby.Host == PlayerManager.LocalPlayer ? DisbandPrompt : LeavePrompt).Show();
-                }
-                else
-                {
-                    PopupUtils.ShowInfoAndLog(ActionButtonResponses[3]);
-                    Window.Show();
-                }
-            }
+            if (button == PlaylistButton) OnPlaylistButtonClick();
+            else if (button == PlayButton) _ = OnPlayButtonClick();
+            else if (button == ActionButton) OnActionButtonClick();
             else if (ButtonsPlayers.TryGetValue(button, out Player player))
             {
                 OpenProfileWindow(player);

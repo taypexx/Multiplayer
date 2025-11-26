@@ -43,7 +43,7 @@ namespace Multiplayer.UI
             Component.Destroy(Button.GetComponent<ButtonPointerEnter>());
             
             Button.transform.localScale = new(0.5f, 0.5f, 0.5f);
-            Button.transform.localPosition = new(870f, 390f, 0f);
+            Button.transform.localPosition = new(880f, 390f, 0f);
 
             var buttonText = tglAccount.transform.Find("TxtAccount").GetComponent<Text>();
             buttonText.text = Localization.Get("MainMenu", "Open").ToString();

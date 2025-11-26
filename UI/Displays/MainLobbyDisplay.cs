@@ -7,10 +7,9 @@ namespace Multiplayer.UI.Displays
     {
         internal MainLobbyDisplay()
         {
-            TextReferencePath = "UI/Standerd/PnlStage/StageUi/Info/ImgAlbumTittle/DisplayArea/TxtAlbumTittle";
             ParentPath = "UI/Standerd/PnlNavigation";
-            AnchorPosition = new(-170f, -90f, 0f);
-            Step = new(0f, -40f, 0f);
+            AnchorPosition = new(500f, 350f, 0f);
+            Step = new(0f, -35f, 0f);
             TextAnchor = TextAnchor.UpperRight;
         }
     }

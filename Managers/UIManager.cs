@@ -9,6 +9,9 @@ using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using UnityEngine;
 using UnityEngine.UI;
+using Il2CppAssets.Scripts.Database;
+using Il2Cpp;
+using Il2CppAssets.Scripts.UI.Panels;
 
 namespace Multiplayer.Managers
 {
@@ -17,6 +20,8 @@ namespace Multiplayer.Managers
         internal static bool Debounce = false;
         internal static Text WindowTitle { get; private set; }
         internal static GameObject MainFrame => GameObject.Find("UI/Forward/Tips/PnlBulletinNew");
+        internal static PnlPreparation PnlPreparation => GameObject.Find("UI/Standerd/PnlPreparation").GetComponent<PnlPreparation>();
+        internal static PnlStage PnlStage => GameObject.Find("UI/Standerd/PnlStage").GetComponent<PnlStage>();
 
         internal static MessageWindow Warning;
         internal static PromptWindow WarningChoose;
@@ -40,7 +45,10 @@ namespace Multiplayer.Managers
         internal static LobbyPlayTypeWindow LobbyPlayTypeWindow { get; private set; }
         internal static LobbyChartSelectionWindow LobbyChartSelectionWindow { get; private set; }
 
+        internal static LobbyPlaylistWindow LobbyPlaylistWindow { get; private set; }
+
         internal static MainLobbyDisplay MainLobbyDisplay { get; private set; }
+        internal static BattleLobbyDisplay BattleLobbyDisplay { get; private set; }
 
         internal static PnlAwait PnlAwait { get; private set; }
 
@@ -79,17 +87,35 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void UpdatePnlPreparation()
         {
-            bool isPanelLocked = LobbyManager.IsInLobby && LobbyManager.LocalLobby.Host != PlayerManager.LocalPlayer;
+            MusicInfo curMusicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
+            if (curMusicInfo == null) return;
 
-            var playButton = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
+            GameObject playObject = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
+            GameObject imgObject = playObject.transform.Find("TxtStart/ImgBtnA").gameObject;
+            Text playText = playObject.transform.Find("TxtStart").GetComponent<Text>();
+            Button playButton = playObject.GetComponent<Button>();
+            InputKeyBinding keyBinding = playObject.GetComponent<InputKeyBinding>();
+            
+            playButton.enabled = !LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist;
+            keyBinding.enabled = playButton.enabled;
+            imgObject.SetActive(playButton.enabled);
 
-            playButton.transform.Find("TxtStart").GetComponent<Text>().text =
-                isPanelLocked ? Localization.Get("Global", "PnlPreparationLocked").ToString() : "PLAY!";
-
-            playButton.GetComponent<Button>().enabled = !isPanelLocked;
-            playButton.GetComponent<InputKeyBinding>().enabled = !isPanelLocked;
-
-            playButton.transform.Find("TxtStart/ImgBtnA").gameObject.SetActive(!isPanelLocked);
+            if (!LobbyManager.IsInLobby)
+            {
+                playText.text = "PLAY!";
+            } 
+            else if (LobbyManager.CanChangePlaylist)
+            {
+                playText.text = Localization.Get("PnlPreparation",
+                    LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, GlobalDataBase.dbMusicTag.selectedDiffTglIndex))
+                    ? "PlaylistRemove"
+                    : "PlaylistAdd"
+                ).ToString();
+            } 
+            else
+            {
+                playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
+            }
         }
 
         /// <summary>
@@ -108,8 +134,15 @@ namespace Multiplayer.Managers
             MainMenuOpenButton.Create();
             ProfileWindow.CreateAvatarBox();
 
-            //UIManager.BattleLobbyDisplay.Destroy();
-            if (LobbyManager.IsInLobby) MainLobbyDisplay.Create(LobbyManager.LocalLobby);
+            if (LobbyManager.IsInLobby)
+            {
+                MainLobbyDisplay.Create(LobbyManager.LocalLobby);
+
+                if (LobbyManager.LocalLobby.Locked && LobbyManager.LocalLobby.Host == PlayerManager.LocalPlayer)
+                {
+                    _ = LobbyManager.LockLobby(false);
+                }
+            }
         }
 
         /// <summary>
@@ -117,10 +150,11 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void InitGameMain()
         {
-            MainLobbyDisplay.Destroy();
-            //if (LobbyManager.IsInLobby) UIManager.BattleLobbyDisplay.Create(LobbyManager.LocalLobby);
-
-            if (LobbyManager.IsInLobby) PnlAwait.Create();
+            if (LobbyManager.IsInLobby)
+            {
+                BattleLobbyDisplay.Create(LobbyManager.LocalLobby, false);
+                PnlAwait.Create();
+            }
         }
 
         internal static void Init()
@@ -153,7 +187,10 @@ namespace Multiplayer.Managers
             LobbyPlayTypeWindow = new();
             LobbyChartSelectionWindow = new();
 
+            LobbyPlaylistWindow = new();
+
             MainLobbyDisplay = new();
+            BattleLobbyDisplay = new();
 
             PnlAwait = new();
 

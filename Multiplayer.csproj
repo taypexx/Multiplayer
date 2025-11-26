@@ -40,6 +40,9 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>$(MD_NET6_DIRECTORY)\MelonLoader\Il2CppAssemblies\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Il2CppAssemblies\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="CustomAlbums">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\Mods\CustomAlbums.dll</HintPath>
     </Reference>
@@ -72,6 +75,12 @@
     </Reference>
     <Reference Include="Tomlet">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\net6\Tomlet.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Addressables">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Il2CppAssemblies\Unity.Addressables.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ResourceManager">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Il2CppAssemblies\Unity.ResourceManager.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>$(MD_NET6_DIRECTORY)\MelonLoader\Il2CppAssemblies\UnityEngine.CoreModule.dll</HintPath>

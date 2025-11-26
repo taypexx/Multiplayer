@@ -1,10 +1,13 @@
 ﻿using HarmonyLib;
+using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Il2CppAssets.Scripts.UI.Panels;
-using Il2CppFormulaBase;
+using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
+using Multiplayer.Static;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Multiplayer.Patches
 {
@@ -12,6 +15,8 @@ namespace Multiplayer.Patches
     {
         private static bool AwaitingForOthers = false;
         private static bool CanExit = false;
+
+        private static PnlVictory PnlVictory => GameObject.Find("UI_3D/PnlVictory").GetComponent<PnlVictory>();
 
         /// <summary>
         /// Runs a loop and waits until everyone loads.
@@ -43,6 +48,7 @@ namespace Multiplayer.Patches
             if (LobbyManager.IsInLobby)
             {
                 _ = AwaitForOthers();
+                _ = LobbyManager.SetReady(true);
             }
         }
 
@@ -58,7 +64,7 @@ namespace Multiplayer.Patches
             /// </summary>
             private static bool Prefix()
             {
-                return !(LobbyManager.IsInLobby && AwaitingForOthers);
+                return !((LobbyManager.IsInLobby && AwaitingForOthers));
             }
 
             /// <summary>
@@ -77,20 +83,6 @@ namespace Multiplayer.Patches
         }
 
         /// <summary>
-        /// Prepares the battle for the multiplayer shenanigans.
-        /// </summary>
-        [HarmonyPatch(typeof(StageBattleComponent), nameof(StageBattleComponent.GameStart))]
-        internal static class BattleLoadPatch
-        {
-            private static void Postfix()
-            {
-                if (!LobbyManager.IsInLobby) return;
-
-                _ = LobbyManager.SetReady(true);
-            }
-        }
-
-        /// <summary>
         /// Removes the restart button from the fail screen.
         /// </summary>
         [HarmonyPatch(typeof(PnlBattle), nameof(PnlBattle.OnFail))]
@@ -99,6 +91,8 @@ namespace Multiplayer.Patches
             private static void Postfix()
             {
                 if (!LobbyManager.IsInLobby) return;
+
+                UIManager.BattleLobbyDisplay.Destroy();
 
                 var restartButton = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnRestart");
                 restartButton.SetActive(false);
@@ -117,6 +111,14 @@ namespace Multiplayer.Patches
             {
                 if (!LobbyManager.IsInLobby) return;
 
+                UIManager.BattleLobbyDisplay.Destroy();
+                PnlVictory.m_CurControls.btnReset.gameObject.SetActive(false);
+                
+                if (LobbyManager.LocalLobby.ChartSelection != LobbyChartSelection.HostPlaylist)
+                {
+                    PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").gameObject.GetComponent<Text>().text = Localization.Get("Global", "Next").ToString();
+                }
+
                 // Display the fake achievements as the winners
 
                 CanExit = true;
@@ -126,7 +128,7 @@ namespace Multiplayer.Patches
         /// <summary>
         /// Disables the pause method.
         /// </summary>
-        [HarmonyPatch(typeof(PnlBattle), nameof(PnlBattle.UIPause))]
+        [HarmonyPatch(typeof(PnlBattle), nameof(PnlBattle.Pause))]
         [HarmonyPriority(Priority.First)]
         internal static class BattlePausePatch
         {
@@ -145,7 +147,7 @@ namespace Multiplayer.Patches
         {
             private static bool Prefix()
             {
-                return !LobbyManager.IsInLobby || CanExit;
+                return !LobbyManager.IsInLobby;// || CanExit;
             }
 
             private static void Postfix()

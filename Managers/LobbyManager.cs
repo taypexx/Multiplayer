@@ -1,6 +1,8 @@
-﻿using Multiplayer.Data;
+﻿using Il2CppAssets.Scripts.Database;
+using Multiplayer.Data;
 using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Static;
+using PopupLib.UI;
 using System.Net.Http.Json;
 
 namespace Multiplayer.Managers
@@ -27,7 +29,9 @@ namespace Multiplayer.Managers
 
         internal static Lobby LocalLobby { get; set; }
         internal static bool IsInLobby => LocalLobby != null;
+        internal static bool CanChangePlaylist => IsInLobby && !LocalLobby.Locked && (LocalLobby.Host == PlayerManager.LocalPlayer || LocalLobby.ChartSelection == LobbyChartSelection.Playlist);
 
+        private static TimeSpan ShowMsgDuration = TimeSpan.FromSeconds(1);
         internal static TimeSpan AutoUpdateInterval => Settings.Config.SlowNetworkMode ? TimeSpan.FromSeconds(6) : TimeSpan.FromSeconds(3);
         internal static bool IsAutoUpdating = false;
 
@@ -44,8 +48,82 @@ namespace Multiplayer.Managers
                 await Task.Delay(AutoUpdateInterval);
                 await UIManager.LobbyWindow.Update(lobby);
                 
-                if (lobby == LocalLobby) await UIManager.MainLobbyDisplay.Update(false);
+                if (lobby == LocalLobby)
+                {
+                    UIManager.MainLobbyDisplay.Update();
+                    UIManager.BattleLobbyDisplay.Update();
+                    if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.CurrentScene == "UISystem_PC")
+                    {
+                        UIManager.Debounce = true;
+                        Main.Dispatcher.Enqueue(() => PopupUtils.ShowInfo(Localization.Get("Lobby", "Starting")));
+
+                        await Task.Delay(ShowMsgDuration);
+
+                        Main.Dispatcher.Enqueue(() => UIManager.PnlPreparation.OnBattleStart());
+                        UIManager.Debounce = false;
+                    }
+                }
             }
+        }
+
+        /// <summary>
+        /// Sends a request to the server to add a new entry to the playlist.
+        /// </summary>
+        internal static async Task<bool> PlaylistAdd(MusicInfo musicInfo, int difficulty)
+        {
+            if (!Client.Connected || !IsInLobby) return false;
+
+            string entry = ChartManager.GetEntry(musicInfo, difficulty);
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                Token = Client.Token,
+                Entry = entry
+            };
+
+            var response = await Client.PostAsync("lobbyPlaylistAdd", payload);
+            bool success = response != null;
+
+            if (success)
+            {
+                LocalLobby.Playlist.Add(new(musicInfo,difficulty,entry));
+                Main.Dispatcher.Enqueue(() => 
+                {
+                    PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistAdded"));
+                    UIManager.UpdatePnlPreparation();
+                });
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Sends a request to the server to remove the entry from the playlist.
+        /// </summary>
+        internal static async Task<bool> PlaylistRemove(MusicInfo musicInfo, int difficulty)
+        {
+            if (!Client.Connected || !IsInLobby) return false;
+
+            string entry = ChartManager.GetEntry(musicInfo, difficulty);
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                Token = Client.Token,
+                Entry = entry
+            };
+
+            var response = await Client.PostAsync("lobbyPlaylistRemove", payload);
+            bool success = response != null;
+
+            if (success)
+            {
+                LocalLobby.Playlist.Remove(LocalLobby.GetFromPlaylist(entry));
+                Main.Dispatcher.Enqueue(() =>
+                {
+                    PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistRemoved"));
+                    UIManager.UpdatePnlPreparation();
+                });
+            }
+            return success;
         }
 
         /// <summary>

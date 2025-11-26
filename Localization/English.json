@@ -2,7 +2,21 @@
   "Global": {
     "Yes": "Yes",
     "No": "No",
-    "PnlPreparationLocked": "Waiting for host..."
+    "Next": "Next",
+    "Easy": "Easy",
+    "Hard": "Hard",
+    "Master": "Master",
+    "Hidden": "Hidden",
+    "Touhou": "Touhou"
+  },
+  "PnlPreparation": {
+    "PlaylistAdd": "Add to playlist",
+    "PlaylistRemove": "Remove from playlist",
+    "PlaylistAdded": "Added to the playlist!",
+    "PlaylistRemoved": "Removed from the playlist!",
+    "VanillaOnly": "Only vanilla charts are allowed!",
+    "CustomOnly": "Only custom charts are allowed!",
+    "Waiting": "Waiting for host..."
   },
   "Warning": {
     "Title": "Warning",
@@ -73,7 +87,7 @@
   },
   "LobbyCreation": {
     "Title": "Create a lobby",
-    "Description": "<color=f5428aff>{0}</color>\n\n[ Max Players ]: <color={1}>{2}</color>\n[ Password ]: <color={3}>{4}</color>\n[ Goal ]: <color={5}>{6}</color>\n[ Play Type ]: <color={7}>{8}</color>\n[ Chart Selection Mode ]: <color={9}>{10}</color>",
+    "Description": "<color=f5428aff>{0}</color>\n\n[ Max Players ]: <color={1}>{2}</color>\n[ Password ]: <color={3}>{4}</color>\n[ Goal ]: <color={5}>{6}</color>\n[ Charts ]: <color={7}>{8}</color>\n[ Chart Selection Mode ]: <color={9}>{10}</color>",
     "Set": "Set",
     "NotSet": "Not set (Public)",
     "LobbyName": "Lobby Name",
@@ -86,24 +100,24 @@
     "CreateButton": "— Create —",
     "CreateConfirm": "Create the lobby?",
     "Goal": "Goal",
-    "GoalDescription": "Lobby goal determines what is going to be\nthe victory condition.",
-    "PlayType": "Play Type",
-    "PlayTypeDescription": "Lobby play type determines which kind of charts\neveryone will play.",
+    "GoalDescription": "Define the condition under which players will be compared.",
+    "PlayType": "Charts",
+    "PlayTypeDescription": "Define the range of charts everyone will be playing.",
     "ChartSelection": "Chart Selection",
-    "ChartSelectionDescription": "Lobby chart selection mode determines the way\ncharts are going to be queued and played.",
+    "ChartSelectionDescription": "Define the way charts are going to be queued and played."
+  },
+  "Lobby": {
+    "Title": "Lobby",
+    "Description": "<color=f5428aff>{0}</color>\nID: {1}\n\n[ Host ]: <color=fff700ff>{2}</color>\n[ Players ]: {3}/{4}\n[ Status ]: <color={5}>{6}</color>\n[ Charts ]: <color={7}>{8}</color>\n[ Locked ]: {9}",
     "Accuracy": "Accuracy",
     "Score": "Score",
     "Custom": "Custom",
     "All": "All",
     "VanillaOnly": "Vanilla Only",
     "CustomOnly": "Custom Only",
-    "HostOnly": "Host Only",
+    "HostPlaylist": "Host Playlist",
     "Playlist": "Playlist",
-    "Random": "Random"
-  },
-  "Lobby": {
-    "Title": "Lobby",
-    "Description": "<color=f5428aff>{0}</color>\nID: {1}\n\n[ Host ]: <color=fff700ff>{2}</color>\n[ Players ]: {3}/{4}\n[ Status ]: <color={5}>{6}</color>\n[ Locked ]: {7}",
+    "Random": "Random",
     "Full": "- Lobby is full -",
     "Join": "— Join —",
     "Leave": "— Leave —",
@@ -120,6 +134,12 @@
     "PublicStatus": "Public",
     "PrivateStatus": "Private",
     "AlreadyInLobby": "You have a lobby already!",
-    "LobbyIsLocked": "This lobby is locked!"
+    "LobbyIsLocked": "Lobby is locked!",
+    "PlaylistButton": "— Playlist —",
+    "Play": "— Play —",
+    "PlaylistTitle": "Playlist",
+    "PlaylistDescription": "To add a chart to the playlist open it and click the corresponding button.",
+    "PlaylistEmpty": "Playlist is empty!",
+    "Starting": "Host is starting the game..."
   }
 }

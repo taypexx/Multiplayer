@@ -9,9 +9,6 @@ namespace Multiplayer.UI.Abstract
 {
     internal abstract class BaseLobbyDisplay
     {
-        internal string TextReferencePath;
-        internal GameObject TextReference => GameObject.Find(TextReferencePath);
-
         internal string ParentPath;
         internal Transform Parent => GameObject.Find(ParentPath).transform;
 
@@ -24,6 +21,7 @@ namespace Multiplayer.UI.Abstract
         internal List<object> PositionList;
 
         internal Lobby Lobby;
+        internal bool DoesSort = false;
 
         internal BaseLobbyDisplay()
         {
@@ -38,22 +36,25 @@ namespace Multiplayer.UI.Abstract
         /// <returns>A new <see cref="Text"/>.</returns>
         internal Text AddText(object key)
         {
-            if (TextReference is null || Parent is null)
+            if (Parent is null)
             {
-                Main.Logger.Error("Couldn't find TextReference or Parent");
+                Main.Logger.Error("Couldn't find the parent gameobject.");
                 return null;
             }
 
-            GameObject newTextObj = UnityEngine.Object.Instantiate(TextReference, Parent);
-            newTextObj.name = "LobbyEntry";
-            UnityEngine.Object.Destroy(newTextObj.GetComponent<Il2CppAssets.Scripts.PeroTools.GeneralLocalization.Localization>());
+            GameObject newTextObj = Utilities.CreateText(Parent, "LobbyEntry");
             newTextObj.transform.localPosition = AnchorPosition + Step * TextList.Count;
+            newTextObj.transform.localScale = Vector3.one;
+            newTextObj.GetComponent<RectTransform>().sizeDelta = new(600,200);
 
             Text text = newTextObj.GetComponent<Text>();
             text.alignment = TextAnchor;
+            text.fontSize = 26;
             text.raycastTarget = false;
+
             TextList.Add(key, text);
             PositionList.Add(key);
+
             return text;
         }
 
@@ -62,7 +63,7 @@ namespace Multiplayer.UI.Abstract
         /// </summary>
         /// <param name="key">Key to which the <see cref="Text"/> was linked.</param>
         /// <param name="realignAfter">Whether to realign the entire display visually.</param>
-        internal void RemoveText(object key, bool realignAfter = true)
+        internal void RemoveText(object key)
         {
             Text text = TextList[key];
             TextList.Remove(key);
@@ -72,8 +73,6 @@ namespace Multiplayer.UI.Abstract
                 GameObject obj = text.gameObject;
                 if (obj != null) UnityEngine.Object.Destroy(obj);
             }
-
-            if (realignAfter) RealignText();
         }
 
         /// <summary>
@@ -86,29 +85,18 @@ namespace Multiplayer.UI.Abstract
             {
                 if (keepTitle && key is not Player) continue;
 
-                RemoveText(key, false);
+                RemoveText(key);
             }
         }
 
         /// <summary>
-        /// Realigns the text on the display.
+        /// Sorts the <see cref="PositionList"/> according to the <see cref="LobbyGoal"/> of the <see cref="Lobby"/>.
         /// </summary>
-        internal void RealignText()
+        internal void Sort()
         {
-            foreach(object key in PositionList)
-            {
-                Text text = TextList[key];
-                text.transform.localPosition = AnchorPosition + Step * PositionList.IndexOf(key);
-            }
-        }
+            if (Lobby is null) return;
 
-        /// <summary>
-        /// Sorts the <see cref="PositionList"/> according to the provided <see cref="LobbyGoal"/>.
-        /// </summary>
-        /// <param name="goal"></param>
-        internal void SortAccordingTo(LobbyGoal goal)
-        {
-            switch (goal)
+            switch (Lobby.Goal)
             {
                 case LobbyGoal.Accuracy:
                     PositionList.Sort((t1,t2) => 
@@ -127,61 +115,72 @@ namespace Multiplayer.UI.Abstract
                 case LobbyGoal.Custom:
                     break;
             }
-            RealignText();
+
+            foreach (object key in PositionList)
+            {
+                Text text = TextList[key];
+                text.transform.localPosition = AnchorPosition + Step * PositionList.IndexOf(key);
+            }
         }
 
         /// <summary>
         /// Creates the display for the given <see cref="Data.Lobby"/>.
         /// </summary>
         /// <param name="lobby"><see cref="Data.Lobby"/> whose information will be displayed.</param>
-        internal void Create(Lobby lobby)
+        internal void Create(Lobby lobby, bool addTitle = true)
         {
             if (lobby is null || Lobby != null) return;
             Lobby = lobby;
 
-            Title = AddText(lobby);
-            _ = Update(false);
+            if (addTitle) Title = AddText(lobby);
+            Update();
         }
 
         /// <summary>
         /// Updates the display to show the <see cref="Data.Lobby"/> information.
         /// </summary>
         /// <param name="updateLobby">Whether to update the <see cref="Data.Lobby"/> as well.</param>
-        internal async Task Update(bool updateLobby = false)
+        internal void Update()
         {
             if (Lobby is null) { Destroy(); return; }
-            if (updateLobby)
+
+            if (Title) Title.text = $"{Lobby.Name} " +
+             $"<color=#fff700ff>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color> " +
+             $"<color=#{(Lobby.IsPrivate ? "f542adff" : "1eff00ff")}>({(Lobby.IsPrivate ? "Private" : "Public")})</color>";
+
+            foreach (string playerUid in Lobby.Players)
             {
-                await Lobby.Update();
+                Player player = PlayerManager.GetCachedPlayer(playerUid);
+                if (player is null) continue;
+
+                if (!TextList.ContainsKey(player))
+                {
+                    AddText(player);
+                }
             }
 
-            Main.Dispatcher.Enqueue(() =>
+            foreach ((object key, _) in TextList)
             {
-                if (Lobby is null) { Destroy(); return; }
-
-                if (Title) Title.text = $"{Lobby.Name} " +
-                 $"<color=#fff700ff>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color> " +
-                 $"<color=#{(Lobby.IsPrivate ? "f542adff" : "1eff00ff")}>({(Lobby.IsPrivate ? "Private" : "Public")})</color>";
-
-                foreach (string playerUid in Lobby.Players)
+                if (key is Player && !Lobby.Players.Contains(((Player)key).Uid))
                 {
-                    Player player = PlayerManager.GetCachedPlayer(playerUid);
-                    if (player is null) continue;
-
-                    if (!TextList.ContainsKey(player))
-                    {
-                        AddText(player).text = player == Lobby.Host ? $"<color=#fff700ff>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name;
-                    }
+                    RemoveText(key);
                 }
+            }
 
-                foreach ((object key, _) in TextList)
-                {
-                    if (key is Player && !Lobby.Players.Contains(((Player)key).Uid))
-                    {
-                        RemoveText(key);
-                    }
-                }
-            });
+            UpdateTexts();
+
+            if (DoesSort) Sort();
+        }
+
+        internal virtual void UpdateTexts()
+        {
+            foreach ((object key, Text text) in TextList)
+            {
+                if (key is not Player) continue;
+                Player player = (Player)key;
+
+                text.text = player == Lobby.Host ? $"<color=#fff700ff>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name;
+            }
         }
 
         /// <summary>
@@ -189,6 +188,7 @@ namespace Multiplayer.UI.Abstract
         /// </summary>
         internal void Destroy()
         {
+            if (Lobby is null) return;
             ClearText();
             Lobby = null;
         }

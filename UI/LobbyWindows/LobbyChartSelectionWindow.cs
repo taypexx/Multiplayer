@@ -10,9 +10,9 @@ namespace Multiplayer.UI.LobbyWindows
 {
     internal sealed class LobbyChartSelectionWindow : BaseMultiplayerWindow
     {
-        internal LobbyChartSelection Value { get; private set; } = LobbyChartSelection.HostOnly;
+        internal LobbyChartSelection Value { get; private set; } = LobbyChartSelection.HostPlaylist;
 
-        private ForumObject HostOnlyButton;
+        private ForumObject HostPlaylistButton;
         private ForumObject PlaylistButton;
         private ForumObject RandomButton;
 
@@ -22,13 +22,13 @@ namespace Multiplayer.UI.LobbyWindows
         internal LobbyChartSelectionWindow() : base(Localization.Get("LobbyCreation", "ChartSelection"), UIManager.LobbyCreationWindow, "Lobbies.png")
         {
             AddReturnButton(MainDescription);
-            HostOnlyButton = AddButton(Localization.Get("LobbyCreation", "HostOnly"), null, MainDescription);
-            PlaylistButton = AddButton(Localization.Get("LobbyCreation", "Playlist"), null, MainDescription);
-            RandomButton = AddButton(Localization.Get("LobbyCreation", "Random"), null, MainDescription);
+            HostPlaylistButton = AddButton(Localization.Get("Lobby", "HostPlaylist"), null, MainDescription);
+            PlaylistButton = AddButton(Localization.Get("Lobby", "Playlist"), null, MainDescription);
+            RandomButton = AddButton(Localization.Get("Lobby", "Random"), null, MainDescription);
 
             ChartSelectionValues = new()
             {
-                [HostOnlyButton] = LobbyChartSelection.HostOnly,
+                [HostPlaylistButton] = LobbyChartSelection.HostPlaylist,
                 [PlaylistButton] = LobbyChartSelection.Playlist,
                 [RandomButton] = LobbyChartSelection.Random
             };
