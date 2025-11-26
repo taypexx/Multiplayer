@@ -12,6 +12,9 @@ using UnityEngine.UI;
 using Il2CppAssets.Scripts.Database;
 using Il2Cpp;
 using Il2CppAssets.Scripts.UI.Panels;
+using PopupLib.UI;
+using Il2CppArcadeController.UI.Panel.PnlHome;
+using Il2CppAssets.Scripts.UI;
 
 namespace Multiplayer.Managers
 {
@@ -19,7 +22,12 @@ namespace Multiplayer.Managers
     {
         internal static bool Debounce = false;
         internal static Text WindowTitle { get; private set; }
+        private static TimeSpan ShowMsgDuration = TimeSpan.FromSeconds(1);
+
         internal static GameObject MainFrame => GameObject.Find("UI/Forward/Tips/PnlBulletinNew");
+        internal static PageHome PageHome => GameObject.Find("UI/Standerd/PnlHome").GetComponent<PageHome>();
+        internal static PnlMenu PnlMenu => GameObject.Find("UI/Standerd/PnlMenu").GetComponent<PnlMenu>();
+        internal static PnlNavigation PnlNavigation => GameObject.Find("UI/Standerd/PnlNavigation").GetComponent<PnlNavigation>();
         internal static PnlPreparation PnlPreparation => GameObject.Find("UI/Standerd/PnlPreparation").GetComponent<PnlPreparation>();
         internal static PnlStage PnlStage => GameObject.Find("UI/Standerd/PnlStage").GetComponent<PnlStage>();
 
@@ -107,7 +115,7 @@ namespace Multiplayer.Managers
             else if (LobbyManager.CanChangePlaylist)
             {
                 playText.text = Localization.Get("PnlPreparation",
-                    LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, GlobalDataBase.dbMusicTag.selectedDiffTglIndex))
+                    LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, ChartManager.CurrentDifficulty))
                     ? "PlaylistRemove"
                     : "PlaylistAdd"
                 ).ToString();
@@ -116,6 +124,44 @@ namespace Multiplayer.Managers
             {
                 playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
             }
+        }
+
+        /// <summary>
+        /// Opens PnlStage by exiting any other panels and jumps to a chart.
+        /// </summary>
+        /// <param name="uid">UID of a chart.</param>
+        internal static void JumpToChart(string uid)
+        {
+            if (PageHome.gameObject.active)
+            {
+                PageHome.transform.Find("Bottom/Btn").GetComponent<Button>().onClick.Invoke();
+            }
+            else if (PnlPreparation.gameObject.active)
+            {
+                PnlNavigation.transform.Find("Top/BtnNavigationBack").GetComponent<Button>().onClick.Invoke();
+            }
+            else if (PnlMenu.gameObject.active)
+            {
+                PnlMenu.transform.Find("MenuNavigation/BtnBack").GetComponent<Button>().onClick.Invoke();
+            }
+            PnlStage.SelectAllTagAndJumpToAssginIndex(uid);
+        }
+
+        /// <summary>
+        /// Closes all panels and opens PnlPreparation, then launches the game.
+        /// </summary>
+        internal static async Task OpenPnlPreparationAndStart()
+        {
+            Debounce = true;
+            Main.Dispatcher.Enqueue(() => PopupUtils.ShowInfo(Localization.Get("Lobby", "Starting")));
+
+            await Task.Delay(ShowMsgDuration);
+
+            Main.Dispatcher.Enqueue(() => 
+            {
+                PnlPreparation.OnBattleStart();
+                Debounce = false;
+            });
         }
 
         /// <summary>
@@ -134,15 +180,7 @@ namespace Multiplayer.Managers
             MainMenuOpenButton.Create();
             ProfileWindow.CreateAvatarBox();
 
-            if (LobbyManager.IsInLobby)
-            {
-                MainLobbyDisplay.Create(LobbyManager.LocalLobby);
-
-                if (LobbyManager.LocalLobby.Locked && LobbyManager.LocalLobby.Host == PlayerManager.LocalPlayer)
-                {
-                    _ = LobbyManager.LockLobby(false);
-                }
-            }
+            if (LobbyManager.IsInLobby) MainLobbyDisplay.Create(LobbyManager.LocalLobby);
         }
 
         /// <summary>

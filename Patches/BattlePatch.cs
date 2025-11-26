@@ -3,9 +3,9 @@ using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Il2CppAssets.Scripts.UI.Panels;
-using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
 using Multiplayer.Static;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +15,7 @@ namespace Multiplayer.Patches
     {
         private static bool AwaitingForOthers = false;
         private static bool CanExit = false;
+        private static bool BattleStarted = false;
 
         private static PnlVictory PnlVictory => GameObject.Find("UI_3D/PnlVictory").GetComponent<PnlVictory>();
 
@@ -34,6 +35,7 @@ namespace Multiplayer.Patches
             AwaitingForOthers = false;
             Main.Dispatcher.Enqueue(() => 
             {
+                if (BattleStarted) return;
                 SingletonMonoBehaviour<PnlBattle>.instance.GameStart();
             });
         }
@@ -44,7 +46,8 @@ namespace Multiplayer.Patches
         internal static void SceneLoaded()
         {
             CanExit = false;
-            
+            BattleStarted = false;
+
             if (LobbyManager.IsInLobby)
             {
                 _ = AwaitForOthers();
@@ -64,7 +67,7 @@ namespace Multiplayer.Patches
             /// </summary>
             private static bool Prefix()
             {
-                return !((LobbyManager.IsInLobby && AwaitingForOthers));
+                return !((LobbyManager.IsInLobby && AwaitingForOthers) || BattleStarted);
             }
 
             /// <summary>
@@ -72,6 +75,7 @@ namespace Multiplayer.Patches
             /// </summary>
             private static void Postfix()
             {
+                BattleStarted = true;
                 if (LobbyManager.IsInLobby && !AwaitingForOthers)
                 {
                     UIManager.PnlAwait.Destroy();
@@ -94,34 +98,48 @@ namespace Multiplayer.Patches
 
                 UIManager.BattleLobbyDisplay.Destroy();
 
+                _ = LobbyManager.SetReady(false);
+
                 var restartButton = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnRestart");
                 restartButton.SetActive(false);
 
                 var returnButton = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnReturn");
                 returnButton.transform.localPosition = restartButton.transform.localPosition;
-
                 CanExit = true;
             }
         }
 
-        [HarmonyPatch(typeof(PnlBattle), nameof(PnlBattle.OnShowVictory), typeof(Il2CppSystem.Object), typeof(Il2CppSystem.Object), typeof(Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<Il2CppSystem.Object>))]
+        /// <summary>
+        /// Patches the end screen to display winners and move forward to the next chart.
+        /// </summary>
+        [HarmonyPatch]
         internal static class BattleVictoryPatch
         {
+            private static IEnumerable<MethodBase> TargetMethods()
+            {
+                return typeof(PnlBattle).GetMethods().Where(m =>  m.Name == nameof(PnlBattle.OnShowVictory));
+            }
+
+            private static async Task Continue()
+            {
+                if (CanExit) return;
+                await LobbyManager.PlaylistContinue();
+                await LobbyManager.SetReady(false);
+                CanExit = true;
+            }
+
             private static void Postfix()
             {
                 if (!LobbyManager.IsInLobby) return;
 
                 UIManager.BattleLobbyDisplay.Destroy();
+
                 PnlVictory.m_CurControls.btnReset.gameObject.SetActive(false);
-                
-                if (LobbyManager.LocalLobby.ChartSelection != LobbyChartSelection.HostPlaylist)
-                {
-                    PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").gameObject.GetComponent<Text>().text = Localization.Get("Global", "Next").ToString();
-                }
+                PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").gameObject.GetComponent<Text>().text = Localization.Get("Global", "Next").ToString();
 
                 // Display the fake achievements as the winners
 
-                CanExit = true;
+                _ = Continue();
             }
         }
 

@@ -139,7 +139,6 @@ namespace Multiplayer.UI.Abstract
         /// <summary>
         /// Updates the display to show the <see cref="Data.Lobby"/> information.
         /// </summary>
-        /// <param name="updateLobby">Whether to update the <see cref="Data.Lobby"/> as well.</param>
         internal void Update()
         {
             if (Lobby is null) { Destroy(); return; }

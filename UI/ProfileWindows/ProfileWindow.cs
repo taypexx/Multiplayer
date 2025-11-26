@@ -59,11 +59,11 @@ namespace Multiplayer.UI.ProfileWindows
 
             FriendRequestPrompt = new(Localization.Get("ProfileWindow", "DecideFriendRequestPrompt"));
             FriendRequestPrompt.AutoReset = true;
-            FriendRequestPrompt.OnCompletion += OnFriendActionDecided;
+            FriendRequestPrompt.OnCompletion += (BaseWindow window) => _ = OnFriendActionDecided(window);
 
             UnfriendPrompt = new(Localization.Get("ProfileWindow", "DecideUnfriendPrompt"));
             UnfriendPrompt.AutoReset = true;
-            UnfriendPrompt.OnCompletion += OnFriendActionDecided;
+            UnfriendPrompt.OnCompletion += (BaseWindow window) => _ = OnFriendActionDecided(window);
         }
 
         internal void CreateButtons()
@@ -176,7 +176,7 @@ namespace Multiplayer.UI.ProfileWindows
             });
         }
 
-        private async void OnFriendActionDecided(BaseWindow window = null)
+        private async Task OnFriendActionDecided(BaseWindow window = null)
         {
             if (window == null || window == FriendRequestPrompt && FriendRequestPrompt.Result == true || window == UnfriendPrompt && UnfriendPrompt.Result == true)
             {
@@ -208,7 +208,7 @@ namespace Multiplayer.UI.ProfileWindows
                 }
                 await Update(Player, true);
 
-                PopupUtils.ShowInfoAndLog(msg);
+                PopupUtils.ShowInfo(msg);
 
                 UIManager.Debounce = false;
             }

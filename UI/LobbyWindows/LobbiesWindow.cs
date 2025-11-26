@@ -71,7 +71,7 @@ namespace Multiplayer.UI.LobbyWindows
                     UIManager.Debounce = false;
                     if (lobby is null)
                     {
-                        PopupUtils.ShowInfoAndLog(Localization.Get("Lobbies", "IncorrectID"));
+                        PopupUtils.ShowInfo(Localization.Get("Lobbies", "IncorrectID"));
                         Window.Show();
                     }
                     else OpenLobbyWindow(lobby);

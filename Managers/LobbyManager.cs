@@ -29,9 +29,8 @@ namespace Multiplayer.Managers
 
         internal static Lobby LocalLobby { get; set; }
         internal static bool IsInLobby => LocalLobby != null;
-        internal static bool CanChangePlaylist => IsInLobby && !LocalLobby.Locked && (LocalLobby.Host == PlayerManager.LocalPlayer || LocalLobby.ChartSelection == LobbyChartSelection.Playlist);
+        internal static bool CanChangePlaylist => IsInLobby && (LocalLobby.Host == PlayerManager.LocalPlayer || (!LocalLobby.Locked && LocalLobby.ChartSelection == LobbyChartSelection.Playlist));
 
-        private static TimeSpan ShowMsgDuration = TimeSpan.FromSeconds(1);
         internal static TimeSpan AutoUpdateInterval => Settings.Config.SlowNetworkMode ? TimeSpan.FromSeconds(6) : TimeSpan.FromSeconds(3);
         internal static bool IsAutoUpdating = false;
 
@@ -50,20 +49,40 @@ namespace Multiplayer.Managers
                 
                 if (lobby == LocalLobby)
                 {
-                    UIManager.MainLobbyDisplay.Update();
-                    UIManager.BattleLobbyDisplay.Update();
+                    Main.Dispatcher.Enqueue(() => 
+                    {
+                        UIManager.MainLobbyDisplay.Update();
+                        UIManager.BattleLobbyDisplay.Update();
+                    });
                     if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.CurrentScene == "UISystem_PC")
                     {
-                        UIManager.Debounce = true;
-                        Main.Dispatcher.Enqueue(() => PopupUtils.ShowInfo(Localization.Get("Lobby", "Starting")));
-
-                        await Task.Delay(ShowMsgDuration);
-
-                        Main.Dispatcher.Enqueue(() => UIManager.PnlPreparation.OnBattleStart());
-                        UIManager.Debounce = false;
+                        _ = UIManager.OpenPnlPreparationAndStart();
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Sends a request to the server to continue and remove the first playlist entry.
+        /// </summary>
+        internal static async Task<bool> PlaylistContinue()
+        {
+            if (!Client.Connected || !IsInLobby || LocalLobby.Host != PlayerManager.LocalPlayer) return false;
+
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                Token = Client.Token
+            };
+
+            var response = await Client.PostAsync("lobbyPlaylistContinue", payload);
+            bool success = response != null;
+
+            if (success)
+            {
+                LocalLobby.Playlist.RemoveAt(0);
+            }
+            return success;
         }
 
         /// <summary>

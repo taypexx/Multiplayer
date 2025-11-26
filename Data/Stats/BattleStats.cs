@@ -4,7 +4,12 @@
     {
         public Player Player { get; private set; }
         public uint Score { get; internal set; } = 0;
-        public float Accuracy { get; internal set; } = 100f;
+        public float Accuracy { get; 
+            internal set {
+                if (float.IsNaN(value)) { field = 100f; return; }
+                field = (float)Math.Round((decimal)value * 100) / 100f;
+            } 
+        } = 100f;
         public bool FC { get; internal set; } = false;
         public bool AP => Accuracy == 100f;
         public bool TrueAP => AP && Earlies == 0 && Lates == 0;

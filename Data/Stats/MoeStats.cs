@@ -10,7 +10,13 @@ namespace Multiplayer.Data.Stats
         public float RL { get; private set; }
         public ushort Records { get; private set; }
         public ushort APs { get; private set; }
-        public float AverageAccuracy { get; private set; }
+        public float AverageAccuracy { get;
+            private set
+            {
+                if (float.IsNaN(value)) { field = 100f; return; }
+                field = (float)Math.Round((decimal)value * 100) / 100f;
+            }
+        }
 
         public MoeStats(Player player)
         {

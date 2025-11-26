@@ -71,7 +71,6 @@ namespace Multiplayer
                 PlayerManager.LocalPlayerLVL = DataHelper.Level;
                 AchievementManager.Check();
                 PlayerManager.SyncLocalPlayer();
-                _ = LobbyManager.SetReady(false);
             } else if (sceneName == "GameMain")
             {
                 UIManager.InitGameMain();

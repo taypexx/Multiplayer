@@ -45,20 +45,20 @@ namespace Multiplayer.UI.Displays
                             battleInfo = $"<color=#{Constants.Yellow}>AP</color>";
                             if (battleStats.Earlies > 0)
                             {
-                                battleInfo += $" <color=#{Constants.Blue}>{battleStats.Earlies}</color>E";
+                                battleInfo += $" <color=#{Constants.Blue}>{battleStats.Earlies}E</color>";
                             }
                             if (battleStats.Lates > 0)
                             {
-                                battleInfo += $" <color=#{Constants.Red}>{battleStats.Lates}</color>L";
+                                battleInfo += $" <color=#{Constants.Red}>{battleStats.Lates}L</color>";
                             }
                         }
                         else if (battleStats.FC)
                         {
-                            battleInfo = $"<color=#{Constants.Blue}>FC</color> {battleStats.Greats}G";
+                            battleInfo = $"<color=#{Constants.Blue}>FC</color> {battleStats.Accuracy}% {battleStats.Greats}G";
                         }
                         else
                         {
-                            battleInfo = $"{battleStats.Misses}M {battleStats.Greats}G";
+                            battleInfo = $"{battleStats.Accuracy}% {battleStats.Misses}M {battleStats.Greats}G";
                         }
 
                         break;
@@ -69,7 +69,7 @@ namespace Multiplayer.UI.Displays
                         break;
                 }
 
-                text.text = player == Lobby.Host ? $"{battleInfo} — <color=#{Constants.Yellow}>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name;
+                text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name)} — {battleInfo}";
             }
         }
     }

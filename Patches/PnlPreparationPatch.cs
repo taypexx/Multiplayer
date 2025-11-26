@@ -2,7 +2,6 @@
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
-using Il2CppAssets.Scripts.PeroTools.Commons;
 using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -13,7 +12,7 @@ using UnityEngine.UI;
 
 namespace Multiplayer.Patches
 {
-    internal static class MainPatch
+    internal static class PnlPreparationPatch
     {
         /// <summary>
         /// Replaces the functionality of the vanilla PnlPreparation button.
@@ -27,8 +26,7 @@ namespace Multiplayer.Patches
             else if (LobbyManager.CanChangePlaylist)
             {
                 MusicInfo musicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
-                int difficulty = GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(musicInfo.uid)
-                    ? 4 : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
+                int difficulty = ChartManager.CurrentDifficulty;
 
                 if (LobbyManager.LocalLobby.PlayType == LobbyPlayType.VanillaOnly && musicInfo.albumIndex == AlbumManager.Uid)
                 {
@@ -48,6 +46,9 @@ namespace Multiplayer.Patches
                 {
                     _ = LobbyManager.PlaylistAdd(musicInfo, difficulty);
                 }
+            } else if (LobbyManager.LocalLobby.Locked)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "LobbyIsLocked"));
             }
         }
 
@@ -69,7 +70,7 @@ namespace Multiplayer.Patches
         }
 
         /// <summary>
-        /// Updates itself when it gets enabled.
+        /// Updates itself when difficulty changes.
         /// </summary>
         [HarmonyPatch(typeof(PnlPreparation), nameof(PnlPreparation.OnDiffTglChanged))]
         internal static class PnlPreparationDiffChanged
@@ -80,20 +81,25 @@ namespace Multiplayer.Patches
             }
         }
 
+        /// <summary>
+        /// Jumps to the current playlist entry of the chart and continues to battle start.
+        /// </summary>
         [HarmonyPatch(typeof(PnlPreparation), nameof(PnlPreparation.OnBattleStart))]
-        internal static class PnlPreparationOnBattleStartBatch
+        internal static class PnlPreparationOnBattleStart
         {
             private static bool Prefix()
             {
-                bool start = !LobbyManager.IsInLobby || (LobbyManager.IsInLobby && LobbyManager.LocalLobby.Locked);
-                if (!start) return start;
+                if (!LobbyManager.IsInLobby) return true;
+
+                bool startCondition = LobbyManager.IsInLobby && LobbyManager.LocalLobby.Locked;
+                if (!startCondition) return startCondition;
 
                 var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
-                UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
+                UIManager.JumpToChart(entry.MusicInfo.uid);
                 GlobalDataBase.dbMusicTag.selectedDiffTglIndex = entry.Difficulty;
                 GlobalDataBase.dbMusicTag.pnlSelectMusicUid = entry.MusicInfo.uid;
 
-                return start;
+                return startCondition;
             }
         }
     }

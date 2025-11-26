@@ -219,14 +219,14 @@ namespace Multiplayer.UI.LobbyWindows
             // If the local player is in another lobby
             if (LobbyManager.IsInLobby && LobbyManager.LocalLobby != Lobby)
             {
-                PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "AlreadyInLobby"));
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "AlreadyInLobby"));
                 Window.Show();
                 return;
             }
             // If the lobby is locked
             if (Lobby.Locked)
             {
-                PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "LobbyIsLocked"));
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "LobbyIsLocked"));
                 Window.Show();
                 return;
             }
@@ -242,7 +242,7 @@ namespace Multiplayer.UI.LobbyWindows
             }
             else
             {
-                PopupUtils.ShowInfoAndLog(ActionButtonResponses[3]);
+                PopupUtils.ShowInfo(ActionButtonResponses[3]);
                 Window.Show();
             }
         }
@@ -263,19 +263,16 @@ namespace Multiplayer.UI.LobbyWindows
 
             if (Lobby.Playlist.Count == 0)
             {
-                PopupUtils.ShowInfoAndLog(Localization.Get("Lobby", "PlaylistEmpty"));
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "PlaylistEmpty"));
                 Window.Show();
                 return;
             }
 
             UIManager.Debounce = true;
             await LobbyManager.LockLobby(true);
+            UIManager.Debounce = false;
 
-            Main.Dispatcher.Enqueue(() => 
-            {
-                UIManager.PnlPreparation.OnBattleStart();
-                UIManager.Debounce = false;
-            });
+            _ = UIManager.OpenPnlPreparationAndStart();
         }
 
         internal override void OnButtonClick(IListWindow window, int objectIndex)

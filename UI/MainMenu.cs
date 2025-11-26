@@ -5,6 +5,7 @@ using LocalizeLib;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
+using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using UnityEngine;
@@ -179,6 +180,10 @@ namespace Multiplayer.UI
             } else if (button == FriendRequestsButton)
             {
                 OpenFriendRequests();
+            } else if (button == CompetitiveButton)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Global", "ComingSoon"));
+                Window.Show();
             }
         }
     }

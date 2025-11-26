@@ -1,6 +1,8 @@
 ﻿using CustomAlbums.Data;
 using CustomAlbums.Managers;
+using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.PeroTools.Commons;
 
 namespace Multiplayer.Managers
 {
@@ -33,6 +35,8 @@ namespace Multiplayer.Managers
         }
 
         internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
+
+        internal static int CurrentDifficulty => GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(GlobalDataBase.dbMusicTag.CurMusicInfo().uid) ? 4 : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
 
         /// <summary>
         /// Gets the <see cref="MusicInfo"/> by the hash/vanilla uid.
