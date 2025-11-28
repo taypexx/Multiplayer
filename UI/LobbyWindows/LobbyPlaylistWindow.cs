@@ -21,6 +21,8 @@ namespace Multiplayer.UI.LobbyWindows
 
         internal void Update(Lobby lobby)
         {
+            int prevEntries = ButtonsEntries.Count;
+
             RemoveAllButtons(true);
             ButtonsEntries.Clear();
 
@@ -33,9 +35,11 @@ namespace Multiplayer.UI.LobbyWindows
                 )), null, MainDescription);
                 ButtonsEntries.Add(button, entry);
             }
+
+            if (Window.Activated && prevEntries != lobby.Playlist.Count && prevEntries != 0) RefreshWindow();
         }
 
-        internal override void OnButtonClick(IListWindow window, int objectIndex)
+        protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
 

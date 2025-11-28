@@ -3,8 +3,6 @@ using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
 using Multiplayer.Static;
-using Multiplayer.UI.LobbyWindows;
-using Multiplayer.UI.ProfileWindows;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
@@ -56,7 +54,7 @@ namespace Multiplayer.UI.Abstract
         /// <param name="windowToOpen">(Optional) Window to open when the button is pressed.</param>
         /// <param name="content">(Optional) Text to be displayed on the main frame.</param>
         /// <returns>A new button.</returns>
-        internal ForumObject AddButton(LocalString buttonName, object windowToOpen = null, LocalString content = null)
+        protected ForumObject AddButton(LocalString buttonName, object windowToOpen = null, LocalString content = null)
         {
             if (content == null) content = new();
 
@@ -74,7 +72,7 @@ namespace Multiplayer.UI.Abstract
         /// </summary>
         /// <param name="objectIndex">Index of the button.</param>
         /// <returns><see langword="true"/> if it was removed, otherwise <see langword="false"/>.</returns>
-        internal bool RemoveButton(ForumObject button)
+        protected bool RemoveButton(ForumObject button)
         {
             if (button == null) return false;
 
@@ -96,7 +94,7 @@ namespace Multiplayer.UI.Abstract
         /// <param name="keepCoreButtons">Whether to keep the ReturnButton and the RefreshButton and not remove it.</param>
         /// <param name="keepButtons">An array of buttons which need to be kept.</param>
         /// <returns><see langword="true"/> if all buttons were successfully removed, otherwise <see langword="false"/>.</returns>
-        internal bool RemoveAllButtons(bool keepCoreButtons = false, ForumObject[] keepButtons = null)
+        protected bool RemoveAllButtons(bool keepCoreButtons = false, ForumObject[] keepButtons = null)
         {
             bool success = true;
             List<ForumObject> toRemove = new();
@@ -117,7 +115,7 @@ namespace Multiplayer.UI.Abstract
         /// <summary>
         /// Adds the refresh button which updates the current window (Refreshing logic must be implemented separately).
         /// </summary>
-        internal void AddRefreshButton()
+        protected void AddRefreshButton()
         {
             if (RefreshButton != null) return;
             RefreshButton = AddButton(Localization.Get("Window", "RefreshButton"), Window);
@@ -127,66 +125,24 @@ namespace Multiplayer.UI.Abstract
         /// Adds the return button which closes the current window and opens the return window (if exists).
         /// </summary>
         /// <param name="content">(Optional) Text to be displayed on the main frame.</param>
-        internal void AddReturnButton(LocalString content = null)
+        protected void AddReturnButton(LocalString content = null)
         {
             if (ReturnButton != null) return;
             ReturnButton = AddButton(Localization.Get("Window", HasReturnWindow ? "ReturnButton" : "ExitButton"), null, content);
         }
 
         /// <summary>
-        /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/> of the given <paramref name="uid"/>.
+        /// Closes and then opens the window back.
         /// </summary>
-        /// <param name="uid">Uid of a <see cref="Player"/>.</param>
-        internal static async void OpenProfileWindow(string uid)
+        protected void RefreshWindow()
         {
-            UIManager.Debounce = true;
-
-            Player player = await PlayerManager.GetPlayer(uid);
-            await UIManager.ProfileWindow.Update(player);
-
-            Main.Dispatcher.Enqueue(() =>
-            {
-                UIManager.Debounce = false;
-                UIManager.ProfileWindow.Window.Show();
-            });
+            Window.ForceClose();
+            Window.Show();
         }
 
-        /// <summary>
-        /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/>.
-        /// </summary>
-        /// <param name="player"><see cref="Player"/> whose profile will show.</param>
-        internal static async void OpenProfileWindow(Player player)
+        protected virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
-            UIManager.Debounce = true;
-
-            await UIManager.ProfileWindow.Update(player);
-
-            Main.Dispatcher.Enqueue(() =>
-            {
-                UIManager.Debounce = false;
-                UIManager.ProfileWindow.Window.Show();
-            });
-        }
-
-        /// <summary>
-        /// Opens the <see cref="LobbyWindow"/> and displays information and members of the <see cref="Lobby"/>.
-        /// </summary>
-        /// <param name="lobby"><see cref="Lobby"/> which will be displayed.</param>
-        internal static async void OpenLobbyWindow(Lobby lobby)
-        {
-            UIManager.Debounce = true;
-
-            await UIManager.LobbyWindow.Update(lobby, true);
-
-            Main.Dispatcher.Enqueue(() =>
-            {
-                UIManager.Debounce = false;
-                UIManager.LobbyWindow.Window.Show();
-            });
-        }
-
-        internal virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
-        {
+            if (!Window.Activated) return;
             ForumObject button = Window.ForumObjects[objectIndex];
 
             Window.ForceClose();
@@ -221,14 +177,14 @@ namespace Multiplayer.UI.Abstract
             }
         }
 
-        internal virtual void OnShow(BaseWindow window)
+        protected virtual void OnShow(BaseWindow window)
         {
             if (Title is null) return;
             UIManager.WindowTitle.text = Title.ToString();
             UIManager.WindowTitle.gameObject.SetActive(true);
         }
 
-        internal virtual void OnCompletion(BaseWindow window)
+        protected virtual void OnCompletion(BaseWindow window)
         {
             UIManager.WindowTitle.gameObject.SetActive(false);
         }

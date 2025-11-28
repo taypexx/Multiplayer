@@ -31,7 +31,6 @@ namespace Multiplayer.Managers
         internal static bool IsInLobby => LocalLobby != null;
         internal static bool CanChangePlaylist => IsInLobby && (LocalLobby.Host == PlayerManager.LocalPlayer || (!LocalLobby.Locked && LocalLobby.ChartSelection == LobbyChartSelection.Playlist));
 
-        internal static TimeSpan AutoUpdateInterval => Settings.Config.SlowNetworkMode ? TimeSpan.FromSeconds(6) : TimeSpan.FromSeconds(3);
         internal static bool IsAutoUpdating = false;
 
         /// <summary>
@@ -44,7 +43,7 @@ namespace Multiplayer.Managers
 
             while (IsAutoUpdating && Client.Connected)
             {
-                await Task.Delay(AutoUpdateInterval);
+                await Task.Delay(Constants.LobbyUpdateInterval);
                 await UIManager.LobbyWindow.Update(lobby);
                 
                 if (lobby == LocalLobby)
@@ -56,7 +55,7 @@ namespace Multiplayer.Managers
                     });
                     if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.CurrentScene == "UISystem_PC")
                     {
-                        _ = UIManager.OpenPnlPreparationAndStart();
+                        _ = UIManager.ShowInfoAndStartGame();
                     }
                 }
             }
@@ -109,9 +108,11 @@ namespace Multiplayer.Managers
                 Main.Dispatcher.Enqueue(() => 
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistAdded"));
+                    UIManager.LobbyPlaylistWindow.Update(LocalLobby);
                     UIManager.UpdatePnlPreparation();
                 });
-            }
+            } else PopupUtils.ShowInfo(Localization.Get("Lobby", "ChartHidden"));
+
             return success;
         }
 
@@ -139,6 +140,7 @@ namespace Multiplayer.Managers
                 Main.Dispatcher.Enqueue(() =>
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistRemoved"));
+                    UIManager.LobbyPlaylistWindow.Update(LocalLobby);
                     UIManager.UpdatePnlPreparation();
                 });
             }
@@ -340,32 +342,48 @@ namespace Multiplayer.Managers
         /// Caches the <see cref="Lobby"/>.
         /// </summary>
         /// <param name="lobby"><see cref="Lobby"/> to cache.</param>
-        /// <returns><see langword="true"/> if <see cref="Lobby"/> was successfully cached or <see langword="false"/> if it was cached already.</returns>
-        internal static bool CacheLobby(Lobby lobby)
+        internal static void CacheLobby(Lobby lobby)
         {
-            if (CachedLobbies.ContainsKey(lobby.Id)) return false;
+            if (CachedLobbies.ContainsKey(lobby.Id)) return;
 
             CachedLobbies.Add(lobby.Id,lobby);
-            return true;
         }
 
         /// <summary>
         /// Removes the <see cref="Lobby"/> from cache.
         /// </summary>
         /// <param name="lobby"><see cref="Lobby"/> to remove.</param>
-        /// <returns><see langword="true"/> if <see cref="Lobby"/> was successfully removed or <see langword="false"/> if it wasn't cached.</returns>
-        internal static bool ClearLobbyFromCache(Lobby lobby)
+        internal static void ClearLobbyFromCache(Lobby lobby)
         {
-            if (!CachedLobbies.ContainsKey(lobby.Id)) return false;
+            if (!CachedLobbies.ContainsKey(lobby.Id)) return;
 
             CachedLobbies.Remove(lobby.Id);
-            return true;
+        }
+
+        private static async Task CacheCleaner()
+        {
+            DateTime current;
+            while (true)
+            {
+                await Task.Delay(Constants.CacheCheckInterval);
+                current = DateTime.Now;
+
+                foreach (Lobby lobby in CachedLobbies.Values)
+                {
+                    if (current - lobby.LastUpdated >= Constants.LobbyCacheExpiration && lobby != LocalLobby)
+                    {
+                        // check this too
+                        //ClearLobbyFromCache(lobby);
+                    }
+                }
+            }
         }
 
         internal static void Init()
         {
             CachedLobbies = new();
             PublicLobbies = new();
+            _ = CacheCleaner();
         }
     }
 }

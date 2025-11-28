@@ -55,7 +55,7 @@ namespace Multiplayer.UI
         /// <summary>
         /// Tries to connect to the server.
         /// </summary>
-        private async void TryConnect()
+        private async Task TryConnect()
         {
             UIManager.Debounce = true;
 
@@ -72,7 +72,7 @@ namespace Multiplayer.UI
         /// <summary>
         /// Updates and opens the <see cref="FriendRequestsWindow"/>.
         /// </summary>
-        private async void OpenFriendRequests()
+        private async Task OpenFriendRequests()
         {
             UIManager.Debounce = true;
 
@@ -102,38 +102,38 @@ namespace Multiplayer.UI
 
             if (Client.Connected)
             {
-                if (PlayerManager.LocalPlayer == null) return;
+                if (PlayerManager.LocalPlayer is null) return;
                 if (PlayerManager.LocalPlayer.MultiplayerStats.Banned)
                 {
                     UIManager.WarnNotification(Localization.Get("MainMenu", "LocalPlayerBanned"));
                 } else
                 {
                     if (!LobbyManager.IsInLobby) Window.Show();
-                    else OpenLobbyWindow(LobbyManager.LocalLobby);
+                    else _ = UIManager.OpenLobbyWindow(LobbyManager.LocalLobby);
                 }
             } else
             {
                 if (Client.TriedConnecting) Client.Disconnect();
-                else TryConnect();
+                else _ = TryConnect();
             }
         }
 
         /// <summary>
         /// Calls every time the bio window gets closed.
         /// </summary>
-        internal void OnBioCompletion(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        private void OnBioCompletion(PopupLib.UI.Windows.Abstract.BaseWindow window)
         {
             Window.Show();
             if (BioWindow.Result.IsNullOrWhitespace()) return;
 
             PlayerManager.LocalPlayer.MultiplayerStats.Bio = BioWindow.Result;
-            PlayerManager.SyncLocalPlayer();
+            PlayerManager.SyncProfile();
         }
 
         /// <summary>
         /// Calls every time <see cref="Il2CppAssets.Scripts.UI.Panels.PnlHead"/> gets closed.
         /// </summary>
-        internal void OnPnlHeadClose()
+        private void OnPnlHeadClose()
         {
             if (PlayerManager.LocalPlayer is null) return;
 
@@ -141,7 +141,7 @@ namespace Multiplayer.UI
             if (PlayerManager.LocalPlayer.MultiplayerStats.AvatarName != newAvatarName)
             {
                 PlayerManager.LocalPlayer.MultiplayerStats.AvatarName = newAvatarName;
-                PlayerManager.SyncLocalPlayer();
+                PlayerManager.SyncProfile();
             }
 
             if (PnlHeadWasOpened)
@@ -151,14 +151,14 @@ namespace Multiplayer.UI
             }
         }
 
-        internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        protected override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
         {
             base.OnShow(window);
             UIManager.ProfileWindow.ReturnWindow = this;
             _ = UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer,false);
         }
 
-        internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
+        protected override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
             ForumObject button = Window.ForumObjects[objectIndex];
 
@@ -172,14 +172,14 @@ namespace Multiplayer.UI
             {
                 if (LobbyManager.IsInLobby) 
                 {
-                    OpenLobbyWindow(LobbyManager.LocalLobby);
+                    _ = UIManager.OpenLobbyWindow(LobbyManager.LocalLobby);
                 } else
                 {
                     UIManager.LobbiesWindow.Window.Show();
                 }
             } else if (button == FriendRequestsButton)
             {
-                OpenFriendRequests();
+                _ = OpenFriendRequests();
             } else if (button == CompetitiveButton)
             {
                 PopupUtils.ShowInfo(Localization.Get("Global", "ComingSoon"));

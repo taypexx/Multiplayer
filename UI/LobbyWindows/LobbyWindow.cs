@@ -1,5 +1,4 @@
-﻿using Il2Cpp;
-using LocalizeLib;
+﻿using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
@@ -34,7 +33,7 @@ namespace Multiplayer.UI.LobbyWindows
         private Lobby Lobby;
         internal bool UpdateDebounce { get; private set; } = false;
 
-        internal LobbyWindow() : base(Localization.Get("Lobby", "Title"), UIManager.PublicLobbiesWindow, "Lobbies.png")
+        internal LobbyWindow() : base(Localization.Get("Lobby", "Title"), UIManager.PublicLobbiesWindow, "Lobby.png")
         {
             ButtonsPlayers = new();
             ActionButtonTitles = new()
@@ -158,11 +157,7 @@ namespace Multiplayer.UI.LobbyWindows
 
                 if (!lobby.IsPrivate) UIManager.PublicLobbiesWindow.UpdateLobbyButton(lobby);
 
-                if (prevPlayers != lobby.Players.Count && prevPlayers != 0)
-                {
-                    Window.ForceClose();
-                    Window.Show();
-                }
+                if (prevPlayers != lobby.Players.Count && prevPlayers != 0) RefreshWindow();
 
                 UpdateDebounce = false;
             });
@@ -272,10 +267,10 @@ namespace Multiplayer.UI.LobbyWindows
             await LobbyManager.LockLobby(true);
             UIManager.Debounce = false;
 
-            _ = UIManager.OpenPnlPreparationAndStart();
+            _ = UIManager.ShowInfoAndStartGame();
         }
 
-        internal override void OnButtonClick(IListWindow window, int objectIndex)
+        protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
 
@@ -286,11 +281,11 @@ namespace Multiplayer.UI.LobbyWindows
             else if (button == ActionButton) OnActionButtonClick();
             else if (ButtonsPlayers.TryGetValue(button, out Player player))
             {
-                OpenProfileWindow(player);
+                _ = UIManager.OpenProfileWindow(player);
             }
         }
 
-        internal override void OnShow(BaseWindow window)
+        protected override void OnShow(BaseWindow window)
         {
             base.OnShow(window);
 
@@ -299,7 +294,7 @@ namespace Multiplayer.UI.LobbyWindows
             if (Lobby != LobbyManager.LocalLobby) _ = LobbyManager.AutoUpdateStart(Lobby);
         }
 
-        internal override void OnCompletion(BaseWindow window)
+        protected override void OnCompletion(BaseWindow window)
         {
             base.OnCompletion(window);
 

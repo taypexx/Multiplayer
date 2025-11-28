@@ -80,6 +80,7 @@ namespace Multiplayer.UI.ProfileWindows
 
         internal void CreateAvatarBox()
         {
+            if (AvatarBox != null) return;
             AvatarBox = UnityEngine.Object.Instantiate(
                 GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>().headGridView.templateHeadItem.m_Button.gameObject,
                 UIManager.WindowTitle.transform
@@ -93,7 +94,7 @@ namespace Multiplayer.UI.ProfileWindows
         /// <summary>
         /// Refreshes current <see cref="Data.Player"/> and displays updated profile.
         /// </summary>
-        private async void Refresh()
+        private async Task Refresh()
         {
             UIManager.Debounce = true;
 
@@ -216,7 +217,7 @@ namespace Multiplayer.UI.ProfileWindows
             Window.Show();
         }
 
-        internal override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
+        protected override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
             ForumObject button = Window.ForumObjects[objectIndex];
 
@@ -241,22 +242,22 @@ namespace Multiplayer.UI.ProfileWindows
                 }
                 else if (FriendButtonState != 4)
                 {
-                    OnFriendActionDecided();
+                    _ = OnFriendActionDecided();
                 }
             }
             else if (button == RefreshButton)
             {
-                Refresh();
+                _ = Refresh();
             }
         }
 
-        internal override void OnShow(BaseWindow window)
+        protected override void OnShow(BaseWindow window)
         {
             base.OnShow(window);
             AvatarBox.SetActive(true);
         }
 
-        internal override void OnCompletion(BaseWindow window)
+        protected override void OnCompletion(BaseWindow window)
         {
             base.OnCompletion(window);
             AvatarBox.SetActive(false);

@@ -20,7 +20,7 @@ namespace Multiplayer.Static
 
                 var data = File.ReadAllText(Path.Combine("UserData", "Multiplayer.cfg"));
                 Config = TomletMain.To<Config>(data);
-                Main.Logger.Success("Successfully loaded the settings!");
+                Main.Logger.Msg("Successfully loaded the settings!");
             }
             catch (Exception ex)
             {
@@ -34,7 +34,7 @@ namespace Multiplayer.Static
             try
             {
                 File.WriteAllText(Path.Combine("UserData", "Multiplayer.cfg"), TomletMain.TomlStringFrom(Config));
-                Main.Logger.Success("Successfully saved the settings!");
+                Main.Logger.Msg("Successfully saved the settings!");
             }
             catch (Exception ex)
             {
@@ -46,16 +46,13 @@ namespace Multiplayer.Static
     public class Config
     {
         [TomlPrecedingComment("Server IP")]
-        internal string ServerIP { get; set; } = "26.74.129.52";
+        internal string ServerIP { get; set; } = "100.117.178.59";
 
         [TomlPrecedingComment("HTTP port of the server")]
         internal int PortHTTP { get; set; } = 9095;
 
         [TomlPrecedingComment("UDP port of the server")]
         internal int PortUdp { get; set; } = 9096;
-
-        [TomlPrecedingComment("Enable this if your internet connection is slow")]
-        internal bool SlowNetworkMode { get; set; } = false;
 
         [TomlPrecedingComment("Allow the invites from friends")]
         internal bool AllowFriendInvites { get; set; } = true;

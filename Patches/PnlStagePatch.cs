@@ -10,6 +10,15 @@ namespace Multiplayer.Patches
     [HarmonyPatch(typeof(PnlStage),nameof(PnlStage.Awake))]
     internal static class PnlStagePatch
     {
+        private static async Task YieldBattleStart()
+        {
+            await Task.Delay(1000);
+            Main.Dispatcher.Enqueue(() => 
+            {
+                UIManager.PnlPreparation.OnBattleStart();
+            });
+        }
+
         private static void Postfix()
         {
             if (LobbyManager.IsInLobby && LobbyManager.LocalLobby.Locked && LobbyManager.LocalLobby.Host == PlayerManager.LocalPlayer)
@@ -18,10 +27,7 @@ namespace Multiplayer.Patches
                 {
                     _ = LobbyManager.LockLobby(false);
                 }
-                else
-                {
-                    UIManager.PnlPreparation.OnBattleStart();
-                }
+                else _ = YieldBattleStart();
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿using Il2CppAssets.Scripts.Database;
-using LocalizeLib;
+﻿using LocalizeLib;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using System.Net.Http.Json;
@@ -16,9 +15,10 @@ namespace Multiplayer.Data.Stats
         public string Bio { get; internal set; }
         public int Level { get; private set; }
 
-        public List<Player> Friends { get; internal set; }
+        public List<Player> Friends { get; private set; }
         public Dictionary<string, string> FriendRequests { get; private set; }
         public Dictionary<DateTime, Achievement> Achievements { get; internal set; }
+        public List<string> Hiddens { get; internal set; }
 
         public ushort ELO { get; private set; }
         public bool Banned { get; private set; }
@@ -36,13 +36,14 @@ namespace Multiplayer.Data.Stats
             Friends = new();
             FriendRequests = new();
             Achievements = new();
+            Hiddens = new();
 
             ELO = 1500;
             Banned = false;
         }
 
         /// <summary>
-        /// Synchronizes <see cref="MultiplayerStats"/> with the server.
+        /// Gets the <see cref="MultiplayerStats"/> from the server.
         /// </summary>
         /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
         internal async Task<bool> Update()
@@ -82,20 +83,14 @@ namespace Multiplayer.Data.Stats
                     Achievements.Add(DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).DateTime, AchievementManager.Achievements[id]);
                 }
             }
-            catch (Exception e)
-            {
-                //Main.Logger.Warning(e.ToString());
-            }
+            catch {}
 
             FriendRequests.Clear();
             try
             {
                 FriendRequests = JsonSerializer.Deserialize<Dictionary<string, string>>(updatedData["FriendRequests"].GetRawText());
             }
-            catch (Exception e)
-            {
-                //Main.Logger.Warning(e.ToString());
-            }
+            catch {}
 
             ELO = updatedData["ELO"].GetUInt16();
             Banned = updatedData["Banned"].GetBoolean();

@@ -33,13 +33,13 @@ namespace Multiplayer.UI.ProfileWindows
             }
         }
 
-        internal override void OnButtonClick(IListWindow window, int objectIndex)
+        protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
 
             if (ButtonsFriends.TryGetValue(Window.ForumObjects[objectIndex], out Player player))
             {
-                OpenProfileWindow(player);
+                _ = UIManager.OpenProfileWindow(player);
             }
         }
     }

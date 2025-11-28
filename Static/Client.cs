@@ -10,6 +10,7 @@ using System.Text.Json;
 using LocalizeLib;
 using System.Net.Sockets;
 using Il2CppSirenix.Serialization.Utilities;
+using System.Diagnostics;
 
 namespace Multiplayer.Static
 {
@@ -17,7 +18,10 @@ namespace Multiplayer.Static
     {
         internal static bool Connected { get; private set; } = false;
         internal static bool TriedConnecting { get; private set; } = false;
-        internal static TimeSpan Ping { get; private set; }
+
+        private static Stopwatch Stopwatch = new Stopwatch();
+        internal static int PingMS { get; private set; }
+
         internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
         internal static string ServerVersion { get; private set; }
         private static LocalString OutdatedWarning;
@@ -47,16 +51,18 @@ namespace Multiplayer.Static
         /// </summary>
         /// <param name="data">Datagram to send.</param>
         /// <returns></returns>
-        internal static async Task<byte[]> UdpSendAsync(byte[] data, CancellationToken cancellationToken)
+        internal static async Task<byte[]> UdpSendAsync(byte[] data)
         {
             try
             {
-                var startTime = DateTime.Now;
+                Stopwatch.Start();
 
                 await Udp.SendAsync(data, data.Length, Settings.Config.ServerIP, Settings.Config.PortUdp);
                 var result = await Udp.ReceiveAsync();
 
-                Ping = DateTime.Now - startTime;
+                Stopwatch.Stop();
+                PingMS = (int)Stopwatch.ElapsedMilliseconds;
+
                 return result.Buffer;
             }
             catch (Exception ex)
@@ -165,7 +171,7 @@ namespace Multiplayer.Static
                 Token = content["Token"].GetString();
                 Connected = true;
                 response.Dispose();
-                Main.Logger.Success("Connected to the server successfully!");
+                Main.Logger.Msg("Connected to the server successfully!");
             }
             else
             {

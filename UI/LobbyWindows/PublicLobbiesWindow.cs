@@ -95,7 +95,7 @@ namespace Multiplayer.UI.LobbyWindows
             });
         }
 
-        internal override void OnButtonClick(IListWindow window, int objectIndex)
+        protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
 
@@ -107,7 +107,7 @@ namespace Multiplayer.UI.LobbyWindows
             }
             else if (ButtonsLobbies.TryGetValue(button, out Lobby lobby))
             {
-                OpenLobbyWindow(lobby);
+                _ = UIManager.OpenLobbyWindow(lobby);
             }
         }
     }

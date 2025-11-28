@@ -25,6 +25,20 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
+        /// Gets the MD5 hash of a custom chart by its UID.
+        /// </summary>
+        internal static string GetMD5(string uid)
+        {
+            if (!uid.StartsWith(AlbumManager.Uid.ToString())) return null;
+
+            Album album = AlbumManager.GetByUid(uid);
+            if (album == null) return null;
+            if (!album.Sheets.TryGetValue(2, out Sheet sheet)) return null;
+
+            return sheet.Md5;
+        }
+
+        /// <summary>
         /// Gets the playlist entry key from a <see cref="MusicInfo"/>.
         /// </summary>
         internal static string GetEntryKey(MusicInfo musicInfo)
@@ -32,6 +46,16 @@ namespace Multiplayer.Managers
             string md5 = GetMD5(musicInfo);
             if (md5 != null) return md5;
             return musicInfo.uid;
+        }
+
+        /// <summary>
+        /// Gets the playlist entry key by the UID.
+        /// </summary>
+        internal static string GetEntryKey(string uid)
+        {
+            string md5 = GetMD5(uid);
+            if (md5 != null) return md5;
+            return uid;
         }
 
         internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);

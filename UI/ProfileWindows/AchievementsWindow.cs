@@ -15,11 +15,6 @@ namespace Multiplayer.UI.ProfileWindows
             Window.OnInternalShow += OnShow;
         }
 
-        internal override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
-        {
-            base.OnShow(window);
-        }
-
         /// <summary>
         /// Updates the window to show the achievements of a <see cref="Player"/>.
         /// </summary>
@@ -37,7 +32,7 @@ namespace Multiplayer.UI.ProfileWindows
             }
         }
 
-        internal override void OnButtonClick(IListWindow window, int objectIndex)
+        protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             if (Window.ForumObjects[objectIndex] == ReturnButton) base.OnButtonClick(window, objectIndex);
         }

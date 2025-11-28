@@ -5,7 +5,7 @@ using LocalizeLib;
 namespace Multiplayer.Patches
 {
     /// <summary>
-    /// Doesn't let the "Code not found" popup to appear.
+    /// Doesn't let the "Code doesn't exist" popup to appear.
     /// </summary>
     [HarmonyPatch(typeof(ShowText), nameof(ShowText.ShowInfo))]
     [HarmonyPriority(Priority.First)]

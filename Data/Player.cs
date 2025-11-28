@@ -5,7 +5,7 @@ namespace Multiplayer.Data
     public class Player
     {
         public string Uid { get; private set; }
-        
+
         public MultiplayerStats MultiplayerStats { get; private set; }
         public BattleStats BattleStats { get; private set; }
         public HQStats HQStats { get; private set; }
@@ -15,6 +15,7 @@ namespace Multiplayer.Data
         public ushort TotalAPs { get { return (ushort)(HQStats.APs + MoeStats.APs); } }
         public float TotalAverageAccuracy { get { return (HQStats.AverageAccuracy + MoeStats.AverageAccuracy) / 2; } }
 
+        internal DateTime LastUpdated { get; private set; }
         internal Player(string uid)
         {
             Uid = uid;
@@ -31,6 +32,7 @@ namespace Multiplayer.Data
         /// <returns><see langword="true"/> if all updates were successful, otherwise <see langword="false"/>.</returns>
         internal async Task<bool> Update(bool fullUpdate = false)
         {
+            LastUpdated = DateTime.Now;
             if (fullUpdate)
             {
                 return await MultiplayerStats.Update() && await MoeStats.Update() && await HQStats.Update();

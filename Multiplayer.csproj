@@ -18,6 +18,7 @@
     <None Remove="Assets\UI\Awaiting.png" />
     <None Remove="Assets\UI\Friends.png" />
     <None Remove="Assets\UI\Lobbies.png" />
+    <None Remove="Assets\UI\Lobby.png" />
     <None Remove="Assets\UI\MainMenu.png" />
     <None Remove="Assets\UI\Profile.png" />
     <None Remove="Localization\English.json" />
@@ -28,6 +29,7 @@
     <EmbeddedResource Include="Assets\UI\Awaiting.png" />
     <EmbeddedResource Include="Assets\UI\Friends.png" />
     <EmbeddedResource Include="Assets\UI\Lobbies.png" />
+    <EmbeddedResource Include="Assets\UI\Lobby.png" />
     <EmbeddedResource Include="Assets\UI\MainMenu.png" />
     <EmbeddedResource Include="Assets\UI\Profile.png" />
     <EmbeddedResource Include="Localization\English.json" />

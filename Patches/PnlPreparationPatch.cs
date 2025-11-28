@@ -2,6 +2,7 @@
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.PeroTools.Commons;
 using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -14,6 +15,8 @@ namespace Multiplayer.Patches
 {
     internal static class PnlPreparationPatch
     {
+        private static SpecialSongManager SpecialSongManager => Singleton<SpecialSongManager>.instance;
+
         /// <summary>
         /// Replaces the functionality of the vanilla PnlPreparation button.
         /// </summary>
@@ -95,7 +98,13 @@ namespace Multiplayer.Patches
                 if (!startCondition) return startCondition;
 
                 var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
+
                 UIManager.JumpToChart(entry.MusicInfo.uid);
+                //TODO: Get back to diff 3 the hidden was unlocked for some reason
+                if (entry.Difficulty == 4 && !SpecialSongManager.IsInvokeHideBms(entry.MusicInfo.uid))
+                {
+                    SpecialSongManager.InvokeHideBms(entry.MusicInfo, true);
+                }
                 GlobalDataBase.dbMusicTag.selectedDiffTglIndex = entry.Difficulty;
                 GlobalDataBase.dbMusicTag.pnlSelectMusicUid = entry.MusicInfo.uid;
 

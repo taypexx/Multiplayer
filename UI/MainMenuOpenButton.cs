@@ -23,7 +23,7 @@ namespace Multiplayer.UI
         /// </summary>
         internal void Create()
         {
-            if (Button != null) { return; }
+            if (Button != null) return;
 
             var pnlNavigation = GameObject.Find("UI/Standerd/PnlNavigation");
 

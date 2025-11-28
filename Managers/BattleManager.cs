@@ -1,4 +1,5 @@
 ﻿using Il2CppAssets.Scripts.GameCore.HostComponent;
+using Il2CppFormulaBase;
 using Multiplayer.Data;
 using Multiplayer.Data.Stats;
 using Multiplayer.Static;
@@ -9,14 +10,15 @@ namespace Multiplayer.Managers
 {
     internal static class BattleManager
     {
-        internal static CancellationTokenSource CancellationTokenSource { get; private set; }
-        private static TimeSpan SyncInterval = Settings.Config.SlowNetworkMode ? TimeSpan.FromSeconds(1) : TimeSpan.FromMilliseconds(300);
+        internal static bool Synchronizing { get; private set; } = false;
 
-        private static BattleStats BattleStats => PlayerManager.LocalPlayer?.BattleStats;
-        private static TaskStageTarget TaskStageTarget;
-        private static BattleRoleAttributeComponent BattleRoleAttributeComponent;
         private static byte[] Datagram;
         private static byte[] ReceivedDatagram;
+
+        internal static BattleStats BattleStats => PlayerManager.LocalPlayer?.BattleStats;
+        private static TaskStageTarget TaskStageTarget;
+        private static BattleRoleAttributeComponent BattleRoleAttributeComponent;
+        private static StageBattleComponent StageBattleComponent;
 
         /// <summary>
         /// Sends datagrams to the server and recieves stats of other players.
@@ -38,7 +40,7 @@ namespace Multiplayer.Managers
             Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(19, 32));
             Encoding.UTF8.GetBytes(Client.Token, span.Slice(51, 40));
 
-            return await Client.UdpSendAsync(Datagram, CancellationTokenSource.Token);
+            return await Client.UdpSendAsync(Datagram);
         }
 
         /// <summary>
@@ -70,7 +72,6 @@ namespace Multiplayer.Managers
         private static void UpdateOthersBattleStats()
         {
             if (ReceivedDatagram is null) return;
-            // Decode the RecievedDatagram, loop through local lobby and update each player's battlestats with the provided by the datagram
 
             Span<byte> span = ReceivedDatagram;
 
@@ -101,25 +102,24 @@ namespace Multiplayer.Managers
         /// <returns></returns>
         private static async Task StartSyncLoop()
         {
-            while (Client.Connected)
+            Synchronizing = true;
+            while (Synchronizing && Client.Connected)
             {
-                try
+                Main.Dispatcher.Enqueue(() =>
                 {
-                    Main.Dispatcher.Enqueue(() =>
-                    {
-                        UpdateLocalBattleStats();
-                        UpdateOthersBattleStats();
-                    });
+                    UpdateLocalBattleStats();
+                    UpdateOthersBattleStats();
+                });
 
-                    ReceivedDatagram = await ServerSync();
-                    await Task.Delay(SyncInterval, CancellationTokenSource.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    CancellationTokenSource.Dispose();
-                    CancellationTokenSource = null;
-                    return;
-                }
+                ReceivedDatagram = await ServerSync();
+                await Task.Delay(Constants.BattleSyncInterval);
+            }
+
+            foreach (string playerUid in LobbyManager.LocalLobby.Players)
+            {
+                Player player = PlayerManager.GetCachedPlayer(playerUid);
+                if (player == null) continue;
+                player.BattleStats.Reset();
             }
         }
 
@@ -128,12 +128,12 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void BattleSyncStart()
         {
-            if (CancellationTokenSource is not null || !LobbyManager.IsInLobby || PlayerManager.LocalPlayer is null) return;
+            if (Synchronizing || !LobbyManager.IsInLobby || PlayerManager.LocalPlayer is null) return;
 
             TaskStageTarget = TaskStageTarget.instance;
             BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;
+            StageBattleComponent = StageBattleComponent.instance;
 
-            CancellationTokenSource = new();
             _ = StartSyncLoop();
             Main.Logger.Msg("Battle synchronization started!");
         }
@@ -143,7 +143,7 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void BattleSyncStop()
         {
-            CancellationTokenSource?.Cancel();
+            Synchronizing = false;
             Main.Logger.Msg("Battle synchronization ended!");
         }
 

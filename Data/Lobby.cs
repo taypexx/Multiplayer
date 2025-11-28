@@ -1,5 +1,4 @@
-﻿using Harmony;
-using Il2CppAssets.Scripts.Database;
+﻿using Il2CppAssets.Scripts.Database;
 using LocalizeLib;
 using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
@@ -29,6 +28,7 @@ namespace Multiplayer.Data
         public List<PlaylistEntry> Playlist { get; private set; }
         public PlaylistEntry CurrentPlaylistEntry => Playlist?.First();
 
+        internal DateTime LastUpdated { get; private set; }
         internal Lobby(int id)
         {
             Id = id;
@@ -118,7 +118,7 @@ namespace Multiplayer.Data
             try {
                 Players = JsonSerializer.Deserialize<List<string>>(updatedData["Players"].GetRawText());
             }
-            finally {}
+            catch {}
 
             foreach (string playerUid in Players)
             {
@@ -134,7 +134,7 @@ namespace Multiplayer.Data
                 try {
                     EveryoneReady = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"].GetRawText()).Count == Players.Count;
                 }
-                finally { }
+                catch {}
 
                 try {
                     var playlist = JsonSerializer.Deserialize<List<string>>(updatedData["Playlist"].GetRawText());
@@ -156,15 +156,17 @@ namespace Multiplayer.Data
                     // Remove the entries that were removed by other players
                     foreach (var playlistEntry in Playlist)
                     {
-                        if (!playlist.Contains(playlistEntry.Entry))
-                        {
-                            Playlist.Remove(playlistEntry);
-                        }
+                        if (playlist.Contains(playlistEntry.Entry)) continue;
+
+                        Playlist.Remove(playlistEntry);
                     }
+
+                    Main.Dispatcher.Enqueue(() => UIManager.LobbyPlaylistWindow.Update(this));
                 }
-                finally { }
+                catch {}
             }
 
+            LastUpdated = DateTime.Now;
             return true;
         }
     }

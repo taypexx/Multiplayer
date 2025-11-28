@@ -34,23 +34,15 @@ namespace Multiplayer.UI.LobbyWindows
         private LobbyChartSelection ChartSelectionField => UIManager.LobbyChartSelectionWindow.Value;
 
         private LocalString MainDescription;
-        private LocalString SetMsg = Localization.Get("LobbyCreation", "Set");
-        private string InvalidNameMsg = string.Format(Localization.Get("LobbyCreation", "LobbyNameInvalid").ToString(), NameCharactersMin, NameCharactersMax);
-        private string InvalidMaxPlayersMsg = string.Format(Localization.Get("LobbyCreation", "MaxPlayersInvalid").ToString(), PlayersMin, PlayersMax);
-        private string InvalidPasswordMsg = string.Format(Localization.Get("LobbyCreation", "PasswordInvalid").ToString(), PasswordCharactersMin, PasswordCharactersMax);
+        private string InvalidNameMsg = string.Format(Localization.Get("LobbyCreation", "LobbyNameInvalid").ToString(), Constants.NameCharactersMin, Constants.NameCharactersMax);
+        private string InvalidMaxPlayersMsg = string.Format(Localization.Get("LobbyCreation", "MaxPlayersInvalid").ToString(), Constants.PlayersMin, Constants.PlayersMax);
+        private string InvalidPasswordMsg = string.Format(Localization.Get("LobbyCreation", "PasswordInvalid").ToString(), Constants.PasswordCharactersMin, Constants.PasswordCharactersMax);
 
-        internal const int PlayersMin = 2;
-        internal const int PlayersMax = 10;
-        internal const int NameCharactersMin = 3;
-        internal const int NameCharactersMax = 16;
-        internal const int PasswordCharactersMin = 4;
-        internal const int PasswordCharactersMax = 16;
-
-        internal LobbyCreationWindow() : base(Localization.Get("LobbyCreation", "Title"), UIManager.LobbiesWindow, "Lobbies.png")
+        internal LobbyCreationWindow() : base(Localization.Get("LobbyCreation", "Title"), UIManager.LobbiesWindow, "Lobby.png")
         {
             CreatePrompt = new(Localization.Get("LobbyCreation", "CreateConfirm"), Localization.Get("LobbyCreation", "Create"));
             CreatePrompt.AutoReset = true;
-            CreatePrompt.OnCompletion += OnCreate;
+            CreatePrompt.OnCompletion += (window) => _ = OnCreate(window);
 
             NamePrompt = new();
             NamePrompt.AutoReset = true;
@@ -79,7 +71,7 @@ namespace Multiplayer.UI.LobbyWindows
             UpdateDescription();
         }
 
-        private async void OnCreate(BaseWindow window)
+        private async Task OnCreate(BaseWindow window)
         {
             if (CreatePrompt.Result != true) 
             {
@@ -95,17 +87,16 @@ namespace Multiplayer.UI.LobbyWindows
             {
                 UIManager.Debounce = false;
 
-                if (success) OpenLobbyWindow(LobbyManager.LocalLobby);
+                if (success) _ = UIManager.OpenLobbyWindow(LobbyManager.LocalLobby);
                 else UIManager.LobbiesWindow.Window.Show();
             });
         }
 
         private void OnNameFieldChanged(BaseWindow window)
         {
-            if (Utilities.IsValidString(NamePrompt.Result, NameCharactersMin, NameCharactersMax))
+            if (Utilities.IsValidString(NamePrompt.Result, Constants.NameCharactersMin, Constants.NameCharactersMax))
             {
                 NameField = NamePrompt.Result;
-                PopupUtils.ShowInfo(SetMsg);
             } 
             else if (!NamePrompt.Result.IsNullOrWhitespace())
             {
@@ -118,11 +109,10 @@ namespace Multiplayer.UI.LobbyWindows
 
         private void OnMaxPlayersFieldChanged(BaseWindow window)
         {
-            int? maxPlayers = Utilities.GetValidNumber(MaxPlayersPrompt.Result, PlayersMin, PlayersMax);
+            int? maxPlayers = Utilities.GetValidNumber(MaxPlayersPrompt.Result, Constants.PlayersMin, Constants.PlayersMax);
             if (maxPlayers != null)
             {
                 MaxPlayersField = (int)maxPlayers;
-                PopupUtils.ShowInfo(SetMsg);
             }
             else if (!MaxPlayersPrompt.Result.IsNullOrWhitespace())
             {
@@ -135,10 +125,9 @@ namespace Multiplayer.UI.LobbyWindows
 
         private void OnPasswordFieldChanged(BaseWindow window)
         {
-            if (Utilities.IsValidString(PasswordPrompt.Result, PasswordCharactersMin, PasswordCharactersMax))
+            if (Utilities.IsValidString(PasswordPrompt.Result, Constants.PasswordCharactersMin, Constants.PasswordCharactersMax))
             {
                 PasswordField = PasswordPrompt.Result;
-                PopupUtils.ShowInfo(SetMsg);
             } else
             {
                 PasswordField = null;

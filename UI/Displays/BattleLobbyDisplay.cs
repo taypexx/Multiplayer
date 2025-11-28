@@ -14,9 +14,9 @@ namespace Multiplayer.UI.Displays
         internal BattleLobbyDisplay()
         {
             ParentPath = "Forward";
-            AnchorPosition = new(625f, -425f, 0f);
+            AnchorPosition = new(-625f, -425f, 0f);
             Step = new(0f, 35f, 0f);
-            TextAnchor = TextAnchor.LowerRight;
+            TextAnchor = TextAnchor.LowerLeft;
             DoesSort = true;
         }
 

@@ -1,20 +1,21 @@
-﻿using Il2CppAssets.Scripts.PeroTools.UI;
-using LocalizeLib;
-using Multiplayer.Static;
-using Multiplayer.UI;
+﻿using Multiplayer.UI;
 using Multiplayer.UI.Displays;
 using Multiplayer.UI.LobbyWindows;
 using Multiplayer.UI.ProfileWindows;
-using PopupLib.UI.Windows;
-using PopupLib.UI.Windows.Abstract;
+using Multiplayer.Static;
 using UnityEngine;
 using UnityEngine.UI;
 using Il2CppAssets.Scripts.Database;
 using Il2Cpp;
-using Il2CppAssets.Scripts.UI.Panels;
-using PopupLib.UI;
-using Il2CppArcadeController.UI.Panel.PnlHome;
 using Il2CppAssets.Scripts.UI;
+using Il2CppAssets.Scripts.UI.Panels;
+using Il2CppAssets.Scripts.PeroTools.UI;
+using Il2CppArcadeController.UI.Panel.PnlHome;
+using PopupLib.UI;
+using PopupLib.UI.Windows;
+using PopupLib.UI.Windows.Abstract;
+using LocalizeLib;
+using Multiplayer.Data;
 
 namespace Multiplayer.Managers
 {
@@ -91,6 +92,58 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
+        /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/> of the given <paramref name="uid"/>.
+        /// </summary>
+        /// <param name="uid">Uid of a <see cref="Player"/>.</param>
+        internal static async Task OpenProfileWindow(string uid)
+        {
+            Debounce = true;
+
+            Player player = await PlayerManager.GetPlayer(uid);
+            await ProfileWindow.Update(player);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                Debounce = false;
+                ProfileWindow.Window.Show();
+            });
+        }
+
+        /// <summary>
+        /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/>.
+        /// </summary>
+        /// <param name="player"><see cref="Player"/> whose profile will show.</param>
+        internal static async Task OpenProfileWindow(Player player)
+        {
+            Debounce = true;
+
+            await ProfileWindow.Update(player);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                Debounce = false;
+                ProfileWindow.Window.Show();
+            });
+        }
+
+        /// <summary>
+        /// Opens the <see cref="LobbyWindow"/> and displays information and members of the <see cref="Lobby"/>.
+        /// </summary>
+        /// <param name="lobby"><see cref="Lobby"/> which will be displayed.</param>
+        internal static async Task OpenLobbyWindow(Lobby lobby)
+        {
+            Debounce = true;
+
+            await LobbyWindow.Update(lobby, true);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                Debounce = false;
+                LobbyWindow.Window.Show();
+            });
+        }
+
+        /// <summary>
         /// Locks/unlocks PnlPreparation depending on the local lobby.
         /// </summary>
         internal static void UpdatePnlPreparation()
@@ -150,7 +203,7 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Closes all panels and opens PnlPreparation, then launches the game.
         /// </summary>
-        internal static async Task OpenPnlPreparationAndStart()
+        internal static async Task ShowInfoAndStartGame()
         {
             Debounce = true;
             Main.Dispatcher.Enqueue(() => PopupUtils.ShowInfo(Localization.Get("Lobby", "Starting")));

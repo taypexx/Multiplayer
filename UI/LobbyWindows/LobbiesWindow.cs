@@ -1,5 +1,4 @@
-﻿using Il2CppSirenix.Serialization.Utilities;
-using LocalizeLib;
+﻿using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -26,7 +25,7 @@ namespace Multiplayer.UI.LobbyWindows
         {
             IDPrompt = new(Localization.Get("Lobbies", "IDPrompt"));
             IDPrompt.AutoReset = true;
-            IDPrompt.OnCompletion += OnIDEnter;
+            IDPrompt.OnCompletion += (window) => _ = OnIDEnter(window);
         }
 
         internal void CreateButtons()
@@ -40,7 +39,7 @@ namespace Multiplayer.UI.LobbyWindows
         /// <summary>
         /// Opens <see cref="PublicLobbiesWindow"/> and displays refreshed public lobbies.
         /// </summary>
-        private async void OpenPublicLobbies()
+        private async Task OpenPublicLobbies()
         {
             UIManager.Debounce = true;
 
@@ -53,7 +52,7 @@ namespace Multiplayer.UI.LobbyWindows
             });
         }
 
-        private async void OnIDEnter(BaseWindow window)
+        private async Task OnIDEnter(BaseWindow window)
         {
             int? id = Utilities.GetValidNumber(IDPrompt.Result);
             if (id is null)
@@ -74,24 +73,24 @@ namespace Multiplayer.UI.LobbyWindows
                         PopupUtils.ShowInfo(Localization.Get("Lobbies", "IncorrectID"));
                         Window.Show();
                     }
-                    else OpenLobbyWindow(lobby);
+                    else _ = UIManager.OpenLobbyWindow(lobby);
                 });
             }
         }
 
-        internal override void OnButtonClick(IListWindow window, int objectIndex)
+        protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
             if (LobbyManager.IsInLobby)
             {
-                OpenLobbyWindow(LobbyManager.LocalLobby);
+                _ = UIManager.OpenLobbyWindow(LobbyManager.LocalLobby);
                 return;
             }
 
             ForumObject button = Window.ForumObjects[objectIndex];
             if (button == PublicLobbiesButton)
             {
-                OpenPublicLobbies();
+                _ = OpenPublicLobbies();
             }
             else if (button == PrivateLobbyButton)
             {

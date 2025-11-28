@@ -14,9 +14,28 @@ namespace Multiplayer.Managers
         internal static int LocalPlayerLVL { get; set; }
 
         /// <summary>
-        /// Synchronizes local <see cref="Player"/>'s stats with the server. Should be called when field(s) need(s) to be updated.
+        /// Synchronizes profile stats of the local <see cref="Player"/>.
         /// </summary>
-        internal static void SyncLocalPlayer()
+        internal static void SyncProfile()
+        {
+            if (!Client.Connected) return;
+
+            var payload = new
+            {
+                Uid = LocalPlayerUid,
+                Token = Client.Token,
+                Name = LocalPlayer.MultiplayerStats.Name,
+                AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
+                Bio = LocalPlayer.MultiplayerStats.Bio,
+                Level = LocalPlayer.MultiplayerStats.Level,
+            };
+            _ = Client.PostAsync("updatePlayer", payload);
+        }
+
+        /// <summary>
+        /// Synchronizes achievements of the local <see cref="Player"/> with the server.
+        /// </summary>
+        internal static void SyncAchievements()
         {
             if (!Client.Connected) return;
 
@@ -28,15 +47,32 @@ namespace Multiplayer.Managers
 
             var payload = new
             {
-                Uid = LocalPlayer.Uid,
-                Name = LocalPlayer.MultiplayerStats.Name,
-                AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
-                Bio = LocalPlayer.MultiplayerStats.Bio,
-                Level = LocalPlayer.MultiplayerStats.Level,
-                Achievements = achievementsConverted,
+                Uid = LocalPlayerUid,
                 Token = Client.Token,
+                Achievements = achievementsConverted,
             };
+            _ = Client.PostAsync("updatePlayer", payload);
+        }
 
+        /// <summary>
+        /// Updates the list of hidden charts of the local <see cref="Player"/> and syncs with the server. PLEASE USE DISPATCHER.
+        /// </summary>
+        internal static void SyncHiddens()
+        {
+            if (!Client.Connected) return;
+
+            LocalPlayer.MultiplayerStats.Hiddens.Clear();
+            foreach (string entry in GlobalDataBase.dbMusicTag.Hide)
+            {
+                LocalPlayer.MultiplayerStats.Hiddens.Add(ChartManager.GetEntryKey(entry));
+            }
+
+            var payload = new
+            {
+                Uid = LocalPlayerUid,
+                Token = Client.Token,
+                Hiddens = LocalPlayer.MultiplayerStats.Hiddens,
+            };
             _ = Client.PostAsync("updatePlayer", payload);
         }
 
@@ -54,7 +90,7 @@ namespace Multiplayer.Managers
             
             // If not cached
             player = new(uid);
-            CachePlayer(player);
+            CachedPlayers.Add(player.Uid, player);
             await player.Update(true);
 
             return player;
@@ -72,16 +108,43 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Caches the <see cref="Player"/>.
+        /// Clears the cache of the <see cref="Player"/>.
         /// </summary>
-        /// <param name="player"><see cref="Player"/> to cache.</param>
-        /// <returns><see langword="true"/> if <see cref="Player"/> was successfully cached or <see langword="false"/> if they were cached already.</returns>
-        private static bool CachePlayer(Player player)
+        /// <param name="player"><see cref="Player"/> which cache will be cleared.</param>
+        private static void ClearPlayerFromCache(Player player)
         {
-            if (CachedPlayers.ContainsKey(player.Uid)) return false;
+            if (!CachedPlayers.ContainsKey(player.Uid)) return;
 
-            CachedPlayers.Add(player.Uid, player);
-            return true;
+            CachedPlayers.Remove(player.Uid);
+        }
+
+        private static async Task CacheCleaner()
+        {
+            DateTime current;
+            while (true)
+            {
+                await Task.Delay(Constants.CacheCheckInterval);
+                current = DateTime.Now;
+
+                foreach (Player player in CachedPlayers.Values)
+                {
+                    if (current - player.LastUpdated >= Constants.PlayerCacheExpiration && player != LocalPlayer)
+                    {
+                        // FIX THIS SHIT
+                        //ClearPlayerFromCache(player);
+                    }
+                }
+            }
+        }
+
+        private static async Task InitLocalPlayer()
+        {
+            LocalPlayer = await GetPlayer(LocalPlayerUid);
+            Main.Dispatcher.Enqueue(() =>
+            {
+                SyncHiddens();
+                UIManager.MainMenu.Open();
+            });
         }
 
         internal static void Init()
@@ -89,11 +152,8 @@ namespace Multiplayer.Managers
             CachedPlayers = new();
             LocalPlayerName = DataHelper.nickname;
             LocalPlayerUid = DataHelper.PeroUid;
-            Task.Run(async () => 
-            {
-                LocalPlayer = await GetPlayer(LocalPlayerUid);
-                UIManager.MainMenu.Open();
-            });
+            _ = InitLocalPlayer();
+            _ = CacheCleaner();
         }
     }
 }

@@ -1,17 +1,15 @@
 ﻿using MelonLoader;
 using Multiplayer.Managers;
-using CustomAlbums.Utilities;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Static;
 using Multiplayer.Patches;
-using Multiplayer.UI.Displays;
 
 namespace Multiplayer
 {
     public class Main : MelonMod
     {
         internal static Dispatcher Dispatcher { get; private set; }
-        internal static Logger Logger { get; private set; }
+        internal static MelonLogger.Instance Logger { get; private set; }
         internal static string CurrentScene { get; private set; }
 
         public override void OnEarlyInitializeMelon()
@@ -58,11 +56,6 @@ namespace Multiplayer
             base.OnSceneWasLoaded(buildIndex, sceneName);
             CurrentScene = sceneName;
 
-            if (BattleManager.CancellationTokenSource != null && sceneName != "GameMain")
-            {
-                BattleManager.BattleSyncStop();
-            }
-
             if (sceneName == "UISystem_PC")
             {
                 UIManager.Init();
@@ -70,7 +63,8 @@ namespace Multiplayer
 
                 PlayerManager.LocalPlayerLVL = DataHelper.Level;
                 AchievementManager.Check();
-                PlayerManager.SyncLocalPlayer();
+                PlayerManager.SyncProfile();
+                PlayerManager.SyncHiddens();
             } else if (sceneName == "GameMain")
             {
                 UIManager.InitGameMain();

@@ -69,15 +69,15 @@ namespace Multiplayer.Managers
         internal static bool Achieve(int achievementId, bool instantAnim = false)
         {
             Player localPlayer = PlayerManager.LocalPlayer;
-            if (localPlayer == null) return false;
+            if (localPlayer is null) return false;
 
             Achievement achievement = Achievements[achievementId];
-            if (achievement == null) return false;
+            if (achievement is null) return false;
 
             if (localPlayer.MultiplayerStats.Achievements.ContainsValue(achievement)) return false;
 
             localPlayer.MultiplayerStats.Achievements.Add(DateTime.UtcNow,achievement);
-            PlayerManager.SyncLocalPlayer();
+            PlayerManager.SyncAchievements();
 
             QueuedAchievements.Add(achievement);
             if (instantAnim) PlayAchievementAnimation();
