@@ -4,6 +4,7 @@ using Multiplayer.Managers;
 using Multiplayer.Static;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 namespace Multiplayer.UI.Abstract
 {
@@ -14,7 +15,10 @@ namespace Multiplayer.UI.Abstract
 
         internal Vector3 AnchorPosition;
         internal Vector3 Step;
+        internal Vector3 PopupOffset;
+        internal HorizontalWrapMode HorizontalWrapMode;
         internal TextAnchor TextAnchor;
+        internal int FontSize;
 
         internal Text Title;
         internal Dictionary<object, Text> TextList;
@@ -28,6 +32,28 @@ namespace Multiplayer.UI.Abstract
             TextList = new();
             PositionList = new();
         }
+
+        /// <summary>
+        /// Displays a small popup near the main text.
+        /// </summary>
+        /// <param name="text">Contents of the message.</param>
+        /// <param name="key">Key to which the text belongs.</param>
+        internal void Popup(string text, object key)
+        {
+            if (!TextList.TryGetValue(key, out Text owner)) return;
+
+            GameObject popup = GameObject.Instantiate(owner.gameObject, Parent);
+            popup.name = "EntryPopup";
+            popup.transform.localPosition = owner.transform.localPosition + PopupOffset;
+            popup.transform.DOMoveY(25f, 1.5f, true).SetEase(Ease.InSine);
+
+            Text popupText = popup.GetComponent<Text>();
+            popupText.text = text;
+            DOTween.To(() => popupText.color.a,
+                a => popupText.color = new(popupText.color.r, popupText.color.g, popupText.color.b, a),
+                0f, 1.5f
+            ).SetEase(Ease.InSine).OnComplete(() => GameObject.Destroy(popup));
+       }
 
         /// <summary>
         /// Adds a <see cref="Text"/> to the display, aligning it visually.
@@ -45,11 +71,12 @@ namespace Multiplayer.UI.Abstract
             GameObject newTextObj = Utilities.CreateText(Parent, "LobbyEntry");
             newTextObj.transform.localPosition = AnchorPosition + Step * TextList.Count;
             newTextObj.transform.localScale = Vector3.one;
-            newTextObj.GetComponent<RectTransform>().sizeDelta = new(600,200);
+            newTextObj.GetComponent<RectTransform>().sizeDelta = new(200f,200f);
 
             Text text = newTextObj.GetComponent<Text>();
             text.alignment = TextAnchor;
-            text.fontSize = 26;
+            text.fontSize = FontSize;
+            text.horizontalOverflow = HorizontalWrapMode;
             text.raycastTarget = false;
 
             TextList.Add(key, text);
@@ -102,7 +129,14 @@ namespace Multiplayer.UI.Abstract
                     PositionList.Sort((t1,t2) => 
                     {
                         if (t1 is not Player || t2 is not Player) return 0;
-                        return ((Player)t1).BattleStats.Accuracy.CompareTo(((Player)t2).BattleStats.Accuracy);
+                        var battlestats1 = ((Player)t1).BattleStats;
+                        var battlestats2 = ((Player)t2).BattleStats;
+
+                        if (battlestats1.Accuracy == battlestats2.Accuracy) 
+                        {
+                            return ((battlestats1.Earlies + battlestats1.Lates)*-1).CompareTo(((battlestats2.Earlies + battlestats2.Lates)*-1));
+                        } 
+                        else return battlestats1.Accuracy.CompareTo(battlestats2.Accuracy);
                     });
                     break;
                 case LobbyGoal.Score:
@@ -124,19 +158,6 @@ namespace Multiplayer.UI.Abstract
         }
 
         /// <summary>
-        /// Creates the display for the given <see cref="Data.Lobby"/>.
-        /// </summary>
-        /// <param name="lobby"><see cref="Data.Lobby"/> whose information will be displayed.</param>
-        internal void Create(Lobby lobby, bool addTitle = true)
-        {
-            if (lobby is null || Lobby != null) return;
-            Lobby = lobby;
-
-            if (addTitle) Title = AddText(lobby);
-            Update();
-        }
-
-        /// <summary>
         /// Updates the display to show the <see cref="Data.Lobby"/> information.
         /// </summary>
         internal void Update()
@@ -144,8 +165,8 @@ namespace Multiplayer.UI.Abstract
             if (Lobby is null) { Destroy(); return; }
 
             if (Title) Title.text = $"{Lobby.Name} " +
-             $"<color=#fff700ff>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color> " +
-             $"<color=#{(Lobby.IsPrivate ? "f542adff" : "1eff00ff")}>({(Lobby.IsPrivate ? "Private" : "Public")})</color>";
+             $"<color=#{Constants.Yellow}>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color> " +
+             $"<color=#{(Lobby.IsPrivate ? Constants.Red : Constants.Green)}>({(Lobby.IsPrivate ? "Private" : "Public")})</color>";
 
             foreach (string playerUid in Lobby.Players)
             {
@@ -171,7 +192,7 @@ namespace Multiplayer.UI.Abstract
             if (DoesSort) Sort();
         }
 
-        internal virtual void UpdateTexts()
+        protected virtual void UpdateTexts()
         {
             foreach ((object key, Text text) in TextList)
             {
@@ -180,6 +201,19 @@ namespace Multiplayer.UI.Abstract
 
                 text.text = player == Lobby.Host ? $"<color=#fff700ff>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name;
             }
+        }
+
+        /// <summary>
+        /// Creates the display for the given <see cref="Data.Lobby"/>.
+        /// </summary>
+        /// <param name="lobby"><see cref="Data.Lobby"/> whose information will be displayed.</param>
+        internal void Create(Lobby lobby, bool addTitle = true)
+        {
+            if (lobby is null || Lobby != null) return;
+            Lobby = lobby;
+
+            if (addTitle) Title = AddText(lobby);
+            Update();
         }
 
         /// <summary>

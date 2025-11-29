@@ -10,6 +10,11 @@
     "Touhou": "Touhou",
     "ComingSoon": "Coming soon!"
   },
+  "BattleDisplay": {
+    "LostAP": "Lost AP",
+    "LostFC": "Lost FC",
+    "Missed": "Missed"
+  },
   "PnlPreparation": {
     "PlaylistAdd": "Add to playlist",
     "PlaylistRemove": "Remove from playlist",

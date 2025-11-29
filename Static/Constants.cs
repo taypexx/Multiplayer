@@ -7,7 +7,7 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string Authors = "taypexx & 7OU";
         public const string Version = "1.0.0";
-        public const string Testers = "UntrustedURL, ame, Medeyah, kataclysmx, Crits, IgnisclowVT, MADGUY";
+        public const string Testers = "UntrustedURL, ame, Medeyah, kataclysmx, Crits, IgnisclowVT, MADGUY, Franailin";
 
         public const int PlayersMin = 2;
         public const int PlayersMax = 8;
