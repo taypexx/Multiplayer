@@ -51,8 +51,8 @@
     <Reference Include="DiscordRPC">
       <HintPath>..\DiscordRPC.dll</HintPath>
     </Reference>
-    <Reference Include="DOTween">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Dependencies\Il2CppAssemblyGenerator\Cpp2IL\cpp2il_out\DOTween.dll</HintPath>
+    <Reference Include="Il2CppDOTween">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Il2CppAssemblies\Il2CppDOTween.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppInterop.Runtime">
       <HintPath>$(MD_NET6_DIRECTORY)\MelonLoader\net6\Il2CppInterop.Runtime.dll</HintPath>

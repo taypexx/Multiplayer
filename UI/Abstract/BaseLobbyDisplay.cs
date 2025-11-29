@@ -1,10 +1,10 @@
-﻿using Multiplayer.Data;
+﻿using Il2CppDG.Tweening;
+using Multiplayer.Data;
 using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using UnityEngine;
 using UnityEngine.UI;
-using DG.Tweening;
 
 namespace Multiplayer.UI.Abstract
 {
@@ -16,6 +16,7 @@ namespace Multiplayer.UI.Abstract
         internal Vector3 AnchorPosition;
         internal Vector3 Step;
         internal Vector3 PopupOffset;
+        internal float PopupX;
         internal HorizontalWrapMode HorizontalWrapMode;
         internal TextAnchor TextAnchor;
         internal int FontSize;
@@ -45,14 +46,10 @@ namespace Multiplayer.UI.Abstract
             GameObject popup = GameObject.Instantiate(owner.gameObject, Parent);
             popup.name = "EntryPopup";
             popup.transform.localPosition = owner.transform.localPosition + PopupOffset;
-            popup.transform.DOMoveY(25f, 1.5f, true).SetEase(Ease.InSine);
+            popup.transform.DOMoveX(PopupX, 1.5f).SetRelative().SetEase(Ease.InOutSine).OnComplete((Action)(() => GameObject.Destroy(popup)));
 
             Text popupText = popup.GetComponent<Text>();
             popupText.text = text;
-            DOTween.To(() => popupText.color.a,
-                a => popupText.color = new(popupText.color.r, popupText.color.g, popupText.color.b, a),
-                0f, 1.5f
-            ).SetEase(Ease.InSine).OnComplete(() => GameObject.Destroy(popup));
        }
 
         /// <summary>

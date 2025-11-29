@@ -27,7 +27,8 @@ namespace Multiplayer.Static
         private static LocalString OutdatedWarning;
 
         internal static string Token { get; private set; } = string.Empty;
-        private static readonly string APIEndpoint = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/api/";
+        internal static readonly string APIEndpoint = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/api/";
+        internal static readonly string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
 
         internal static Dictionary<string, float> MoeDifficulties { get; private set; }
 
@@ -36,13 +37,27 @@ namespace Multiplayer.Static
 
         private static UdpClient Udp;
 
-        internal static string ComputeSha256Hash(string rawData)
+        /// <summary>
+        /// Downloads a file from the given path.
+        /// </summary>
+        /// <returns><see cref="FileStream"/> of the downloaded file.</returns>
+        internal static async Task<bool> DownloadAsync(string path, string destinationPath)
         {
-            using (var sha256 = SHA256.Create())
+            try
             {
-                var bytes = Encoding.UTF8.GetBytes(rawData);
-                var hash = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
+                using (Stream contentStream = await Http.GetStreamAsync(path))
+                {
+                    using (FileStream fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write))
+                    {
+                        await contentStream.CopyToAsync(fileStream);
+                    }
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Main.Logger.Error("An unexpected error occurred: " + e.Message);
+                return false;
             }
         }
 
@@ -55,7 +70,7 @@ namespace Multiplayer.Static
         {
             try
             {
-                Stopwatch.Start();
+                Stopwatch.Restart();
 
                 await Udp.SendAsync(data, data.Length, Settings.Config.ServerIP, Settings.Config.PortUdp);
                 var result = await Udp.ReceiveAsync();

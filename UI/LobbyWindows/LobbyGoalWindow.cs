@@ -3,6 +3,7 @@ using Multiplayer.Data.LobbyEnums;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
+using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows.Interfaces;
 
@@ -40,6 +41,13 @@ namespace Multiplayer.UI.LobbyWindows
 
             ForumObject button = Window.ForumObjects[objectIndex];
             if (button == ReturnButton) return;
+            
+            // REMOVE LATER
+            if (button == CustomButton)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Global", "ComingSoon"));
+                Window.Show();
+            }
 
             Value = GoalValues[button];
 

@@ -11,9 +11,9 @@
     "ComingSoon": "Coming soon!"
   },
   "BattleDisplay": {
-    "LostAP": "Lost AP",
-    "LostFC": "Lost FC",
-    "Missed": "Missed"
+    "LostAP": "Lost AP!",
+    "LostFC": "Lost FC!",
+    "Missed": "Missed!"
   },
   "PnlPreparation": {
     "PlaylistAdd": "Add to playlist",

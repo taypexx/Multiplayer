@@ -6,17 +6,11 @@
         public uint Score { get; internal set; }
         public float Accuracy { get; 
             internal set {
-                PrevAP = field == 100f;
                 if (float.IsNaN(value)) { field = 100f; return; }
                 field = (float)Math.Round((decimal)value * 100) / 100f;
             } 
         }
-        public bool FC { get;
-            internal set {
-                PrevFC = field;
-                field = value;
-            }
-        }
+        public bool FC { get; internal set; }
         public bool AP => Accuracy == 100f;
         public bool TrueAP => AP && Earlies == 0 && Lates == 0;
 
@@ -25,16 +19,7 @@
 
         public ushort Earlies { get; internal set; }
         public ushort Lates { get; internal set; }
-        public ushort Misses { get; 
-            internal set {
-                PrevMisses = field;
-                field = value;
-            } 
-        }
-
-        public bool PrevAP { get; private set; }
-        public bool PrevFC { get; private set; }
-        public ushort PrevMisses { get; private set; }
+        public ushort Misses { get; internal set; } 
 
         public Grade Grade
         {
@@ -71,10 +56,8 @@
         public BattleStats(Player player)
         {
             Player = player;
-            PrevAP = AP;
-            PrevFC = FC;
-            PrevMisses = Misses;
             Reset();
+            UpdatePrevious();
         }
 
         /// <summary>
@@ -90,6 +73,17 @@
             Earlies = 0;
             Lates = 0;
             Misses = 0;
+        }
+
+        public bool PrevAP { get; private set; }
+        public bool PrevFC { get; private set; }
+        public ushort PrevMisses { get; private set; }
+
+        internal void UpdatePrevious()
+        {
+            PrevAP = AP;
+            PrevFC = FC;
+            PrevMisses = Misses;
         }
     }
 }

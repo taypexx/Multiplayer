@@ -16,8 +16,8 @@ namespace Multiplayer.Patches
             private static readonly Type DB = typeof(DBMusicTag);
             private static readonly MethodBase[] PatchMethods = {
                 DB.GetMethod(nameof(DBMusicTag.AddHide)),
-                DB.GetMethod(nameof(DBMusicTag.AddHideMusicUid)) ,
-                DB.GetMethod(nameof(DBMusicTag.ClearHideMusicInfoAndReset)),
+                DB.GetMethod(nameof(DBMusicTag.AddHideMusicUid)),
+                //DB.GetMethod(nameof(DBMusicTag.ClearHideMusicInfoAndReset)),
                 DB.GetMethod(nameof(DBMusicTag.RemoveHide))
             };
             private static IEnumerable<MethodBase> TargetMethods() { return PatchMethods; }

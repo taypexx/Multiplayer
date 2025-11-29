@@ -3,12 +3,24 @@ using CustomAlbums.Managers;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
+using Multiplayer.Static;
 
 namespace Multiplayer.Managers
 {
     internal static class ChartManager
     {
         private static Dictionary<string, MusicInfo> CustomCharts;
+        internal static int CurrentDifficulty => GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(GlobalDataBase.dbMusicTag.CurMusicInfo().uid) ? 4 : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
+        
+        internal static async Task ReplaceBlankChart(string sheetMd5)
+        {
+            var response = Client.GetAsync($"{Client.MDMCAPIEndpoint}sheets/{sheetMd5}", true);
+            if (response == null) return;
+
+            // TODO
+        }
+        
+        internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
 
         /// <summary>
         /// Gets the MD5 hash of a custom chart from its <see cref="MusicInfo"/>.
@@ -57,10 +69,6 @@ namespace Multiplayer.Managers
             if (md5 != null) return md5;
             return uid;
         }
-
-        internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
-
-        internal static int CurrentDifficulty => GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(GlobalDataBase.dbMusicTag.CurMusicInfo().uid) ? 4 : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
 
         /// <summary>
         /// Gets the <see cref="MusicInfo"/> by the hash/vanilla uid.

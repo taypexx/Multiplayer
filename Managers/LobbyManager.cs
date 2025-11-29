@@ -14,7 +14,7 @@ namespace Multiplayer.Managers
         { 
             get 
             { 
-                if (CachedLobbies == null) return null;
+                if (CachedLobbies is null) return null;
 
                 field.Clear();
                 foreach (Lobby lobby in CachedLobbies.Values)
@@ -48,11 +48,7 @@ namespace Multiplayer.Managers
                 
                 if (lobby == LocalLobby)
                 {
-                    Main.Dispatcher.Enqueue(() => 
-                    {
-                        UIManager.MainLobbyDisplay.Update();
-                        UIManager.BattleLobbyDisplay.Update();
-                    });
+                    Main.Dispatcher.Enqueue(() => UIManager.MainLobbyDisplay.Update());
                     if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.CurrentScene == "UISystem_PC")
                     {
                         _ = UIManager.ShowInfoAndStartGame();
@@ -77,10 +73,7 @@ namespace Multiplayer.Managers
             var response = await Client.PostAsync("lobbyPlaylistContinue", payload);
             bool success = response != null;
 
-            if (success)
-            {
-                LocalLobby.Playlist.RemoveAt(0);
-            }
+            if (success) LocalLobby.Playlist.RemoveAt(0);
             return success;
         }
 
@@ -190,6 +183,33 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
+        /// Tries to restore the lobby of the player.
+        /// </summary>
+        /// <param name="lobbyId">Id of the lobby current local player is in.</param>
+        internal static async Task<bool> RestoreLobby()
+        {
+            if (!Client.Connected || IsInLobby) return false;
+
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                Token = Client.Token
+            };
+
+            var response = await Client.PostAsync("hasLobby", payload);
+            if (response is null) return false;
+
+            int id = await response.Content.ReadFromJsonAsync<int>();
+            if (id == 0) return false;
+
+            Lobby lobby = await GetLobby(id, true);
+            if (lobby is null) return false;
+
+            AfterJoin(lobby);
+            return true;
+        }
+
+        /// <summary>
         /// Sends a create request to the server
         /// </summary>
         /// <returns><see langword="true"/> if it was created successfully, otherwise <see langword="false"/>.</returns>
@@ -217,15 +237,7 @@ namespace Multiplayer.Managers
                 if (id != 0)
                 {
                     Lobby lobby = await GetLobby(id);
-                    LocalLobby = lobby;
-                    _ = AutoUpdateStart(lobby);
-
-                    Main.Dispatcher.Enqueue(() =>
-                    {
-                        UIManager.MainLobbyDisplay.Create(lobby);
-                        UIManager.UpdatePnlPreparation();
-                        UIManager.MainMenu.UpdateLobbiesButton();
-                    });
+                    AfterJoin(lobby);
                 } 
                 else return false;
             }
@@ -252,18 +264,7 @@ namespace Multiplayer.Managers
             var response = await Client.PostAsync("joinLobby", payload);
             bool success = response != null;
 
-            if (success)
-            {
-                LocalLobby = lobby;
-                _ = AutoUpdateStart(lobby);
-
-                Main.Dispatcher.Enqueue(() => 
-                {
-                    UIManager.MainLobbyDisplay.Create(lobby);
-                    UIManager.UpdatePnlPreparation();
-                    UIManager.MainMenu.UpdateLobbiesButton();
-                });
-            }
+            if (success) AfterJoin(lobby);
             return success;
         }
 
@@ -285,26 +286,47 @@ namespace Multiplayer.Managers
             var response = await Client.PostAsync("leaveLobby", payload);
             bool success = response != null;
 
-            if (success || leaveAnyway)
-            {
-                LocalLobby = null;
-                IsAutoUpdating = false;
-
-                Main.Dispatcher.Enqueue(() => 
-                {
-                    UIManager.MainLobbyDisplay.Destroy();
-                    UIManager.UpdatePnlPreparation();
-                    UIManager.MainMenu.UpdateLobbiesButton();
-                });
-            }
+            if (success || leaveAnyway) AfterLeave();
             return success;
+        }
+
+        /// <summary>
+        /// Assigns LocalLobby to the new <see cref="Lobby"/> and updates everything.
+        /// </summary>
+        private static void AfterJoin(Lobby lobby)
+        {
+            LocalLobby = lobby;
+            _ = AutoUpdateStart(lobby);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                UIManager.MainLobbyDisplay.Create(lobby);
+                UIManager.UpdatePnlPreparation();
+                UIManager.MainMenu.UpdateLobbiesButton();
+            });
+        }
+
+        /// <summary>
+        /// Removes LocalLobby and updates everything.
+        /// </summary>
+        private static void AfterLeave()
+        {
+            LocalLobby = null;
+            IsAutoUpdating = false;
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                UIManager.MainLobbyDisplay.Destroy();
+                UIManager.UpdatePnlPreparation();
+                UIManager.MainMenu.UpdateLobbiesButton();
+            });
         }
 
         /// <summary>
         /// Finds a <see cref="Lobby"/> by their <paramref name="id"/>.
         /// </summary>
         /// <param name="id">ID of a <see cref="Lobby"/>.</param>
-        /// <param name="checkIfExists">Additionally check if the <see cref="Lobby"/> even exists. Will return <see langword="null"/> if it doesn't.</param>
+        /// <param name="checkIfExists">Additionally check if the <see cref="Lobby"/> exists on the server. Will return <see langword="null"/> if it doesn't.</param>
         /// <returns>A <see cref="Lobby"/> that was cached or a new instance.</returns>
         internal static async Task<Lobby> GetLobby(int id, bool checkIfExists = false)
         {
@@ -384,6 +406,7 @@ namespace Multiplayer.Managers
             CachedLobbies = new();
             PublicLobbies = new();
             _ = CacheCleaner();
+            _ = RestoreLobby();
         }
     }
 }

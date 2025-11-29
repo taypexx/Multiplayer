@@ -1,4 +1,5 @@
-﻿using Multiplayer.Data.LobbyEnums;
+﻿using MelonLoader.Utils;
+using Multiplayer.Data.LobbyEnums;
 
 namespace Multiplayer.Static
 {
@@ -7,7 +8,9 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string Authors = "taypexx & 7OU";
         public const string Version = "1.0.0";
-        public const string Testers = "UntrustedURL, ame, Medeyah, kataclysmx, Crits, IgnisclowVT, MADGUY, Franailin";
+        public const string Testers = "???";
+
+        public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
 
         public const int PlayersMin = 2;
         public const int PlayersMax = 8;

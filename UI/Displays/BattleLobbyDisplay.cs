@@ -17,6 +17,7 @@ namespace Multiplayer.UI.Displays
             AnchorPosition = new(-825f, -425f, 0f);
             Step = new(0f, 35f, 0f);
             PopupOffset = new(330f, 0, 0);
+            PopupX = 50f;
             HorizontalWrapMode = HorizontalWrapMode.Overflow;
             TextAnchor = TextAnchor.LowerLeft;
             FontSize = 28;
@@ -74,12 +75,14 @@ namespace Multiplayer.UI.Displays
 
                 text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name)} — {battleInfo}";
 
-                if (battleStats.PrevFC != battleStats.FC)
+                if (battleStats.PrevFC && !battleStats.FC)
                     Popup($"<color=#{Constants.Red}>{Localization.Get("BattleDisplay", "LostFC").ToString()}</color>", key);
-                else if (battleStats.PrevAP != battleStats.AP)
+                else if (battleStats.PrevAP && !battleStats.AP)
                     Popup($"<color=#{Constants.Yellow}>{Localization.Get("BattleDisplay", "LostAP").ToString()}</color>", key);
                 else if (battleStats.Misses > battleStats.PrevMisses)
                     Popup(Localization.Get("BattleDisplay", "Missed").ToString(), key);
+
+                battleStats.UpdatePrevious();
             }
         }
     }

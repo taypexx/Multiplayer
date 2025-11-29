@@ -109,17 +109,12 @@ namespace Multiplayer.Managers
                 {
                     UpdateLocalBattleStats();
                     UpdateOthersBattleStats();
+
+                    UIManager.BattleLobbyDisplay.Update();
                 });
 
                 ReceivedDatagram = await ServerSync();
                 await Task.Delay(Constants.BattleSyncInterval);
-            }
-
-            foreach (string playerUid in LobbyManager.LocalLobby.Players)
-            {
-                Player player = PlayerManager.GetCachedPlayer(playerUid);
-                if (player == null) continue;
-                player.BattleStats.Reset();
             }
         }
 
@@ -144,6 +139,14 @@ namespace Multiplayer.Managers
         internal static void BattleSyncStop()
         {
             Synchronizing = false;
+
+            foreach (string playerUid in LobbyManager.LocalLobby.Players)
+            {
+                Player player = PlayerManager.GetCachedPlayer(playerUid);
+                if (player == null) continue;
+                player.BattleStats.Reset();
+            }
+
             Main.Logger.Msg("Battle synchronization ended!");
         }
 
