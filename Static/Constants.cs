@@ -7,8 +7,12 @@ namespace Multiplayer.Static
     {
         public const string ModName = "Multiplayer";
         public const string Authors = "taypexx & 7OU";
-        public const string Version = "1.0.0";
-        public const string Testers = "???";
+        public const string Version = "0.1.0";
+        public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817";
+
+        internal const string ServerIP = "100.79.177.88";
+        internal const int PortHTTP = 9095;
+        internal const int PortUDP = 9096;
 
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
 

@@ -46,13 +46,13 @@ namespace Multiplayer.Static
     public class Config
     {
         [TomlPrecedingComment("Server IP")]
-        internal string ServerIP { get; set; } = "100.117.178.59";
+        internal string ServerIP { get; set; } = Constants.ServerIP;
 
         [TomlPrecedingComment("HTTP port of the server")]
-        internal int PortHTTP { get; set; } = 9095;
+        internal int PortHTTP { get; set; } = Constants.PortHTTP;
 
         [TomlPrecedingComment("UDP port of the server")]
-        internal int PortUdp { get; set; } = 9096;
+        internal int PortUdp { get; set; } = Constants.PortUDP;
 
         [TomlPrecedingComment("Allow the invites from friends")]
         internal bool AllowFriendInvites { get; set; } = true;

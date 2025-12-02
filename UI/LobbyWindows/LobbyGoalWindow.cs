@@ -47,6 +47,7 @@ namespace Multiplayer.UI.LobbyWindows
             {
                 PopupUtils.ShowInfo(Localization.Get("Global", "ComingSoon"));
                 Window.Show();
+                return;
             }
 
             Value = GoalValues[button];

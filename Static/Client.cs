@@ -100,7 +100,7 @@ namespace Multiplayer.Static
                 HttpResponseMessage response = await Http.GetAsync(isFullPath ? path : APIEndpoint + path);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Main.Logger.Error($"{(int)response.StatusCode}: {response.ReasonPhrase}");
+                    Main.Logger.Error($"{(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
                     //Disconnect();
                     return null;
                 }
@@ -131,7 +131,7 @@ namespace Multiplayer.Static
                 HttpResponseMessage response = await Http.PostAsync(isFullPath ? path : APIEndpoint + path, sendContent);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Main.Logger.Error($"{(int)response.StatusCode}: {response.ReasonPhrase}");
+                    Main.Logger.Error($"{(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
                     //Disconnect();
                     return null;
                 }

@@ -50,7 +50,7 @@ namespace Multiplayer.Data.Stats
         {
             var payload = new
             {
-                SelfUid = PlayerManager.LocalPlayerUid ?? Player.Uid,
+                Uid = PlayerManager.LocalPlayerUid ?? Player.Uid,
                 TargetUid = Player.Uid,
                 Name = PlayerManager.LocalPlayerName,
                 Token = Client.Token
