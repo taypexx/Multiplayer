@@ -25,6 +25,8 @@ namespace Multiplayer.Data.Lobbies
         public List<string> Players { get; private set; }
         public ushort MaxPlayers { get; private set; }
 
+        public ushort PlaylistSize { get; private set; }
+        public bool IsPlaylistFull => Playlist.Count >= PlaylistSize;
         public List<PlaylistEntry> Playlist { get; private set; }
         public PlaylistEntry CurrentPlaylistEntry => Playlist?.First();
 
@@ -46,6 +48,7 @@ namespace Multiplayer.Data.Lobbies
             Players = new();
             MaxPlayers = 2;
 
+            PlaylistSize = 5;
             Playlist = new();
         }
 
@@ -170,6 +173,7 @@ namespace Multiplayer.Data.Lobbies
                 catch { }
             }
 
+            PlaylistSize = updatedData["PlaylistSize"].GetUInt16();
             LastUpdated = DateTime.Now;
             return true;
         }

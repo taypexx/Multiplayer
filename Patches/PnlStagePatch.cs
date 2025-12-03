@@ -29,6 +29,8 @@ namespace Multiplayer.Patches
                 }
                 else _ = YieldBattleStart();
             }
+
+            AchievementManager.PlayAchievementAnimation();
         }
     }
 }

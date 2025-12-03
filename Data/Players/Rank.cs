@@ -12,7 +12,7 @@ namespace Multiplayer.Data.Players
             "I","II","III"
         };
 
-        public static List<Rank> RanksList = new()
+        public static readonly List<Rank> RanksList = new()
         {
             new(3000, Localization.Get("Ranks","1"), 0),
             new(2500, Localization.Get("Ranks","2")),

@@ -81,7 +81,7 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static async Task<bool> PlaylistAdd(MusicInfo musicInfo, int difficulty)
         {
-            if (!Client.Connected || !IsInLobby) return false;
+            if (!Client.Connected || !IsInLobby || LocalLobby.IsPlaylistFull) return false;
 
             string entry = ChartManager.GetEntry(musicInfo, difficulty);
             var payload = new
@@ -212,7 +212,7 @@ namespace Multiplayer.Managers
         /// Sends a create request to the server
         /// </summary>
         /// <returns><see langword="true"/> if it was created successfully, otherwise <see langword="false"/>.</returns>
-        internal static async Task<bool> CreateLobby(int maxPlayers, LobbyGoal goal, LobbyPlayType playType, LobbyChartSelection chartSelection, string name, string password = null)
+        internal static async Task<bool> CreateLobby(int maxPlayers, LobbyGoal goal, LobbyPlayType playType, LobbyChartSelection chartSelection, string name, int playlistSize, string password = null)
         {
             if (!Client.Connected || IsInLobby) return false;
 
@@ -224,6 +224,7 @@ namespace Multiplayer.Managers
                 Goal = (byte)goal,
                 PlayType = (byte)playType,
                 ChartSelection = (byte)chartSelection,
+                PlaylistSize = playlistSize,
                 Name = name,
                 Password = password
             };

@@ -37,7 +37,8 @@
     "PlaylistRemoved": "Removed from the playlist!",
     "VanillaOnly": "Only vanilla charts are allowed!",
     "CustomOnly": "Only custom charts are allowed!",
-    "Waiting": "Waiting for host..."
+    "Waiting": "Waiting for host...",
+    "PlaylistFull": "Playlist is full"
   },
   "Warning": {
     "Title": "Warning",
@@ -103,7 +104,7 @@
   },
   "LobbyCreation": {
     "Title": "Create a lobby",
-    "Description": "<color=f5428aff>{0}</color>\n\n[ Max Players ]: <color={1}>{2}</color>\n[ Password ]: <color={3}>{4}</color>\n[ Goal ]: <color={5}>{6}</color>\n[ Charts ]: <color={7}>{8}</color>\n[ Chart Selection Mode ]: <color={9}>{10}</color>",
+    "Description": "<color=f5428aff>{0}</color>\n\n[ Max Players ]: <color={1}>{2}</color>\n[ Password ]: <color={3}>{4}</color>\n[ Goal ]: <color={5}>{6}</color>\n[ Charts ]: <color={7}>{8}</color>\n[ Chart Selection Mode ]: <color={9}>{10}</color>\n[ Playlist Size ]: <color={11}>{12}</color>",
     "NotSet": "Not set (Public)",
     "LobbyName": "Lobby Name",
     "LobbyNameInvalid": "Lobby name length must be between {0} and {1}!",
@@ -119,7 +120,9 @@
     "PlayType": "Charts",
     "PlayTypeDescription": "Define the range of charts everyone will be playing.",
     "ChartSelection": "Chart Selection",
-    "ChartSelectionDescription": "Define the way charts are going to be queued and played."
+    "ChartSelectionDescription": "Define the way charts are going to be queued and played.",
+    "PlaylistSize": "Playlist Size",
+    "PlaylistSizeInvalid": "Playlist size must be between {0} and {1}!"
   },
   "Lobby": {
     "Title": "Lobby",
@@ -153,7 +156,7 @@
     "PlaylistButton": "— Playlist —",
     "Play": "— Play —",
     "PlaylistTitle": "Playlist",
-    "PlaylistDescription": "To add a chart to the playlist open it and click the corresponding button.\n\nIf anybody has a chart that they hided, no one will be able to add it to the playlist.",
+    "PlaylistDescription": "[ Playlist Size ]: <color={0}>{1}/{2}</color>\n\nTo add a chart to the playlist open it and click the corresponding button.\n\nIf anybody has a chart that they hided, no one will be able to add it to the playlist.",
     "PlaylistEmpty": "Playlist is empty!",
     "Starting": "Starting the game...",
     "HiddensLocked": "Cannot hide/unhide charts in lobby!",

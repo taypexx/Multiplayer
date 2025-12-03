@@ -157,8 +157,11 @@ namespace Multiplayer.Managers
             Text playText = playObject.transform.Find("TxtStart").GetComponent<Text>();
             Button playButton = playObject.GetComponent<Button>();
             InputKeyBinding keyBinding = playObject.GetComponent<InputKeyBinding>();
-            
-            playButton.enabled = !LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist;
+
+            bool isRemoving = LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, ChartManager.CurrentDifficulty));
+            bool isFull = LobbyManager.LocalLobby.IsPlaylistFull;
+
+            playButton.enabled = (!LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist) && (isRemoving || !isFull);
             keyBinding.enabled = playButton.enabled;
             imgObject.SetActive(playButton.enabled);
 
@@ -169,9 +172,9 @@ namespace Multiplayer.Managers
             else if (LobbyManager.CanChangePlaylist)
             {
                 playText.text = Localization.Get("PnlPreparation",
-                    LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, ChartManager.CurrentDifficulty))
+                    isRemoving 
                     ? "PlaylistRemove"
-                    : "PlaylistAdd"
+                    : isFull ? "PlaylistFull" : "PlaylistAdd"
                 ).ToString();
             } 
             else

@@ -45,7 +45,7 @@ namespace Multiplayer.Patches
                 {
                     _ = LobbyManager.PlaylistRemove(musicInfo, difficulty);
                 }
-                else
+                else if (!LobbyManager.LocalLobby.IsPlaylistFull)
                 {
                     _ = LobbyManager.PlaylistAdd(musicInfo, difficulty);
                 }

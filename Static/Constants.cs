@@ -1,5 +1,6 @@
 ﻿using MelonLoader.Utils;
 using Multiplayer.Data.Lobbies;
+using Multiplayer.Data.Players;
 
 namespace Multiplayer.Static
 {
@@ -24,6 +25,8 @@ namespace Multiplayer.Static
         public const int NameCharactersMax = 16;
         public const int PasswordCharactersMin = 4;
         public const int PasswordCharactersMax = 16;
+        public const int PlaylistSizeMin = 2;
+        public const int PlaylistSizeMax = 32;
 
         public static readonly TimeSpan BattleSyncInterval = TimeSpan.FromMilliseconds(300);
         public static readonly TimeSpan AwaitBattleInterval = TimeSpan.FromSeconds(1);
@@ -55,6 +58,14 @@ namespace Multiplayer.Static
             [LobbyChartSelection.HostPlaylist] = Yellow,
             [LobbyChartSelection.Playlist] = Pink,
             [LobbyChartSelection.Random] = Blue,
+        };
+
+        public static Dictionary<AchievementDifficulty, string> AchievmentDifficultyColors = new()
+        {
+            [AchievementDifficulty.Easy] = Green,
+            [AchievementDifficulty.Medium] = Yellow,
+            [AchievementDifficulty.Hard] = Red,
+            [AchievementDifficulty.Secret] = Pink,
         };
     }
 }

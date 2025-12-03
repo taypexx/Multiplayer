@@ -26,8 +26,9 @@ namespace Multiplayer.UI.ProfileWindows
             foreach ((DateTime date, Achievement achievement) in player.MultiplayerStats.Achievements)
             {
                 AddButton(achievement.Name, null, new(
+                    $"<color={Constants.AchievmentDifficultyColors[achievement.Difficulty]}>({achievement.Difficulty.ToString()})</color>\n" +
                     $"{achievement.Description}\n\n" +
-                    $"[ {Localization.Get("Achievements", "AchievedOn")} ]: <color=fff700ff>{date.ToLocalTime()}</color>"
+                    $"[ {Localization.Get("Achievements", "AchievedOn")} ]: <color={Constants.Yellow}>{date.ToLocalTime()}</color>"
                 ));
             }
         }

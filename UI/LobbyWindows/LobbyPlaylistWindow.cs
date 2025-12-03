@@ -10,7 +10,7 @@ namespace Multiplayer.UI.LobbyWindows
 {
     internal sealed class LobbyPlaylistWindow : BaseMultiplayerWindow
     {
-        private LocalString MainDescription => Localization.Get("Lobby", "PlaylistDescription");
+        private LocalString MainDescription = new();
         private Dictionary<ForumObject, PlaylistEntry> ButtonsEntries;
 
         internal LobbyPlaylistWindow() : base(Localization.Get("Lobby", "PlaylistTitle"), UIManager.LobbyWindow, "Lobby.png")
@@ -25,6 +25,15 @@ namespace Multiplayer.UI.LobbyWindows
 
             RemoveAllButtons(true);
             ButtonsEntries.Clear();
+
+            MainDescription = new(String.Format(
+                Localization.Get("Lobby", "PlaylistDescription").ToString(),
+                Constants.Yellow,
+                lobby.Playlist.Count,
+                lobby.PlaylistSize
+            ));
+
+            ReturnButton.Contents = MainDescription;
 
             foreach (PlaylistEntry entry in lobby.Playlist)
             {

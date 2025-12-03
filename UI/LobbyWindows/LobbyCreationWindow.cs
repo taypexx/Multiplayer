@@ -19,16 +19,19 @@ namespace Multiplayer.UI.LobbyWindows
         private ForumObject GoalButton;
         private ForumObject PlayTypeButton;
         private ForumObject ChartSelectionButton;
+        private ForumObject PlaylistSizeButton;
         private ForumObject CreateButton;
 
         private PromptWindow CreatePrompt;
         private InputWindow NamePrompt;
         private InputWindow MaxPlayersPrompt;
         private InputWindow PasswordPrompt;
+        private InputWindow PlaylistSizePrompt;
 
         private string NameField = "Lobby";
         private int MaxPlayersField = 5;
         private string PasswordField;
+        private int PlaylistSizeField = 5;
         private LobbyGoal GoalField => UIManager.LobbyGoalWindow.Value;
         private LobbyPlayType PlayTypeField => UIManager.LobbyPlayTypeWindow.Value;
         private LobbyChartSelection ChartSelectionField => UIManager.LobbyChartSelectionWindow.Value;
@@ -37,6 +40,7 @@ namespace Multiplayer.UI.LobbyWindows
         private string InvalidNameMsg = string.Format(Localization.Get("LobbyCreation", "LobbyNameInvalid").ToString(), Constants.NameCharactersMin, Constants.NameCharactersMax);
         private string InvalidMaxPlayersMsg = string.Format(Localization.Get("LobbyCreation", "MaxPlayersInvalid").ToString(), Constants.PlayersMin, Constants.PlayersMax);
         private string InvalidPasswordMsg = string.Format(Localization.Get("LobbyCreation", "PasswordInvalid").ToString(), Constants.PasswordCharactersMin, Constants.PasswordCharactersMax);
+        private string InvalidPlaylistSize = string.Format(Localization.Get("LobbyCreation", "PlaylistSizeInvalid").ToString(), Constants.PlaylistSizeMin, Constants.PlaylistSizeMax);
 
         internal LobbyCreationWindow() : base(Localization.Get("LobbyCreation", "Title"), UIManager.LobbiesWindow, "Lobby.png")
         {
@@ -55,10 +59,15 @@ namespace Multiplayer.UI.LobbyWindows
             PasswordPrompt = new();
             PasswordPrompt.AutoReset = true;
             PasswordPrompt.OnCompletion += OnPasswordFieldChanged;
+
+            PlaylistSizePrompt = new();
+            PlaylistSizePrompt.AutoReset = true;
+            PlaylistSizePrompt.OnCompletion += OnPlaylistSizeChanged;
         }
 
         internal void CreateButtons()
         {
+            AddReturnButton();
             CreateButton = AddButton(Localization.Get("LobbyCreation", "CreateButton"), CreatePrompt);
             NameButton = AddButton(Localization.Get("LobbyCreation", "LobbyName"), NamePrompt);
             MaxPlayersButton = AddButton(Localization.Get("LobbyCreation", "MaxPlayers"), MaxPlayersPrompt);
@@ -66,7 +75,7 @@ namespace Multiplayer.UI.LobbyWindows
             GoalButton = AddButton(Localization.Get("LobbyCreation", "Goal"), UIManager.LobbyGoalWindow);
             PlayTypeButton = AddButton(Localization.Get("LobbyCreation", "PlayType"), UIManager.LobbyPlayTypeWindow);
             ChartSelectionButton = AddButton(Localization.Get("LobbyCreation", "ChartSelection"), UIManager.LobbyChartSelectionWindow);
-            AddReturnButton();
+            PlaylistSizeButton = AddButton(Localization.Get("LobbyCreation", "PlaylistSize"), PlaylistSizePrompt);
 
             UpdateDescription();
         }
@@ -81,7 +90,7 @@ namespace Multiplayer.UI.LobbyWindows
 
             UIManager.Debounce = true;
 
-            bool success = await LobbyManager.CreateLobby(MaxPlayersField,GoalField,PlayTypeField,ChartSelectionField,NameField,PasswordField);
+            bool success = await LobbyManager.CreateLobby(MaxPlayersField,GoalField,PlayTypeField,ChartSelectionField,NameField,PlaylistSizeField,PasswordField);
 
             Main.Dispatcher.Enqueue(() =>
             {
@@ -138,6 +147,22 @@ namespace Multiplayer.UI.LobbyWindows
             Window.Show();
         }
 
+        private void OnPlaylistSizeChanged(BaseWindow window)
+        {
+            int? playlistSize = Utilities.GetValidNumber(PlaylistSizePrompt.Result, Constants.PlaylistSizeMin, Constants.PlaylistSizeMax);
+            if (playlistSize != null)
+            {
+                PlaylistSizeField = (int)playlistSize;
+            }
+            else if (!PlaylistSizePrompt.Result.IsNullOrWhitespace())
+            {
+                PopupUtils.ShowInfo(InvalidPlaylistSize);
+            }
+
+            UpdateDescription();
+            Window.Show();
+        }
+
         internal void UpdateDescription()
         {
             MainDescription = new(
@@ -149,7 +174,8 @@ namespace Multiplayer.UI.LobbyWindows
                     PasswordField is null ? Localization.Get("LobbyCreation", "NotSet").ToString() : PasswordField,
                     Constants.GoalColors[GoalField], GoalField,
                     Constants.PlayTypeColors[PlayTypeField], PlayTypeField,
-                    Constants.ChartSelectionColors[ChartSelectionField], ChartSelectionField
+                    Constants.ChartSelectionColors[ChartSelectionField], ChartSelectionField,
+                    Constants.Yellow, PlaylistSizeField
                  )
             );
 

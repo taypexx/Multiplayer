@@ -17,7 +17,7 @@ namespace Multiplayer.UI.Abstract
         internal Vector3 Step;
         internal Vector3 PopupOffset;
         internal float PopupX;
-        internal HorizontalWrapMode HorizontalWrapMode;
+ 
         internal TextAnchor TextAnchor;
         internal int FontSize;
 
@@ -73,7 +73,6 @@ namespace Multiplayer.UI.Abstract
             Text text = newTextObj.GetComponent<Text>();
             text.alignment = TextAnchor;
             text.fontSize = FontSize;
-            text.horizontalOverflow = HorizontalWrapMode;
             text.raycastTarget = false;
 
             TextList.Add(key, text);

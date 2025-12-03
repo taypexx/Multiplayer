@@ -8,9 +8,8 @@ namespace Multiplayer.Managers
 {
     internal static class AchievementManager
     {
-        internal static List<Achievement> Achievements { get; private set; }
+        internal static Dictionary<int,Achievement> Achievements { get; private set; }
         private static List<Achievement> QueuedAchievements;
-        private static Color AchievementTitleColor = new(1, 0.792f, 0.373f);
 
         private static PnlMessage PnlMessage => GameObject.Find("CommonManagers/MessagesManager/UI/PnlMessage").GetComponent<PnlMessage>();
         private static Il2CppAssets.Scripts.GameCore.Managers.AchievementManager PeroAchievementManager => Singleton<Il2CppAssets.Scripts.GameCore.Managers.AchievementManager>.instance;
@@ -23,7 +22,6 @@ namespace Multiplayer.Managers
             Player localPlayer = PlayerManager.LocalPlayer;
             if (localPlayer is null) return;
 
-            Achieve(0);
             if (localPlayer.MultiplayerStats.ELO >= Rank.TopRankELO) Achieve(1);
         }
 
@@ -48,13 +46,11 @@ namespace Multiplayer.Managers
         /// </summary>
         private static void PatchAchievements()
         {
-            int i = 0;
-            foreach (Transform cell in PnlMessage.layout.transform)
+            for (int i = 0; i < PnlMessage.layout.transform.childCount; i++)
             {
-                Console.WriteLine(i);
                 Achievement achievement = QueuedAchievements[i];
-                cell.Find("TxtDescription").GetComponent<Text>().text = $"<color=#{ColorUtility.ToHtmlStringRGB(AchievementTitleColor)}>{achievement.Name}</color>    {achievement.Description}";
-                i++;
+                PnlMessage.layout.transform.GetChild(i).Find("TxtDescription").GetComponent<Text>().text = 
+                    $"<color=#ffca5fff>{achievement.Name}</color>    {achievement.Description}";
             }
 
             QueuedAchievements.Clear();
@@ -91,9 +87,11 @@ namespace Multiplayer.Managers
 
             Achievements = new()
             {
-                new("Welcome!"),
-                new("Autoplay.dll")
+                [0] = new("Welcome!", AchievementDifficulty.Easy),
+                [1] = new("Autoplay.dll", AchievementDifficulty.Hard)
             };
+
+            Achieve(0, true);
         }
     }
 }

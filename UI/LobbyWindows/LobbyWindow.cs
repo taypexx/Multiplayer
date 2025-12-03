@@ -138,7 +138,10 @@ namespace Multiplayer.UI.LobbyWindows
                 JoinPrompt.Title = Title;
                 LeavePrompt.Title = Title;
                 DisbandPrompt.Title = Title;
+
                 ActionButton.Contents = MainDescription;
+                PlaylistButton.Contents = MainDescription;
+                PlayButton.Contents = MainDescription;
 
                 ReturnButton.Contents = MainDescription;
                 ReturnWindow = LobbyManager.LocalLobby == Lobby ? UIManager.MainMenu : Lobby.IsPrivate ? UIManager.LobbiesWindow : UIManager.PublicLobbiesWindow;

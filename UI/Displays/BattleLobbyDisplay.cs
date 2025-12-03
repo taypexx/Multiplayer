@@ -18,7 +18,6 @@ namespace Multiplayer.UI.Displays
             Step = new(0f, 35f, 0f);
             PopupOffset = new(330f, 0, 0);
             PopupX = 50f;
-            HorizontalWrapMode = HorizontalWrapMode.Overflow;
             TextAnchor = TextAnchor.LowerLeft;
             FontSize = 28;
             DoesSort = true;
