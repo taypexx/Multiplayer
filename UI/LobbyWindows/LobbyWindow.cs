@@ -1,6 +1,6 @@
 ﻿using LocalizeLib;
-using Multiplayer.Data;
-using Multiplayer.Data.LobbyEnums;
+using Multiplayer.Data.Lobbies;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -72,9 +72,9 @@ namespace Multiplayer.UI.LobbyWindows
         }
 
         /// <summary>
-        /// Updates the <see cref="LobbyWindow"/> to display the information about the given <see cref="Data.Lobby"/>.
+        /// Updates the <see cref="LobbyWindow"/> to display the information about the given <see cref="Data.Lobbies.Lobby"/>.
         /// </summary>
-        /// <param name="lobby"><see cref="Data.Lobby"/> that will now appear in the window.</param>
+        /// <param name="lobby"><see cref="Data.Lobbies.Lobby"/> that will now appear in the window.</param>
         /// <param name="updatePlayers">Whether to update players in the lobby.</param>
         internal async Task Update(Lobby lobby, bool updatePlayers = false)
         {

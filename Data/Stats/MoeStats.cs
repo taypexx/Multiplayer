@@ -1,4 +1,5 @@
-﻿using Multiplayer.Static;
+﻿using Multiplayer.Data.Players;
+using Multiplayer.Static;
 using System.Net.Http.Json;
 using System.Text.Json;
 

@@ -1,7 +1,7 @@
 ﻿using LocalizeLib;
 using Multiplayer.Static;
 
-namespace Multiplayer.Data
+namespace Multiplayer.Data.Players
 {
     public class Achievement
     {
@@ -11,7 +11,7 @@ namespace Multiplayer.Data
         public LocalString Name { get; private set; }
         public LocalString Description { get; private set; }
 
-        public Achievement(string name) 
+        public Achievement(string name)
         {
             Id = IdInc; IdInc++;
             Name = new(name);

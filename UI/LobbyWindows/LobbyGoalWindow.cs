@@ -1,5 +1,5 @@
 ﻿using LocalizeLib;
-using Multiplayer.Data.LobbyEnums;
+using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;

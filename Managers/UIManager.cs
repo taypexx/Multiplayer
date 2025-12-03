@@ -15,7 +15,8 @@ using PopupLib.UI;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using LocalizeLib;
-using Multiplayer.Data;
+using Multiplayer.Data.Lobbies;
+using Multiplayer.Data.Players;
 
 namespace Multiplayer.Managers
 {

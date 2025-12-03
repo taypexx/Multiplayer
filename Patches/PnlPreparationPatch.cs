@@ -3,7 +3,7 @@ using HarmonyLib;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
-using Multiplayer.Data.LobbyEnums;
+using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using PopupLib.UI;

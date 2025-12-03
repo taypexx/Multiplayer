@@ -1,6 +1,5 @@
 ﻿using Il2CppAssets.Scripts.Database;
-using Multiplayer.Data;
-using Multiplayer.Data.LobbyEnums;
+using Multiplayer.Data.Lobbies;
 using Multiplayer.Static;
 using PopupLib.UI;
 using System.Net.Http.Json;

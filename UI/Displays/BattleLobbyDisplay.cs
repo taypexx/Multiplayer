@@ -1,11 +1,11 @@
-﻿using Multiplayer.Data;
-using Multiplayer.Data.Stats;
-using Multiplayer.Data.LobbyEnums;
+﻿using Multiplayer.Data.Stats;
+using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
 using UnityEngine;
 using UnityEngine.UI;
+using Multiplayer.Data.Players;
 
 namespace Multiplayer.UI.Displays
 {

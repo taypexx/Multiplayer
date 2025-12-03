@@ -1,7 +1,7 @@
 ﻿using Il2Cpp;
 using Il2CppAssets.Scripts.UI.Panels;
 using LocalizeLib;
-using Multiplayer.Data;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -92,7 +92,7 @@ namespace Multiplayer.UI.ProfileWindows
         }
 
         /// <summary>
-        /// Refreshes current <see cref="Data.Player"/> and displays updated profile.
+        /// Refreshes current <see cref="Data.Players.Player"/> and displays updated profile.
         /// </summary>
         private async Task Refresh()
         {
@@ -123,10 +123,10 @@ namespace Multiplayer.UI.ProfileWindows
         }
 
         /// <summary>
-        /// Updates the <see cref="ProfileWindow"/> to display the information about the given <see cref="Data.Player"/>.
+        /// Updates the <see cref="ProfileWindow"/> to display the information about the given <see cref="Data.Players.Player"/>.
         /// </summary>
-        /// <param name="player"><see cref="Data.Player"/> whose stats will now appear in the window.</param>
-        /// <param name="updatePlayer">Whether to update the <see cref="Data.Player"/> as well.</param>
+        /// <param name="player"><see cref="Data.Players.Player"/> whose stats will now appear in the window.</param>
+        /// <param name="updatePlayer">Whether to update the <see cref="Data.Players.Player"/> as well.</param>
         internal async Task Update(Player player, bool updatePlayer = true)
         {
             Player = player;

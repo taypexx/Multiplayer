@@ -1,5 +1,5 @@
 ﻿using MelonLoader.Utils;
-using Multiplayer.Data.LobbyEnums;
+using Multiplayer.Data.Lobbies;
 
 namespace Multiplayer.Static
 {
@@ -15,6 +15,8 @@ namespace Multiplayer.Static
         internal const int PortUDP = 9096;
 
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
+
+        public const int BioCharactersMax = 32;
 
         public const int PlayersMin = 2;
         public const int PlayersMax = 8;

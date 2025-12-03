@@ -1,4 +1,5 @@
 ﻿using LocalizeLib;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using System.Net.Http.Json;
@@ -100,22 +101,22 @@ namespace Multiplayer.Data.Stats
 
         private string GetRank(bool includingSubrank = false)
         {
-            for (int i = 0; i < Data.Rank.RanksList.Count; i++)
+            for (int i = 0; i < Players.Rank.RanksList.Count; i++)
             {
-                Rank rank = Data.Rank.RanksList[i];
+                Rank rank = Players.Rank.RanksList[i];
                 if (ELO >= rank.ELO)
                 {
                     if (includingSubrank && rank.SubRanks > 0)
                     {
-                        return $"{rank.Name} {Data.Rank.SubdivisionSuffixes[(int)Math.Floor((decimal)((ELO - rank.ELO) / Data.Rank.SubdivisionGap))]}";
+                        return $"{rank.Name} {Players.Rank.SubdivisionSuffixes[(int)Math.Floor((decimal)((ELO - rank.ELO) / Players.Rank.SubdivisionGap))]}";
                     }
                     else
                     {
-                        return rank.Name;
+                        return rank.Name.ToString();
                     }
                 }
             }
-            return Data.Rank.RanksList.Last().Name;
+            return Players.Rank.RanksList.Last().Name.ToString();
         }
     }
 }

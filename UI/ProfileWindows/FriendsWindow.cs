@@ -1,4 +1,4 @@
-﻿using Multiplayer.Data;
+﻿using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;

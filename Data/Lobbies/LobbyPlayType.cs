@@ -1,4 +1,4 @@
-﻿namespace Multiplayer.Data.LobbyEnums
+﻿namespace Multiplayer.Data.Lobbies
 {
     public enum LobbyPlayType : byte
     {

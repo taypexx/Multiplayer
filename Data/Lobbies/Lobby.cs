@@ -1,12 +1,12 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using LocalizeLib;
-using Multiplayer.Data.LobbyEnums;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace Multiplayer.Data
+namespace Multiplayer.Data.Lobbies
 {
     public class Lobby
     {
@@ -81,13 +81,13 @@ namespace Multiplayer.Data
         {
             var payload = new
             {
-                Token = Client.Token,
-                Uid = PlayerManager.LocalPlayer.Uid,
-                Id = Id
+                Client.Token,
+                PlayerManager.LocalPlayer.Uid,
+                Id
             };
 
             var response = await Client.PostAsync("getLobby", payload);
-            if (response == null) 
+            if (response == null)
             {
                 // Lobby was disbanded
                 if (Host == PlayerManager.LocalPlayer)
@@ -98,7 +98,7 @@ namespace Multiplayer.Data
                 }
                 LobbyManager.ClearLobbyFromCache(this);
 
-                return false; 
+                return false;
             }
 
             var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
@@ -115,10 +115,11 @@ namespace Multiplayer.Data
             Host = await PlayerManager.GetPlayer(updatedData["HostUid"].GetString());
             MaxPlayers = updatedData["MaxPlayers"].GetUInt16();
 
-            try {
+            try
+            {
                 Players = JsonSerializer.Deserialize<List<string>>(updatedData["Players"].GetRawText());
             }
-            catch {}
+            catch { }
 
             foreach (string playerUid in Players)
             {
@@ -126,17 +127,20 @@ namespace Multiplayer.Data
                 if (player is null)
                 {
                     player = await PlayerManager.GetPlayer(playerUid);
-                } else if (updatePlayers) await player.Update();
+                }
+                else if (updatePlayers) await player.Update();
             }
 
             if (this == LobbyManager.LocalLobby)
             {
-                try {
+                try
+                {
                     EveryoneReady = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"].GetRawText()).Count == Players.Count;
                 }
-                catch {}
+                catch { }
 
-                try {
+                try
+                {
                     var playlist = JsonSerializer.Deserialize<List<string>>(updatedData["Playlist"].GetRawText());
 
                     // Add the new entries from other players
@@ -163,7 +167,7 @@ namespace Multiplayer.Data
 
                     Main.Dispatcher.Enqueue(() => UIManager.LobbyPlaylistWindow.Update(this));
                 }
-                catch {}
+                catch { }
             }
 
             LastUpdated = DateTime.Now;

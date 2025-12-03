@@ -1,7 +1,7 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using Multiplayer.Managers;
 
-namespace Multiplayer.Data
+namespace Multiplayer.Data.Lobbies
 {
     public class PlaylistEntry
     {
@@ -16,7 +16,7 @@ namespace Multiplayer.Data
         {
             MusicInfo = musicInfo;
             Difficulty = difficulty;
-            Entry = entry;  
+            Entry = entry;
         }
     }
 }

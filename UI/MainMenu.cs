@@ -126,6 +126,12 @@ namespace Multiplayer.UI
             Window.Show();
             if (BioWindow.Result.IsNullOrWhitespace()) return;
 
+            if (BioWindow.Result.Length > Constants.BioCharactersMax)
+            {
+                PopupUtils.ShowInfo(String.Format(Localization.Get("MainMenu", "BioTooLong").ToString(),Constants.BioCharactersMax));
+                return;
+            }
+
             PlayerManager.LocalPlayer.MultiplayerStats.Bio = BioWindow.Result;
             PlayerManager.SyncProfile();
         }
@@ -147,7 +153,7 @@ namespace Multiplayer.UI
             if (PnlHeadWasOpened)
             {
                 PnlHeadWasOpened = false;
-                Open();
+                Window.Show();
             }
         }
 

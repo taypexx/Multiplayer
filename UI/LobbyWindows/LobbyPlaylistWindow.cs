@@ -1,5 +1,5 @@
 ﻿using LocalizeLib;
-using Multiplayer.Data;
+using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -13,7 +13,7 @@ namespace Multiplayer.UI.LobbyWindows
         private LocalString MainDescription => Localization.Get("Lobby", "PlaylistDescription");
         private Dictionary<ForumObject, PlaylistEntry> ButtonsEntries;
 
-        internal LobbyPlaylistWindow() : base(Localization.Get("Lobby", "PlaylistTitle"), UIManager.LobbyWindow, "Lobbies.png")
+        internal LobbyPlaylistWindow() : base(Localization.Get("Lobby", "PlaylistTitle"), UIManager.LobbyWindow, "Lobby.png")
         {
             AddReturnButton(MainDescription);
             ButtonsEntries = new();

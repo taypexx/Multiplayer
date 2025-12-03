@@ -1,4 +1,6 @@
-﻿namespace Multiplayer.Data.Stats
+﻿using Multiplayer.Data.Players;
+
+namespace Multiplayer.Data.Stats
 {
     public class HQStats
     {

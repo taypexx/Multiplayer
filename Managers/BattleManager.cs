@@ -1,6 +1,6 @@
 ﻿using Il2CppAssets.Scripts.GameCore.HostComponent;
 using Il2CppFormulaBase;
-using Multiplayer.Data;
+using Multiplayer.Data.Players;
 using Multiplayer.Data.Stats;
 using Multiplayer.Static;
 using System.Buffers.Binary;

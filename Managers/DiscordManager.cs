@@ -1,6 +1,7 @@
 ﻿using DiscordRPC;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data;
+using Multiplayer.Data.Lobbies;
 
 namespace Multiplayer.Managers
 {

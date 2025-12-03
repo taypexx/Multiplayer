@@ -1,6 +1,6 @@
 ﻿using Multiplayer.Data.Stats;
 
-namespace Multiplayer.Data
+namespace Multiplayer.Data.Players
 {
     public class Player
     {
@@ -36,7 +36,8 @@ namespace Multiplayer.Data
             if (fullUpdate)
             {
                 return await MultiplayerStats.Update() && await MoeStats.Update() && await HQStats.Update();
-            } else
+            }
+            else
             {
                 return await MultiplayerStats.Update();
             }

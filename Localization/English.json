@@ -10,6 +10,21 @@
     "Touhou": "Touhou",
     "ComingSoon": "Coming soon!"
   },
+  "Ranks": {
+    "1": "Initiate",
+    "2": "Cadet",
+    "3": "Performer",
+    "4": "Groover",
+    "5": "Master",
+    "6": "Legend",
+    "7": "Sleepwalker"
+  },
+  "Achievements": {
+    "Title": "Achievements",
+    "AchievedOn": "Achieved on",
+    "Welcome!": "Launch the multiplayer for the first time.",
+    "Autoplay.dll": "Reach the top rank in the multiplayer."
+  },
   "BattleDisplay": {
     "LostAP": "Lost AP!",
     "LostFC": "Lost FC!",
@@ -47,6 +62,7 @@
     "Avatar": "Set Avatar",
     "Bio": "Set Bio",
     "BioDescription": "Enter your bio",
+    "BioTooLong": "Your bio must not be longer than {0} characters!",
     "FriendRequests": "Friend Requests",
     "Lobbies": "Lobbies",
     "MyLobby": "My Lobby",
@@ -70,12 +86,6 @@
     "RemoveFriendSuccess": "Unfriended!",
     "CancelFriendRequestSuccess": "Cancelled friend request",
     "AddedFriend": "New friend added!"
-  },
-  "Achievements": {
-    "Title": "Achievements",
-    "AchievedOn": "Achieved on",
-    "Welcome!": "Launch the multiplayer for the first time.",
-    "Autoplay.dll": "Reach the top rank in the multiplayer."
   },
   "Lobbies": {
     "Title": "Lobbies",

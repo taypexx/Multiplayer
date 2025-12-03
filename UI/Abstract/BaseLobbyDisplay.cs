@@ -1,6 +1,6 @@
 ﻿using Il2CppDG.Tweening;
-using Multiplayer.Data;
-using Multiplayer.Data.LobbyEnums;
+using Multiplayer.Data.Lobbies;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using UnityEngine;
@@ -155,7 +155,7 @@ namespace Multiplayer.UI.Abstract
         }
 
         /// <summary>
-        /// Updates the display to show the <see cref="Data.Lobby"/> information.
+        /// Updates the display to show the <see cref="Data.Lobbies.Lobby"/> information.
         /// </summary>
         internal void Update()
         {
@@ -201,9 +201,9 @@ namespace Multiplayer.UI.Abstract
         }
 
         /// <summary>
-        /// Creates the display for the given <see cref="Data.Lobby"/>.
+        /// Creates the display for the given <see cref="Data.Lobbies.Lobby"/>.
         /// </summary>
-        /// <param name="lobby"><see cref="Data.Lobby"/> whose information will be displayed.</param>
+        /// <param name="lobby"><see cref="Data.Lobbies.Lobby"/> whose information will be displayed.</param>
         internal void Create(Lobby lobby, bool addTitle = true)
         {
             if (lobby is null || Lobby != null) return;
@@ -214,7 +214,7 @@ namespace Multiplayer.UI.Abstract
         }
 
         /// <summary>
-        /// Destroys the current display of the <see cref="Data.Lobby"/>.
+        /// Destroys the current display of the <see cref="Data.Lobbies.Lobby"/>.
         /// </summary>
         internal void Destroy()
         {
