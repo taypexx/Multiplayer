@@ -1,16 +1,17 @@
-﻿using Il2CppAssets.Scripts.Database;
-using Multiplayer.Managers;
-using Newtonsoft.Json;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Security.Cryptography;
-using System.Net.Http.Json;
+﻿using Multiplayer.Managers;
 using PopupLib.UI;
-using System.Text.Json;
 using LocalizeLib;
+using System.Text;
+using System.Text.Json;
+using System.Net.Http.Json;
 using System.Net.Sockets;
-using Il2CppSirenix.Serialization.Utilities;
+using System.Net.Http.Headers;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using Il2CppAssets.Scripts.Database;
+using Il2CppSirenix.Serialization.Utilities;
+using MelonLoader.Utils;
+using System.Net;
 
 namespace Multiplayer.Static
 {
@@ -26,15 +27,16 @@ namespace Multiplayer.Static
         internal static string ServerVersion { get; private set; }
         private static LocalString OutdatedWarning;
 
-        internal static string Token { get; private set; } = string.Empty;
-        internal static readonly string APIEndpoint = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/api/";
+        internal static string Token { get; private set; }
+        internal static readonly string TokenPath = Path.Combine(MelonEnvironment.GameRootDirectory, "mdmp.token");
+
+        internal static string APIEndpoint { get; private set; }
         internal static readonly string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
 
         internal static Dictionary<string, float> MoeDifficulties { get; private set; }
 
         private static HttpMessageHandler HttpHandler;
         private static HttpClient Http;
-
         private static UdpClient Udp;
 
         /// <summary>
@@ -92,8 +94,9 @@ namespace Multiplayer.Static
         /// </summary>
         /// <param name="path">Path of the request relative to the API endpoint.</param>
         /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
+        /// <param name="getAnyway">Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
         /// <returns><see cref="HttpContent"/> if the request was successful, otherwise <see langword="null"/>.</returns>
-        internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false)
+        internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false, bool getAnyway = false)
         {
             try
             {
@@ -102,7 +105,7 @@ namespace Multiplayer.Static
                 {
                     Main.Logger.Error($"{(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
                     //Disconnect();
-                    return null;
+                    if (!getAnyway) return null;
                 }
                 return response;
             }
@@ -120,8 +123,9 @@ namespace Multiplayer.Static
         /// <param name="path">Path of the request relative to the API endpoint.</param>
         /// <param name="data">Data to be serialized as JSON and sent.</param>
         /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
+        /// <param name="getAnyway">Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
         /// <returns><see langword="true"/> if the request was successful, otherwise <see langword="false"/>.</returns>
-        internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false)
+        internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false, bool getAnyway = false)
         {
             try
             {
@@ -133,7 +137,7 @@ namespace Multiplayer.Static
                 {
                     Main.Logger.Error($"{(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
                     //Disconnect();
-                    return null;
+                    if (!getAnyway) return null;
                 }
                 return response;
             }
@@ -145,7 +149,7 @@ namespace Multiplayer.Static
             }
         }
 
-        internal static async Task Connect()
+        internal static async Task Connect(string code = null)
         {
             if (Connected || TriedConnecting) return;
             PopupUtils.ShowInfo(Localization.Get("MainMenu", "Connecting"));
@@ -162,16 +166,8 @@ namespace Multiplayer.Static
 
             Main.Logger.Msg("Connecting to the server...");
 
-            HttpHandler = new HttpClientHandler();
-            Http = new(HttpHandler);
-
-            Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            Http.DefaultRequestHeaders.ConnectionClose = false;
-
-            Udp = new();
-
-            var response = await PostAsync("connect", new { Uid = uid });
-            if (response != null)
+            var response = await PostAsync("connect", new { Uid = uid, Code = code ?? Token }, false, true);
+            if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
 
@@ -184,12 +180,19 @@ namespace Multiplayer.Static
                 }
 
                 Token = content["Token"].GetString();
+                File.WriteAllText(TokenPath,Token);
+
                 Connected = true;
                 response.Dispose();
                 Main.Logger.Msg("Connected to the server successfully!");
             }
             else
             {
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    TriedConnecting = false;
+                    UIManager.WarnNotification(Localization.Get("Warning", "WrongCode"));
+                }
                 Main.Logger.Error("Failed to connect to the server!");
             }
 
@@ -220,8 +223,6 @@ namespace Multiplayer.Static
             }
             Connected = false;
 
-            Http.Dispose();
-            Udp.Dispose();
             LobbyManager.LocalLobby = null;
 
             if (Outdated)
@@ -240,6 +241,20 @@ namespace Multiplayer.Static
 
             TriedConnecting = false;
             UIManager.MainMenu.Open();
+        }
+
+        internal static void Init()
+        {
+            HttpHandler = new HttpClientHandler();
+            Http = new(HttpHandler);
+            Http.DefaultRequestHeaders.ConnectionClose = false;
+            Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            Udp = new();
+
+            // Run after settings loaded
+            APIEndpoint = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/api/";
+
+            if (File.Exists(TokenPath)) Token = File.ReadAllText(TokenPath);
         }
     }
 }

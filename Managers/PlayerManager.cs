@@ -147,13 +147,13 @@ namespace Multiplayer.Managers
             });
         }
 
-        internal static void Init()
+        internal static async Task Init()
         {
             CachedPlayers = new();
             LocalPlayerName = DataHelper.nickname;
             LocalPlayerUid = DataHelper.PeroUid;
-            _ = InitLocalPlayer();
             _ = CacheCleaner();
+            await InitLocalPlayer();
         }
     }
 }

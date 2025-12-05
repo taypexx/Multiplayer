@@ -149,8 +149,10 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void UpdatePnlPreparation()
         {
+            if (PnlPreparation is null) return;
+
             MusicInfo curMusicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
-            if (curMusicInfo == null) return;
+            if (curMusicInfo is null) return;
 
             GameObject playObject = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
             GameObject imgObject = playObject.transform.Find("TxtStart/ImgBtnA").gameObject;
@@ -209,6 +211,7 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static async Task ShowInfoAndStartGame()
         {
+            if (Debounce) return;
             Debounce = true;
             Main.Dispatcher.Enqueue(() => PopupUtils.ShowInfo(Localization.Get("Lobby", "Starting")));
 

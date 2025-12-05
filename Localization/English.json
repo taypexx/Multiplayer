@@ -42,10 +42,12 @@
   },
   "Warning": {
     "Title": "Warning",
+    "Unknown": "Unknown error occured!",
     "NoAccount": "You are not logged in! Please log in to play multiplayer.",
     "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?",
     "Outdated": "Current mod version ({0}) is outdated. Please update to the latest version ({1}) to play multiplayer!",
-    "Unknown": "Unknown error occured!"
+    "NoInvites": "Invites are not available at the moment. Please contact mod developers and let them know.",
+    "WrongCode": "The code you have entered didn't work."
   },
   "Window": {
     "RefreshButton": "— Refresh —",
@@ -68,7 +70,10 @@
     "Lobbies": "Lobbies",
     "MyLobby": "My Lobby",
     "Competitive": "Competitive",
-    "CreditsTitle": "Credits"
+    "CreditsTitle": "Credits",
+    "LoginRequired": "Login Required",
+    "CodeMessage": "You need to log in via our discord server. Go to the #bot-channel and type \"!login\". Open the discord server?",
+    "CodeEnter": "Enter the code:"
   },
   "ProfileWindow": {
     "Title": "Profile",
@@ -110,7 +115,8 @@
     "LobbyNameInvalid": "Lobby name length must be between {0} and {1}!",
     "MaxPlayers": "Max Players",
     "MaxPlayersInvalid": "Maximum amount of players in lobby must be between {0} and {1}!",
-    "Password": "Password",
+    "SetPassword": "Set Password",
+    "RemovePassword": "Remove Password",
     "PasswordInvalid": "Password length must be between {0} and {1}!",
     "Create": "Create",
     "CreateButton": "— Create —",

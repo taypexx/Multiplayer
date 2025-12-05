@@ -47,7 +47,11 @@ namespace Multiplayer.Managers
                 
                 if (lobby == LocalLobby)
                 {
-                    Main.Dispatcher.Enqueue(() => UIManager.MainLobbyDisplay.Update());
+                    Main.Dispatcher.Enqueue(() => 
+                    {
+                        UIManager.MainLobbyDisplay.Update();
+                        UIManager.UpdatePnlPreparation();
+                    });
                     if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.CurrentScene == "UISystem_PC")
                     {
                         _ = UIManager.ShowInfoAndStartGame();
@@ -185,7 +189,7 @@ namespace Multiplayer.Managers
         /// Tries to restore the lobby of the player.
         /// </summary>
         /// <param name="lobbyId">Id of the lobby current local player is in.</param>
-        internal static async Task<bool> RestoreLobby()
+        private static async Task<bool> RestoreLobby()
         {
             if (!Client.Connected || IsInLobby) return false;
 
@@ -401,12 +405,12 @@ namespace Multiplayer.Managers
             }
         }
 
-        internal static void Init()
+        internal static async Task Init()
         {
             CachedLobbies = new();
             PublicLobbies = new();
             _ = CacheCleaner();
-            _ = RestoreLobby();
+            await RestoreLobby();
         }
     }
 }

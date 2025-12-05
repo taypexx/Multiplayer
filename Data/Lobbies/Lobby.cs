@@ -14,13 +14,15 @@ namespace Multiplayer.Data.Lobbies
         public string Name { get; private set; }
         public LocalString NameLocal { get; private set; }
 
-        public bool IsPrivate { get; private set; }
         public LobbyPlayType PlayType { get; private set; }
         public LobbyChartSelection ChartSelection { get; private set; }
         public LobbyGoal Goal { get; private set; }
 
+        public bool IsPrivate { get; private set; }
         public bool Locked { get; internal set; }
-        public bool EveryoneReady { get; private set; }
+        public List<string> ReadyPlayers { get; private set; }
+        public bool EveryoneReady => ReadyPlayers.Count == Players.Count;
+
         public Player Host { get; private set; }
         public List<string> Players { get; private set; }
         public ushort MaxPlayers { get; private set; }
@@ -43,7 +45,7 @@ namespace Multiplayer.Data.Lobbies
             Goal = LobbyGoal.Accuracy;
 
             Locked = false;
-            EveryoneReady = false;
+            ReadyPlayers = new();
             Host = null;
             Players = new();
             MaxPlayers = 2;
@@ -138,7 +140,7 @@ namespace Multiplayer.Data.Lobbies
             {
                 try
                 {
-                    EveryoneReady = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"].GetRawText()).Count == Players.Count;
+                    ReadyPlayers = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"].GetRawText());
                 }
                 catch { }
 

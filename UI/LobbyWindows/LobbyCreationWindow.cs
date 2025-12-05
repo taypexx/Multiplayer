@@ -8,6 +8,7 @@ using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
+using PopupLib.UI.Windows.Interfaces;
 
 namespace Multiplayer.UI.LobbyWindows
 {
@@ -71,7 +72,7 @@ namespace Multiplayer.UI.LobbyWindows
             CreateButton = AddButton(Localization.Get("LobbyCreation", "CreateButton"), CreatePrompt);
             NameButton = AddButton(Localization.Get("LobbyCreation", "LobbyName"), NamePrompt);
             MaxPlayersButton = AddButton(Localization.Get("LobbyCreation", "MaxPlayers"), MaxPlayersPrompt);
-            PasswordButton = AddButton(Localization.Get("LobbyCreation", "Password"), PasswordPrompt);
+            PasswordButton = AddButton(Localization.Get("LobbyCreation", "SetPassword"), null);
             GoalButton = AddButton(Localization.Get("LobbyCreation", "Goal"), UIManager.LobbyGoalWindow);
             PlayTypeButton = AddButton(Localization.Get("LobbyCreation", "PlayType"), UIManager.LobbyPlayTypeWindow);
             ChartSelectionButton = AddButton(Localization.Get("LobbyCreation", "ChartSelection"), UIManager.LobbyChartSelectionWindow);
@@ -137,6 +138,7 @@ namespace Multiplayer.UI.LobbyWindows
             if (Utilities.IsValidString(PasswordPrompt.Result, Constants.PasswordCharactersMin, Constants.PasswordCharactersMax))
             {
                 PasswordField = PasswordPrompt.Result;
+                PasswordButton.Titles = Localization.Get("LobbyCreation", "RemovePassword");
             } else
             {
                 PasswordField = null;
@@ -182,6 +184,24 @@ namespace Multiplayer.UI.LobbyWindows
             foreach (ForumObject button in ButtonsWindows.Keys)
             {
                 button.Contents = MainDescription;
+            }
+        }
+
+        protected override void OnButtonClick(IListWindow window, int objectIndex)
+        {
+            base.OnButtonClick(window, objectIndex);
+
+            ForumObject button = Window.ForumObjects[objectIndex];
+            if (button == PasswordButton)
+            {
+                if (PasswordField is null) PasswordPrompt.Show();
+                else
+                {
+                    PasswordField = null;
+                    PasswordButton.Titles = Localization.Get("LobbyCreation", "SetPassword");
+                    UpdateDescription();
+                    Window.Show();
+                }
             }
         }
     }

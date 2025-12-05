@@ -147,7 +147,7 @@ namespace Multiplayer.UI.Abstract
 
             Window.ForceClose();
 
-            if (HasReturnButton && button == ReturnButton)
+            if (HasReturnWindow && button == ReturnButton)
             {
                 ReturnWindow.Window.Show();
             }

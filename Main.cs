@@ -37,17 +37,18 @@ namespace Multiplayer
             AssetManager.Init();
             Localization.Init();
             BattleManager.Init();
+            Client.Init();
             //DiscordManager.Init();
         }
 
         /// <summary>
         /// Initializes after connecting to the server.
         /// </summary>
-        internal static void InitConnect()
+        internal static async Task InitConnect()
         {
             AchievementManager.Init();
-            PlayerManager.Init();
-            LobbyManager.Init();
+            await PlayerManager.Init();
+            await LobbyManager.Init();
             ChartManager.Init();
         }
 

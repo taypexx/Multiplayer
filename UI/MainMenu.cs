@@ -2,12 +2,16 @@
 using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppSirenix.Serialization.Utilities;
 using LocalizeLib;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
 using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
+using PopupLib.UI.Windows.Abstract;
+using PopupLib.UI.Windows.Interfaces;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace Multiplayer.UI
@@ -22,6 +26,8 @@ namespace Multiplayer.UI
         private ForumObject CompetitiveButton;
         private ForumObject CreditsButton;
 
+        private PromptWindow CodeMessageWindow;
+        private InputWindow CodeWindow;
         private InputWindow BioWindow;
         private static PnlHead PnlHead => GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>();
         private static bool PnlHeadWasOpened = false;
@@ -31,6 +37,14 @@ namespace Multiplayer.UI
 
         internal MainMenu() : base(Localization.Get("MainMenu", "Title"), null, "MainMenu.png")
         {
+            CodeMessageWindow = new(Localization.Get("MainMenu", "CodeMessage"), Localization.Get("MainMenu", "LoginRequired"));
+            CodeMessageWindow.AutoReset = true;
+            CodeMessageWindow.OnCompletion += (BaseWindow _) => OnCodeMessageCompletion();
+
+            CodeWindow = new(Localization.Get("MainMenu", "CodeEnter"));
+            CodeWindow.AutoReset = true;
+            CodeWindow.OnCompletion += (BaseWindow _) => OnCodeEntered();
+
             BioWindow = new(Localization.Get("MainMenu", "BioDescription"));
             BioWindow.AutoReset = true;
             BioWindow.OnCompletion += OnBioCompletion;
@@ -50,23 +64,6 @@ namespace Multiplayer.UI
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
             CreditsButton = AddButton(Localization.Get("MainMenu", "CreditsTitle"), null, Credits);
             AddReturnButton(MainDescription);
-        }
-
-        /// <summary>
-        /// Tries to connect to the server.
-        /// </summary>
-        private async Task TryConnect()
-        {
-            UIManager.Debounce = true;
-
-            await Client.Connect();
-
-            Main.Dispatcher.Enqueue(() =>
-            {
-                if (Client.Connected) Main.InitConnect();
-
-                UIManager.Debounce = false;
-            });
         }
 
         /// <summary>
@@ -114,14 +111,58 @@ namespace Multiplayer.UI
             } else
             {
                 if (Client.TriedConnecting) Client.Disconnect();
-                else _ = TryConnect();
+
+                else if (Client.Token != null) _ = TryConnect();
+
+                else CodeMessageWindow.Show();
             }
+        }
+
+        private async Task TryConnect(string code = null)
+        {
+            UIManager.Debounce = true;
+
+            await Client.Connect(code);
+
+            Main.Dispatcher.Enqueue(() =>
+            {
+                if (Client.Connected) _ = Main.InitConnect();
+
+                UIManager.Debounce = false;
+            });
+        }
+
+        private async Task OnCodeMessageCompletion()
+        {
+            if (CodeMessageWindow.Result == true)
+            {
+                UIManager.Debounce = true;
+                var response = await Client.GetAsync("getInviteLink");
+                UIManager.Debounce = false;
+
+                if (response != null)
+                {
+                    Process.Start(new ProcessStartInfo(await response.Content.ReadAsStringAsync()) { UseShellExecute = true });
+                } 
+                else
+                {
+                    Main.Dispatcher.Enqueue(() => UIManager.WarnNotification(Localization.Get("Warning", "NoInvites")));
+                    return;
+                }
+            }
+            CodeWindow.Show();
+        }
+
+        private void OnCodeEntered()
+        {
+            if (CodeWindow.Result.IsNullOrWhitespace()) return;
+            _ = TryConnect(CodeWindow.Result.ToString());
         }
 
         /// <summary>
         /// Calls every time the bio window gets closed.
         /// </summary>
-        private void OnBioCompletion(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        private void OnBioCompletion(BaseWindow window)
         {
             Window.Show();
             if (BioWindow.Result.IsNullOrWhitespace()) return;
@@ -157,14 +198,14 @@ namespace Multiplayer.UI
             }
         }
 
-        protected override void OnShow(PopupLib.UI.Windows.Abstract.BaseWindow window)
+        protected override void OnShow(BaseWindow window)
         {
             base.OnShow(window);
             UIManager.ProfileWindow.ReturnWindow = this;
             _ = UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer,false);
         }
 
-        protected override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
+        protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             ForumObject button = Window.ForumObjects[objectIndex];
 

@@ -57,11 +57,11 @@ namespace Multiplayer.UI.Displays
                         }
                         else if (battleStats.FC)
                         {
-                            battleInfo = $"<color=#{Constants.Blue}>FC</color> {battleStats.Accuracy}% {battleStats.Greats}G";
+                            battleInfo = $"<color=#{Constants.Blue}>FC</color> {battleStats.Accuracy}%  {battleStats.Greats}G";
                         }
                         else
                         {
-                            battleInfo = $"{battleStats.Accuracy}% {battleStats.Misses}M {battleStats.Greats}G";
+                            battleInfo = $"{battleStats.Accuracy}%  {battleStats.Misses}M {battleStats.Greats}G";
                         }
 
                         break;

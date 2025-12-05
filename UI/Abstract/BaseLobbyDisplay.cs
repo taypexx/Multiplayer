@@ -1,4 +1,6 @@
 ﻿using Il2CppDG.Tweening;
+using Il2CppDG.Tweening.Core;
+using System.Runtime.InteropServices;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
@@ -50,6 +52,8 @@ namespace Multiplayer.UI.Abstract
 
             Text popupText = popup.GetComponent<Text>();
             popupText.text = text;
+
+            //DOTween.ToAlpha(new(Marshal.GetFunctionPointerForDelegate(() => popupText.color)), new(Marshal.GetFunctionPointerForDelegate(x => popupText.color = x)), 0f, 1.5f);
        }
 
         /// <summary>
@@ -73,6 +77,7 @@ namespace Multiplayer.UI.Abstract
             Text text = newTextObj.GetComponent<Text>();
             text.alignment = TextAnchor;
             text.fontSize = FontSize;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.raycastTarget = false;
 
             TextList.Add(key, text);
