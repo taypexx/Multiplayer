@@ -72,7 +72,8 @@ namespace Multiplayer.UI.Displays
                         break;
                 }
 
-                text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name)} — {battleInfo}";
+                var name = Lobby.ReadyPlayers.Contains(player.Uid) ? player.MultiplayerStats.Name : Localization.Get("Global", "Loading").ToString();
+                text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{name}</color>" : name)} — {battleInfo}";
 
                 if (battleStats.PrevFC && !battleStats.FC)
                     Popup($"<color=#{Constants.Red}>{Localization.Get("BattleDisplay", "LostFC").ToString()}</color>", key);

@@ -188,9 +188,9 @@ namespace Multiplayer.UI.Abstract
                 }
             }
 
-            UpdateTexts();
-
             if (DoesSort) Sort();
+
+            UpdateTexts();
         }
 
         protected virtual void UpdateTexts()

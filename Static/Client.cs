@@ -30,6 +30,7 @@ namespace Multiplayer.Static
         internal static string Token { get; private set; }
         internal static readonly string TokenPath = Path.Combine(MelonEnvironment.GameRootDirectory, "mdmp.token");
 
+        internal static string ServerAddress { get; private set; }
         internal static string APIEndpoint { get; private set; }
         internal static readonly string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
 
@@ -149,11 +150,32 @@ namespace Multiplayer.Static
             }
         }
 
-        internal static async Task Connect(string code = null)
+        internal static async Task AuthConfirm(string code)
         {
             if (Connected || TriedConnecting) return;
-            PopupUtils.ShowInfo(Localization.Get("MainMenu", "Connecting"));
-            TriedConnecting = true;
+
+            string uid = DataHelper.PeroUid;
+            if (uid == null) return;
+
+            var response = await PostAsync(ServerAddress + "/authConfirm", new { Uid = uid, Code = code }, true, true);
+            if (response.IsSuccessStatusCode)
+            {
+                Token = await response.Content.ReadAsStringAsync();
+                await Connect();
+            }
+            else
+            {
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    UIManager.WarnNotification(Localization.Get("Warning", "IncorrectCode"));
+                }
+                else Disconnect();
+            }
+        }
+
+        internal static async Task Connect()
+        {
+            if (Connected || TriedConnecting) return;
 
             if (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace())
             {
@@ -164,9 +186,11 @@ namespace Multiplayer.Static
             string uid = DataHelper.PeroUid;
             if (uid == null) return;
 
+            TriedConnecting = true;
+            PopupUtils.ShowInfo(Localization.Get("MainMenu", "Connecting"));
             Main.Logger.Msg("Connecting to the server...");
 
-            var response = await PostAsync("connect", new { Uid = uid, Code = code ?? Token }, false, true);
+            var response = await PostAsync(ServerAddress + "/login", new { Uid = uid }, true, true);
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
@@ -179,8 +203,12 @@ namespace Multiplayer.Static
                     return;
                 }
 
-                Token = content["Token"].GetString();
-                File.WriteAllText(TokenPath,Token);
+                var newToken = content["Token"].GetString();
+                if (Token != newToken && newToken != null)
+                {
+                    Token = newToken;
+                    File.WriteAllText(TokenPath, Token);
+                }
 
                 Connected = true;
                 response.Dispose();
@@ -191,7 +219,9 @@ namespace Multiplayer.Static
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     TriedConnecting = false;
-                    UIManager.WarnNotification(Localization.Get("Warning", "WrongCode"));
+
+                    UIManager.WarningChooseAction = LoginOption;
+                    UIManager.WarnChooseNotification(Localization.Get("Warning", "LoginRequired"));
                 }
                 Main.Logger.Error("Failed to connect to the server!");
             }
@@ -215,6 +245,17 @@ namespace Multiplayer.Static
             */
         }
 
+        private static void LoginOption(bool doLogin)
+        {
+            if (!doLogin) return;
+            try
+            {
+                Process.Start(new ProcessStartInfo(Constants.DiscordAuthURL) { UseShellExecute = true });
+                UIManager.MainMenu.CodeWindow.Show();
+            }
+            catch { }
+        }
+
         internal static void Disconnect()
         {
             if (Connected)
@@ -235,10 +276,9 @@ namespace Multiplayer.Static
             UIManager.WarnChooseNotification(Localization.Get("Warning", "Offline"));
         }
 
-        private static void ReconnectOption(bool? doReconnect)
+        private static void ReconnectOption(bool doReconnect)
         {
-            if (!(doReconnect ?? false)) return;
-
+            if (!doReconnect) return;
             TriedConnecting = false;
             UIManager.MainMenu.Open();
         }
@@ -252,7 +292,8 @@ namespace Multiplayer.Static
             Udp = new();
 
             // Run after settings loaded
-            APIEndpoint = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/api/";
+            ServerAddress = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}";
+            APIEndpoint = ServerAddress + "/api/";
 
             if (File.Exists(TokenPath)) Token = File.ReadAllText(TokenPath);
         }

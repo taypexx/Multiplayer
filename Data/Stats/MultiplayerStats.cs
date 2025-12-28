@@ -53,8 +53,7 @@ namespace Multiplayer.Data.Stats
             {
                 Uid = PlayerManager.LocalPlayerUid ?? Player.Uid,
                 TargetUid = Player.Uid,
-                Name = PlayerManager.LocalPlayerName,
-                Token = Client.Token
+                Name = PlayerManager.LocalPlayerName
             };
 
             var response = await Client.PostAsync("getPlayer",payload);

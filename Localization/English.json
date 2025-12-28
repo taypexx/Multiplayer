@@ -8,7 +8,8 @@
     "Master": "Master",
     "Hidden": "Hidden",
     "Touhou": "Touhou",
-    "ComingSoon": "Coming soon!"
+    "ComingSoon": "Coming soon!",
+    "Loading": "Loading..."
   },
   "Ranks": {
     "1": "Initiate",
@@ -43,11 +44,11 @@
   "Warning": {
     "Title": "Warning",
     "Unknown": "Unknown error occured!",
-    "NoAccount": "You are not logged in! Please log in to play multiplayer.",
+    "NoAccount": "You are not logged into your Muse Dash account! Please log in to play multiplayer.",
     "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?",
     "Outdated": "Current mod version ({0}) is outdated. Please update to the latest version ({1}) to play multiplayer!",
     "NoInvites": "Invites are not available at the moment. Please contact mod developers and let them know.",
-    "WrongCode": "The code you have entered didn't work."
+    "LoginRequired": "Login is required to continue. Proceed to the authorization page?"
   },
   "Window": {
     "RefreshButton": "— Refresh —",
@@ -71,9 +72,7 @@
     "MyLobby": "My Lobby",
     "Competitive": "Competitive",
     "CreditsTitle": "Credits",
-    "LoginRequired": "Login Required",
-    "CodeMessage": "You need to log in via our discord server. Go to the #bot-channel and type \"!login\". Open the discord server?",
-    "CodeEnter": "Enter the code:"
+    "IncorrectCode": "Incorrect code!"
   },
   "ProfileWindow": {
     "Title": "Profile",

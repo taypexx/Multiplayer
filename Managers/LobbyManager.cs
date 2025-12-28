@@ -69,8 +69,7 @@ namespace Multiplayer.Managers
 
             var payload = new
             {
-                Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token
+                Uid = PlayerManager.LocalPlayerUid
             };
 
             var response = await Client.PostAsync("lobbyPlaylistContinue", payload);
@@ -91,7 +90,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token,
                 Entry = entry
             };
 
@@ -123,7 +121,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token,
                 Entry = entry
             };
 
@@ -154,7 +151,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token,
                 Ready = isReady
             };
 
@@ -175,7 +171,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token,
                 Locked = isLocked
             };
 
@@ -196,7 +191,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token
             };
 
             var response = await Client.PostAsync("hasLobby", payload);
@@ -223,7 +217,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token,
                 MaxPlayers = maxPlayers,
                 Goal = (byte)goal,
                 PlayType = (byte)playType,
@@ -260,7 +253,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token,
                 Id = lobby.Id,
                 PasswordGuess = passwordGuess
             };
@@ -284,7 +276,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Token = Client.Token
             };
 
             var response = await Client.PostAsync("leaveLobby", payload);
@@ -341,7 +332,7 @@ namespace Multiplayer.Managers
 
             if (checkIfExists)
             {
-                var response = await Client.PostAsync("lobbyExists", new { Uid = PlayerManager.LocalPlayerUid, Token = Client.Token, Id = id });
+                var response = await Client.PostAsync("lobbyExists", new { Uid = PlayerManager.LocalPlayerUid, Id = id });
                 if (response is null) return null;
             }
 

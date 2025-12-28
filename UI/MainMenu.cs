@@ -26,8 +26,7 @@ namespace Multiplayer.UI
         private ForumObject CompetitiveButton;
         private ForumObject CreditsButton;
 
-        private PromptWindow CodeMessageWindow;
-        private InputWindow CodeWindow;
+        internal InputWindow CodeWindow;
         private InputWindow BioWindow;
         private static PnlHead PnlHead => GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>();
         private static bool PnlHeadWasOpened = false;
@@ -37,11 +36,7 @@ namespace Multiplayer.UI
 
         internal MainMenu() : base(Localization.Get("MainMenu", "Title"), null, "MainMenu.png")
         {
-            CodeMessageWindow = new(Localization.Get("MainMenu", "CodeMessage"), Localization.Get("MainMenu", "LoginRequired"));
-            CodeMessageWindow.AutoReset = true;
-            CodeMessageWindow.OnCompletion += (BaseWindow _) => OnCodeMessageCompletion();
-
-            CodeWindow = new(Localization.Get("MainMenu", "CodeEnter"));
+            CodeWindow = new();
             CodeWindow.AutoReset = true;
             CodeWindow.OnCompletion += (BaseWindow _) => OnCodeEntered();
 
@@ -110,11 +105,13 @@ namespace Multiplayer.UI
                 }
             } else
             {
-                if (Client.TriedConnecting) Client.Disconnect();
+                if (Client.TriedConnecting)
+                {
+                    Client.Disconnect();
+                    return;
+                }
 
-                else if (Client.Token != null) _ = TryConnect();
-
-                else CodeMessageWindow.Show();
+                _ = Client.Connect();
             }
         }
 
@@ -122,7 +119,7 @@ namespace Multiplayer.UI
         {
             UIManager.Debounce = true;
 
-            await Client.Connect(code);
+            await Client.AuthConfirm(CodeWindow.Result.ToString());
 
             Main.Dispatcher.Enqueue(() =>
             {
@@ -130,27 +127,6 @@ namespace Multiplayer.UI
 
                 UIManager.Debounce = false;
             });
-        }
-
-        private async Task OnCodeMessageCompletion()
-        {
-            if (CodeMessageWindow.Result == true)
-            {
-                UIManager.Debounce = true;
-                var response = await Client.GetAsync("getInviteLink");
-                UIManager.Debounce = false;
-
-                if (response != null)
-                {
-                    Process.Start(new ProcessStartInfo(await response.Content.ReadAsStringAsync()) { UseShellExecute = true });
-                } 
-                else
-                {
-                    Main.Dispatcher.Enqueue(() => UIManager.WarnNotification(Localization.Get("Warning", "NoInvites")));
-                    return;
-                }
-            }
-            CodeWindow.Show();
         }
 
         private void OnCodeEntered()

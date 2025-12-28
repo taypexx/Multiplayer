@@ -116,10 +116,7 @@ namespace Multiplayer.UI.ProfileWindows
             {
                 Process.Start(new ProcessStartInfo("https://musedash.moe/player/" + Player.Uid) { UseShellExecute = true });
             }
-            catch (Exception e)
-            {
-                Main.Logger.Warning(e.ToString());
-            }
+            catch {}
         }
 
         /// <summary>

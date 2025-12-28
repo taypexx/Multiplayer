@@ -35,7 +35,7 @@ namespace Multiplayer.Managers
 
         internal static MessageWindow Warning;
         internal static PromptWindow WarningChoose;
-        internal static Action<bool?> WarningChooseAction;
+        internal static Action<bool> WarningChooseAction;
 
         internal static MainMenu MainMenu { get; private set; }
         internal static MainMenuOpenButton MainMenuOpenButton { get; private set; }
@@ -88,7 +88,7 @@ namespace Multiplayer.Managers
         {
             if (WarningChooseAction is null) return;
 
-            WarningChooseAction.Invoke(WarningChoose.Result);
+            WarningChooseAction.Invoke(WarningChoose.Result ?? false);
             WarningChooseAction = null;
         }
 

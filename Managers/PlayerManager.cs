@@ -23,7 +23,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = LocalPlayerUid,
-                Token = Client.Token,
                 Name = LocalPlayer.MultiplayerStats.Name,
                 AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
                 Bio = LocalPlayer.MultiplayerStats.Bio,
@@ -48,7 +47,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = LocalPlayerUid,
-                Token = Client.Token,
                 Achievements = achievementsConverted,
             };
             _ = Client.PostAsync("updatePlayer", payload);
@@ -70,7 +68,6 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = LocalPlayerUid,
-                Token = Client.Token,
                 Hiddens = LocalPlayer.MultiplayerStats.Hiddens,
             };
             _ = Client.PostAsync("updatePlayer", payload);
