@@ -46,7 +46,7 @@
     "Unknown": "Unknown error occured!",
     "NoAccount": "You are not logged into your Muse Dash account! Please log in to play multiplayer.",
     "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?",
-    "Outdated": "Current mod version ({0}) is outdated. Please update to the latest version ({1}) to play multiplayer!",
+    "Outdated": "Current mod version ({0}) is outdated. Would you like to update the mod? ({1})",
     "NoInvites": "Invites are not available at the moment. Please contact mod developers and let them know.",
     "LoginRequired": "Login is required to continue. Proceed to the authorization page?"
   },

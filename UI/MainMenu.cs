@@ -1,4 +1,5 @@
-﻿using Il2CppAssets.Scripts.Database;
+﻿using HarmonyLib;
+using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppSirenix.Serialization.Utilities;
 using LocalizeLib;
@@ -115,24 +116,13 @@ namespace Multiplayer.UI
             }
         }
 
-        private async Task TryConnect(string code = null)
-        {
-            UIManager.Debounce = true;
-
-            await Client.AuthConfirm(CodeWindow.Result.ToString());
-
-            Main.Dispatcher.Enqueue(() =>
-            {
-                if (Client.Connected) _ = Main.InitConnect();
-
-                UIManager.Debounce = false;
-            });
-        }
-
-        private void OnCodeEntered()
+        private async Task OnCodeEntered()
         {
             if (CodeWindow.Result.IsNullOrWhitespace()) return;
-            _ = TryConnect(CodeWindow.Result.ToString());
+
+            UIManager.Debounce = true;
+            await Client.Connect(CodeWindow.Result.ToString());
+            UIManager.Debounce = false;
         }
 
         /// <summary>

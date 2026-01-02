@@ -9,7 +9,6 @@ using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
-using System.Diagnostics;
 using System.Net.Http.Json;
 using UnityEngine;
 
@@ -108,15 +107,19 @@ namespace Multiplayer.UI.ProfileWindows
         }
 
         /// <summary>
+        /// Opens player's profile in the browser.
+        /// </summary>
+        private void OpenProfilePage()
+        {
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerIP}:{Settings.Config.PortHTTP}/profile/{Player.Uid}");
+        }
+
+        /// <summary>
         /// Opens the <see href="https://musedash.moe"/> profile of the player in the browser.
         /// </summary>
         private void OpenMDMoe()
         {
-            try
-            {
-                Process.Start(new ProcessStartInfo("https://musedash.moe/player/" + Player.Uid) { UseShellExecute = true });
-            }
-            catch {}
+            Utilities.OpenBrowserLink("https://musedash.moe/player/" + Player.Uid);
         }
 
         /// <summary>
@@ -218,7 +221,12 @@ namespace Multiplayer.UI.ProfileWindows
         {
             ForumObject button = Window.ForumObjects[objectIndex];
 
-            if (button == StatsButton || (button == FriendRequestButton && FriendButtonState == 4)) return;
+            if (button == FriendRequestButton && FriendButtonState == 4) return;
+            else if (button == StatsButton)
+            {
+                OpenProfilePage();
+                return;
+            }
             else if (button == MDMoeButton)
             {
                 OpenMDMoe();

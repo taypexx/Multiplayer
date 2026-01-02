@@ -22,7 +22,7 @@ namespace Multiplayer.Managers
 
         /// <summary>
         /// Sends datagrams to the server and recieves stats of other players.
-        /// Datagram structure: 4B score, 4B acc, 1B FC, 2B perfects, 2B greats, 2B Earlies, 2B Lates, 2B Misses, 32B Uid, 40B Token. Total 91 bytes.
+        /// Datagram structure: 4B score, 4B acc, 1B FC, 2B perfects, 2B greats, 2B Earlies, 2B Lates, 2B Misses, 2B Ping(ms), 32B Uid, 70B Token. Total 123 bytes.
         /// </summary>
         /// <returns></returns>
         private static async Task<byte[]> ServerSync()
@@ -37,8 +37,10 @@ namespace Multiplayer.Managers
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(13), BattleStats.Earlies);
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(15), BattleStats.Lates); 
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(17), BattleStats.Misses);
-            Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(19, 32));
-            Encoding.UTF8.GetBytes(Client.Token, span.Slice(51, 40));
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(19), BattleStats.PingMS);
+
+            Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(21, 32));
+            Encoding.UTF8.GetBytes(Client.Token, span.Slice(53, 70));
 
             return await Client.UdpSendAsync(Datagram);
         }
@@ -63,6 +65,7 @@ namespace Multiplayer.Managers
             BattleStats.Earlies = (ushort)BattleRoleAttributeComponent.early;
             BattleStats.Lates = (ushort)BattleRoleAttributeComponent.late;
             BattleStats.Misses = (ushort)TaskStageTarget.GetComboMiss();
+            BattleStats.PingMS = Client.PingMS;
         }
 
         /// <summary>

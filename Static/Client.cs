@@ -21,20 +21,28 @@ namespace Multiplayer.Static
         internal static bool TriedConnecting { get; private set; } = false;
 
         private static Stopwatch Stopwatch = new Stopwatch();
-        internal static int PingMS { get; private set; }
-
-        internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
-        internal static string ServerVersion { get; private set; }
-        private static LocalString OutdatedWarning;
-
-        internal static string Token { get; private set; }
-        internal static readonly string TokenPath = Path.Combine(MelonEnvironment.GameRootDirectory, "mdmp.token");
+        internal static ushort PingMS { get; private set; }
 
         internal static string ServerAddress { get; private set; }
-        internal static string APIEndpoint { get; private set; }
-        internal static readonly string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
+        internal static string ServerVersion { get; private set; }
+        internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
+        private static LocalString OutdatedWarning;
 
-        internal static Dictionary<string, float> MoeDifficulties { get; private set; }
+        internal static string Token { get; 
+            private set 
+            {
+                if (value is null)
+                {
+                    Http.DefaultRequestHeaders.Authorization = null;
+                } 
+                else if (Http != null)
+                {
+                    Http.DefaultRequestHeaders.Authorization = new("Bearer", value);
+                }
+                field = value;
+            } 
+        }
+        internal static readonly string TokenPath = Path.Combine(MelonEnvironment.GameRootDirectory, "mdmp.token");
 
         private static HttpMessageHandler HttpHandler;
         private static HttpClient Http;
@@ -79,7 +87,10 @@ namespace Multiplayer.Static
                 var result = await Udp.ReceiveAsync();
 
                 Stopwatch.Stop();
-                PingMS = (int)Stopwatch.ElapsedMilliseconds;
+                unchecked
+                {
+                    PingMS = (ushort)Stopwatch.ElapsedMilliseconds;
+                }
 
                 return result.Buffer;
             }
@@ -96,12 +107,22 @@ namespace Multiplayer.Static
         /// <param name="path">Path of the request relative to the API endpoint.</param>
         /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
         /// <param name="getAnyway">Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
+        /// <param name="doAuth">Whether to include the Authorization header.</param>
         /// <returns><see cref="HttpContent"/> if the request was successful, otherwise <see langword="null"/>.</returns>
-        internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false, bool getAnyway = false)
+        internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false, bool getAnyway = false, bool doAuth = true)
         {
             try
             {
-                HttpResponseMessage response = await Http.GetAsync(isFullPath ? path : APIEndpoint + path);
+                var request = new HttpRequestMessage(HttpMethod.Get, isFullPath ? path : ServerAddress + "/api/" + path);
+
+                if (!doAuth)
+                {
+                    request.Headers.Authorization = null;
+                }
+
+                HttpResponseMessage response = await Http.SendAsync(request);
+                request.Dispose();
+
                 if (!response.IsSuccessStatusCode)
                 {
                     Main.Logger.Error($"{(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
@@ -125,15 +146,23 @@ namespace Multiplayer.Static
         /// <param name="data">Data to be serialized as JSON and sent.</param>
         /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
         /// <param name="getAnyway">Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
+        /// <param name="doAuth">Whether to include the Authorization header.</param>
         /// <returns><see langword="true"/> if the request was successful, otherwise <see langword="false"/>.</returns>
-        internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false, bool getAnyway = false)
+        internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false, bool getAnyway = false, bool doAuth = true)
         {
             try
             {
-                var payload = JsonConvert.SerializeObject(data);
-                var sendContent = new StringContent(payload, Encoding.UTF8, "application/json");
+                var request = new HttpRequestMessage(HttpMethod.Post, isFullPath ? path : ServerAddress + "/api/" + path);
+                request.Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                
+                if (!doAuth)
+                {
+                    request.Headers.Authorization = null;
+                }
 
-                HttpResponseMessage response = await Http.PostAsync(isFullPath ? path : APIEndpoint + path, sendContent);
+                HttpResponseMessage response = await Http.SendAsync(request);
+                request.Dispose();
+
                 if (!response.IsSuccessStatusCode)
                 {
                     Main.Logger.Error($"{(int)response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
@@ -150,30 +179,7 @@ namespace Multiplayer.Static
             }
         }
 
-        internal static async Task AuthConfirm(string code)
-        {
-            if (Connected || TriedConnecting) return;
-
-            string uid = DataHelper.PeroUid;
-            if (uid == null) return;
-
-            var response = await PostAsync(ServerAddress + "/authConfirm", new { Uid = uid, Code = code }, true, true);
-            if (response.IsSuccessStatusCode)
-            {
-                Token = await response.Content.ReadAsStringAsync();
-                await Connect();
-            }
-            else
-            {
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    UIManager.WarnNotification(Localization.Get("Warning", "IncorrectCode"));
-                }
-                else Disconnect();
-            }
-        }
-
-        internal static async Task Connect()
+        internal static async Task Connect(string code = null)
         {
             if (Connected || TriedConnecting) return;
 
@@ -190,7 +196,9 @@ namespace Multiplayer.Static
             PopupUtils.ShowInfo(Localization.Get("MainMenu", "Connecting"));
             Main.Logger.Msg("Connecting to the server...");
 
-            var response = await PostAsync(ServerAddress + "/login", new { Uid = uid }, true, true);
+            object payload = code is null ? new { Uid = uid } : new { Uid = uid, Code = code };
+
+            var response = await PostAsync(ServerAddress + "/login", payload, true, true, code is null);
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
@@ -199,61 +207,54 @@ namespace Multiplayer.Static
                 if (Outdated)
                 {
                     OutdatedWarning = new(string.Format(Localization.Get("Warning", "Outdated").ToString(), Constants.Version, ServerVersion));
+                    Disconnect();
                     Main.Logger.Error("Outdated version of the mod, cannot proceed!");
                     return;
                 }
 
                 var newToken = content["Token"].GetString();
-                if (Token != newToken && newToken != null)
+                if (newToken != null)
                 {
                     Token = newToken;
                     File.WriteAllText(TokenPath, Token);
                 }
 
                 Connected = true;
-                response.Dispose();
+                _ = Main.InitConnect();
                 Main.Logger.Msg("Connected to the server successfully!");
             }
             else
             {
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    TriedConnecting = false;
-
                     UIManager.WarningChooseAction = LoginOption;
                     UIManager.WarnChooseNotification(Localization.Get("Warning", "LoginRequired"));
                 }
+
                 Main.Logger.Error("Failed to connect to the server!");
             }
-
-            /*
-            var moeDiffs = await GetAsync("https://api.musedash.moe/diffdiff", true);
-            if (moeDiffs != null)
-            {
-                MoeDifficulties = new();
-                var moeDiffsJson = await moeDiffs.Content.ReadFromJsonAsync<List<List<object>>>();
-                foreach (var chartStats in moeDiffsJson)
-                {
-                    MoeDifficulties.Add((string)chartStats[0], (float)chartStats[4]); // Key - Uid, Value - RL
-                }
-                moeDiffs.Dispose();
-                Main.Logger.Success("Recieved chart difficulties from musedash.moe successfully!");
-            } else
-            {
-                Main.Logger.Error("Failed to recieve chart difficulties from musedash.moe!");
-            }
-            */
         }
 
         private static void LoginOption(bool doLogin)
         {
             if (!doLogin) return;
-            try
-            {
-                Process.Start(new ProcessStartInfo(Constants.DiscordAuthURL) { UseShellExecute = true });
-                UIManager.MainMenu.CodeWindow.Show();
-            }
-            catch { }
+
+            TriedConnecting = false;
+            Utilities.OpenBrowserLink(Constants.DiscordAuthURL);
+            UIManager.MainMenu.CodeWindow.Show();
+        }
+
+        private static void UpdateModOption(bool doUpdate)
+        {
+            if (!doUpdate) return;
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/home");
+        }
+
+        private static void ReconnectOption(bool doReconnect)
+        {
+            if (!doReconnect) return;
+            TriedConnecting = false;
+            UIManager.MainMenu.Open();
         }
 
         internal static void Disconnect()
@@ -268,19 +269,13 @@ namespace Multiplayer.Static
 
             if (Outdated)
             {
-                UIManager.WarnNotification(OutdatedWarning);
+                UIManager.WarningChooseAction = UpdateModOption;
+                UIManager.WarnChooseNotification(OutdatedWarning);
                 return;
             }
 
             UIManager.WarningChooseAction = ReconnectOption;
             UIManager.WarnChooseNotification(Localization.Get("Warning", "Offline"));
-        }
-
-        private static void ReconnectOption(bool doReconnect)
-        {
-            if (!doReconnect) return;
-            TriedConnecting = false;
-            UIManager.MainMenu.Open();
         }
 
         internal static void Init()
@@ -292,8 +287,7 @@ namespace Multiplayer.Static
             Udp = new();
 
             // Run after settings loaded
-            ServerAddress = $"http://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}";
-            APIEndpoint = ServerAddress + "/api/";
+            ServerAddress = $"{Constants.ServerHTTPScheme}://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}";
 
             if (File.Exists(TokenPath)) Token = File.ReadAllText(TokenPath);
         }

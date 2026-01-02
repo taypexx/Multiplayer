@@ -34,6 +34,8 @@ namespace Multiplayer.Data.Stats
         public ushort Lates { get; internal set; }
         public ushort Misses { get; internal set; } 
 
+        public ushort PingMS { get; internal set; }
+
         public Grade Grade
         {
             get

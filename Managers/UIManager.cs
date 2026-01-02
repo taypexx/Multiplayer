@@ -149,7 +149,10 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void UpdatePnlPreparation()
         {
-            if (PnlPreparation is null) return;
+            try
+            {
+                if (PnlPreparation is null) return;
+            } catch { return; }
 
             MusicInfo curMusicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
             if (curMusicInfo is null) return;

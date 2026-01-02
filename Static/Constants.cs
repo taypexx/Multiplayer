@@ -11,7 +11,9 @@ namespace Multiplayer.Static
         public const string Version = "0.1.0";
         public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817";
 
+        internal const string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
         internal const string DiscordAuthURL = "https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A9095%2Fauth&scope=identify";
+        internal const string ServerHTTPScheme = "http"; //https later
         internal const string ServerIP = "127.0.0.1";
         internal const int PortHTTP = 9095;
         internal const int PortUDP = 9096;

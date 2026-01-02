@@ -1,4 +1,6 @@
 ﻿using Il2CppSirenix.Serialization.Utilities;
+using Multiplayer.Data.Players;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
@@ -33,6 +35,15 @@ namespace Multiplayer.Static
             text.font = NormalFont;
 
             return gameObject;
+        }
+
+        public static void OpenBrowserLink(string url)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch { }
         }
     }
 }

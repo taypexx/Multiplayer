@@ -11,7 +11,7 @@ using Constants = Multiplayer.Static.Constants;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Muse Dash Modding Community")]
 [assembly: AssemblyProduct(Constants.ModName)]
-[assembly: AssemblyCopyright("Copyright © " + Constants.Authors + " 2025")]
+[assembly: AssemblyCopyright("Copyright © " + Constants.Authors + " 2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -34,7 +34,7 @@ namespace Multiplayer.Data.Stats
         /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
         internal async Task<bool> Update()
         {
-            var response = await Client.GetAsync("https://api.musedash.moe/player/" + Player.Uid, true);
+            var response = await Client.GetAsync("https://api.musedash.moe/player/" + Player.Uid, true, false, false);
             if (response == null) return false;
 
             var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();

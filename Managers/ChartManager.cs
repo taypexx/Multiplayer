@@ -12,14 +12,6 @@ namespace Multiplayer.Managers
         private static Dictionary<string, MusicInfo> CustomCharts;
         internal static int CurrentDifficulty => GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(GlobalDataBase.dbMusicTag.CurMusicInfo().uid) ? 4 : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
         
-        internal static async Task ReplaceBlankChart(string sheetMd5)
-        {
-            var response = Client.GetAsync($"{Client.MDMCAPIEndpoint}sheets/{sheetMd5}", true);
-            if (response == null) return;
-
-            // TODO
-        }
-        
         internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
 
         /// <summary>
