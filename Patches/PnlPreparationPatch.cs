@@ -20,7 +20,7 @@ namespace Multiplayer.Patches
         /// <summary>
         /// Replaces the functionality of the vanilla PnlPreparation button.
         /// </summary>
-        private static void OnPnlPreparationClick()
+        private static async Task OnPnlPreparationClick()
         {
             if (!LobbyManager.IsInLobby)
             {
@@ -31,11 +31,20 @@ namespace Multiplayer.Patches
                 MusicInfo musicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
                 int difficulty = ChartManager.CurrentDifficulty;
 
-                if (LobbyManager.LocalLobby.PlayType == LobbyPlayType.VanillaOnly && musicInfo.albumIndex == AlbumManager.Uid)
+                if (musicInfo.albumIndex == AlbumManager.Uid)
                 {
-                    PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "VanillaOnly"));
-                    return;
-                } else if (LobbyManager.LocalLobby.PlayType == LobbyPlayType.CustomOnly && musicInfo.albumIndex != AlbumManager.Uid)
+                    if (LobbyManager.LocalLobby.PlayType == LobbyPlayType.VanillaOnly)
+                    {
+                        PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "VanillaOnly"));
+                        return;
+                    } 
+                    else if (!await ChartManager.IsCustomRanked(musicInfo.uid))
+                    {
+                        PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "RankedOnly"));
+                        return;
+                    }
+                } 
+                else if (LobbyManager.LocalLobby.PlayType == LobbyPlayType.CustomOnly)
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "CustomOnly"));
                     return;
@@ -66,7 +75,7 @@ namespace Multiplayer.Patches
             {
                 Button pnlPreparationButton = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart").GetComponent<Button>();
                 pnlPreparationButton.onClick.RemoveAllListeners();
-                pnlPreparationButton.onClick.AddListener((UnityAction)new Action(OnPnlPreparationClick));
+                pnlPreparationButton.onClick.AddListener((UnityAction)new Action(() => OnPnlPreparationClick()));
 
                 UIManager.UpdatePnlPreparation();
             }

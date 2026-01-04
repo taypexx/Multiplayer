@@ -38,6 +38,7 @@
     "PlaylistRemoved": "Removed from the playlist!",
     "VanillaOnly": "Only vanilla charts are allowed!",
     "CustomOnly": "Only custom charts are allowed!",
+    "RankedOnly": "Only ranked custom charts are allowed!",
     "Waiting": "Waiting for host...",
     "PlaylistFull": "Playlist is full"
   },

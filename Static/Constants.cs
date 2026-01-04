@@ -12,11 +12,11 @@ namespace Multiplayer.Static
         public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817";
 
         internal const string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
-        internal const string DiscordAuthURL = "https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A9095%2Fauth&scope=identify";
         internal const string ServerHTTPScheme = "http"; //https later
-        internal const string ServerIP = "127.0.0.1";
+        internal const string ServerAddress = "127.0.0.1";
         internal const int PortHTTP = 9095;
         internal const int PortUDP = 9096;
+        internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri={ServerHTTPScheme}%3A%2F%2F{ServerAddress}%3A{PortHTTP}%2Fauth&scope=identify";
 
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
 

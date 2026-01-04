@@ -46,7 +46,7 @@ namespace Multiplayer.Static
     public class Config
     {
         [TomlPrecedingComment("Server IP")]
-        internal string ServerIP { get; set; } = Constants.ServerIP;
+        internal string ServerAddress { get; set; } = Constants.ServerAddress;
 
         [TomlPrecedingComment("HTTP port of the server")]
         internal int PortHTTP { get; set; } = Constants.PortHTTP;

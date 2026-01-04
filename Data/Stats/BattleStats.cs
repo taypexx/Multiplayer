@@ -88,6 +88,7 @@ namespace Multiplayer.Data.Stats
             Earlies = 0;
             Lates = 0;
             Misses = 0;
+            PingMS = 0;
         }
 
         public bool PrevAP { get; private set; }

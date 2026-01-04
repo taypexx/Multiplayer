@@ -15,6 +15,27 @@ namespace Multiplayer.Managers
         private static byte[] Datagram;
         private static byte[] ReceivedDatagram;
 
+        private const int UidSize = 32;
+        private const int TokenSize = 70;
+        private const int BattleStatsSize = 21;
+        private const int DatagramSize = 123;
+
+        /* Datagram structure:
+        
+        32B - string UID
+        70B - string Token
+        4B - int Score
+        4B - float Accuracy
+        2B - ushort Perfects
+        2B - ushort Greats
+        2B - ushort Earlies
+        2B - ushort Lates
+        2B - ushort Misses
+        1B - bool FC
+        2B - ushort PingMS
+
+        */
+
         internal static BattleStats BattleStats => PlayerManager.LocalPlayer?.BattleStats;
         private static TaskStageTarget TaskStageTarget;
         private static BattleRoleAttributeComponent BattleRoleAttributeComponent;
@@ -22,25 +43,23 @@ namespace Multiplayer.Managers
 
         /// <summary>
         /// Sends datagrams to the server and recieves stats of other players.
-        /// Datagram structure: 4B score, 4B acc, 1B FC, 2B perfects, 2B greats, 2B Earlies, 2B Lates, 2B Misses, 2B Ping(ms), 32B Uid, 70B Token. Total 123 bytes.
         /// </summary>
-        /// <returns></returns>
         private static async Task<byte[]> ServerSync()
         {
             Span<byte> span = Datagram;
 
-            BinaryPrimitives.WriteUInt32LittleEndian(span.Slice(0), BattleStats.Score);
-            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(4), BattleStats.Accuracy);
-            span[8] = (byte)(BattleStats.FC ? 1 : 0);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(9), BattleStats.Perfects);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(11), BattleStats.Greats);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(13), BattleStats.Earlies);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(15), BattleStats.Lates); 
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(17), BattleStats.Misses);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(19), BattleStats.PingMS);
+            Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(0, UidSize));
+            Encoding.UTF8.GetBytes(Client.Token, span.Slice(UidSize, TokenSize));
 
-            Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(21, 32));
-            Encoding.UTF8.GetBytes(Client.Token, span.Slice(53, 70));
+            BinaryPrimitives.WriteUInt32LittleEndian(span.Slice(UidSize + TokenSize), BattleStats.Score);
+            BinaryPrimitives.WriteSingleLittleEndian(span.Slice(UidSize + TokenSize + 4), BattleStats.Accuracy);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + TokenSize + 8), BattleStats.Perfects);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + TokenSize + 10), BattleStats.Greats);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + TokenSize + 12), BattleStats.Earlies);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + TokenSize + 14), BattleStats.Lates); 
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + TokenSize + 16), BattleStats.Misses);
+            span[UidSize + TokenSize + 18] = (byte)(BattleStats.FC ? 1 : 0);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + TokenSize + 19), BattleStats.PingMS);
 
             return await Client.UdpSendAsync(Datagram);
         }
@@ -70,7 +89,6 @@ namespace Multiplayer.Managers
 
         /// <summary>
         /// Updates battle stats of every other player in the lobby.
-        /// Recieved datagram structure: 19B BattleStats, 32B Uid. Total 51 bytes for each player of the lobby.
         /// </summary>
         private static void UpdateOthersBattleStats()
         {
@@ -78,31 +96,32 @@ namespace Multiplayer.Managers
 
             Span<byte> span = ReceivedDatagram;
 
-            for (int i = 0; i < ReceivedDatagram.Length/51; i++)
+            // Datagram size divided by UID + BattleStats size is the amount of entries
+            for (int i = 0; i < ReceivedDatagram.Length/(UidSize + BattleStatsSize); i++)
             {
-                int startAt = i * 51;
-                string uid = Encoding.UTF8.GetString(span.Slice(startAt + 19, 32));
+                int startAt = i * (UidSize + BattleStatsSize);
+                string uid = Encoding.UTF8.GetString(span.Slice(startAt, UidSize));
 
                 Player player = PlayerManager.GetCachedPlayer(uid);
                 if (player is null) continue;
                 BattleStats battleStats = player.BattleStats;
                 if (battleStats is null) continue;
 
-                battleStats.Score = BinaryPrimitives.ReadUInt32LittleEndian(span.Slice(startAt));
-                battleStats.Accuracy = BinaryPrimitives.ReadSingleLittleEndian(span.Slice(startAt+4));
-                battleStats.FC = span[8] != 0;
-                battleStats.Perfects = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+9));
-                battleStats.Greats = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+11));
-                battleStats.Earlies = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+13));
-                battleStats.Lates = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+15));
-                battleStats.Misses = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt+17));
+                battleStats.Score = BinaryPrimitives.ReadUInt32LittleEndian(span.Slice(startAt + UidSize));
+                battleStats.Accuracy = BinaryPrimitives.ReadSingleLittleEndian(span.Slice(startAt + UidSize + 4));
+                battleStats.Perfects = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 8));
+                battleStats.Greats = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 10));
+                battleStats.Earlies = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 12));
+                battleStats.Lates = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 14));
+                battleStats.Misses = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 16));
+                battleStats.FC = span[startAt + UidSize + 18] != 0;
+                battleStats.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 19));
             }
         }
 
         /// <summary>
         /// Runs an async loop and handles data sending/recieving.
         /// </summary>
-        /// <returns></returns>
         private static async Task StartSyncLoop()
         {
             Synchronizing = true;
@@ -155,7 +174,7 @@ namespace Multiplayer.Managers
 
         internal static void Init()
         {
-            Datagram = new byte[91];
+            Datagram = new byte[DatagramSize];
         }
     }
 }

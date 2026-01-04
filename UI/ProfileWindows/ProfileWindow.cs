@@ -111,7 +111,7 @@ namespace Multiplayer.UI.ProfileWindows
         /// </summary>
         private void OpenProfilePage()
         {
-            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerIP}:{Settings.Config.PortHTTP}/profile/{Player.Uid}");
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}:{Settings.Config.PortHTTP}/profile/{Player.Uid}");
         }
 
         /// <summary>

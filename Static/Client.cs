@@ -83,7 +83,7 @@ namespace Multiplayer.Static
             {
                 Stopwatch.Restart();
 
-                await Udp.SendAsync(data, data.Length, Settings.Config.ServerIP, Settings.Config.PortUdp);
+                await Udp.SendAsync(data, data.Length, Settings.Config.ServerAddress, Settings.Config.PortUdp);
                 var result = await Udp.ReceiveAsync();
 
                 Stopwatch.Stop();
@@ -109,7 +109,7 @@ namespace Multiplayer.Static
         /// <param name="getAnyway">Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
         /// <param name="doAuth">Whether to include the Authorization header.</param>
         /// <returns><see cref="HttpContent"/> if the request was successful, otherwise <see langword="null"/>.</returns>
-        internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false, bool getAnyway = false, bool doAuth = true)
+        internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false, bool doAuth = true, bool getAnyway = false)
         {
             try
             {
@@ -148,7 +148,7 @@ namespace Multiplayer.Static
         /// <param name="getAnyway">Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
         /// <param name="doAuth">Whether to include the Authorization header.</param>
         /// <returns><see langword="true"/> if the request was successful, otherwise <see langword="false"/>.</returns>
-        internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false, bool getAnyway = false, bool doAuth = true)
+        internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false, bool doAuth = true, bool getAnyway = false)
         {
             try
             {
@@ -198,7 +198,7 @@ namespace Multiplayer.Static
 
             object payload = code is null ? new { Uid = uid } : new { Uid = uid, Code = code };
 
-            var response = await PostAsync(ServerAddress + "/login", payload, true, true, code is null);
+            var response = await PostAsync(ServerAddress + "/login", payload, true, code is null, true);
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
@@ -247,7 +247,7 @@ namespace Multiplayer.Static
         private static void UpdateModOption(bool doUpdate)
         {
             if (!doUpdate) return;
-            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}/home");
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Settings.Config.ServerAddress}:{Settings.Config.PortHTTP}/home");
         }
 
         private static void ReconnectOption(bool doReconnect)
@@ -287,7 +287,7 @@ namespace Multiplayer.Static
             Udp = new();
 
             // Run after settings loaded
-            ServerAddress = $"{Constants.ServerHTTPScheme}://{Settings.Config.ServerIP}:{Settings.Config.PortHTTP}";
+            ServerAddress = $"{Constants.ServerHTTPScheme}://{Settings.Config.ServerAddress}:{Settings.Config.PortHTTP}";
 
             if (File.Exists(TokenPath)) Token = File.ReadAllText(TokenPath);
         }

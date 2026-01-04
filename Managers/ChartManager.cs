@@ -4,14 +4,46 @@ using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Multiplayer.Static;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Multiplayer.Managers
 {
     internal static class ChartManager
     {
         private static Dictionary<string, MusicInfo> CustomCharts;
-        internal static int CurrentDifficulty => GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(GlobalDataBase.dbMusicTag.CurMusicInfo().uid) ? 4 : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
+        private static Dictionary<string, bool> CustomChartsRanked;
+
+        internal static int CurrentDifficulty => 
+            GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 
+            && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(GlobalDataBase.dbMusicTag.CurMusicInfo().uid) 
+            ? 4 
+            : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
         
+        /// <summary>
+        /// Checks whether the custom chart is ranked.
+        /// </summary>
+        internal static async Task<bool> IsCustomRanked(string uid)
+        {
+            string md5 = GetMD5(uid);
+            bool ranked = false;
+            if (CustomChartsRanked.TryGetValue(md5, out ranked)) return ranked;
+
+            var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + md5, true, false, true);
+            if (response.IsSuccessStatusCode)
+            {
+                var sheetData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+                ranked = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(sheetData["chart"].GetRawText())["ranked"].GetBoolean();
+            }
+
+            if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                CustomChartsRanked.Add(md5, ranked);
+            }
+
+            return ranked;
+        }
+
         internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
 
         /// <summary>
