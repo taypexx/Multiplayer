@@ -1,9 +1,7 @@
-﻿using HarmonyLib;
-using Il2CppAssets.Scripts.Database;
+﻿using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppSirenix.Serialization.Utilities;
 using LocalizeLib;
-using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -12,7 +10,6 @@ using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using PopupLib.UI.Windows.Interfaces;
-using System.Diagnostics;
 using UnityEngine;
 
 namespace Multiplayer.UI
@@ -22,9 +19,9 @@ namespace Multiplayer.UI
         private ForumObject MyProfileButton;
         private ForumObject AvatarButton;
         private ForumObject BioButton;
-        private ForumObject FriendRequestsButton;
         private ForumObject LobbiesButton;
         private ForumObject CompetitiveButton;
+        private ForumObject SettingsButton;
         private ForumObject CreditsButton;
 
         internal InputWindow CodeWindow;
@@ -52,30 +49,14 @@ namespace Multiplayer.UI
 
         internal void CreateButtons()
         {
-            MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), UIManager.ProfileWindow, MainDescription);
+            MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), null, MainDescription);
             AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), PnlHead, MainDescription);
             BioButton = AddButton(Localization.Get("MainMenu", "Bio"), BioWindow, MainDescription);
-            FriendRequestsButton = AddButton(Localization.Get("MainMenu", "FriendRequests"), null, MainDescription);
             LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
+            SettingsButton = AddButton(Localization.Get("MainMenu", "Settings"), null, MainDescription);
             CreditsButton = AddButton(Localization.Get("MainMenu", "CreditsTitle"), null, Credits);
             AddReturnButton(MainDescription);
-        }
-
-        /// <summary>
-        /// Updates and opens the <see cref="FriendRequestsWindow"/>.
-        /// </summary>
-        private async Task OpenFriendRequests()
-        {
-            UIManager.Debounce = true;
-
-            await PlayerManager.LocalPlayer.Update();
-
-            Main.Dispatcher.Enqueue(() =>
-            {
-                UIManager.Debounce = false;
-                UIManager.FriendRequestsWindow.Window.Show();
-            });
         }
 
         /// <summary>
@@ -168,7 +149,6 @@ namespace Multiplayer.UI
         {
             base.OnShow(window);
             UIManager.ProfileWindow.ReturnWindow = this;
-            _ = UIManager.ProfileWindow.Update(PlayerManager.LocalPlayer,false);
         }
 
         protected override void OnButtonClick(IListWindow window, int objectIndex)
@@ -178,10 +158,15 @@ namespace Multiplayer.UI
             if (button == CreditsButton) return;
             base.OnButtonClick(window, objectIndex);
 
-            if (button == AvatarButton)
+            if (button == MyProfileButton)
+            {
+                _ = UIManager.OpenProfileWindow(PlayerManager.LocalPlayer, false);
+            }
+            else if (button == AvatarButton)
             {
                 PnlHeadWasOpened = true;
-            } else if (button == LobbiesButton)
+            } 
+            else if (button == LobbiesButton)
             {
                 if (LobbyManager.IsInLobby) 
                 {
@@ -190,13 +175,15 @@ namespace Multiplayer.UI
                 {
                     UIManager.LobbiesWindow.Window.Show();
                 }
-            } else if (button == FriendRequestsButton)
-            {
-                _ = OpenFriendRequests();
-            } else if (button == CompetitiveButton)
+            } 
+            else if (button == CompetitiveButton)
             {
                 PopupUtils.ShowInfo(Localization.Get("Global", "ComingSoon"));
                 Window.Show();
+            }
+            else if (button == SettingsButton)
+            {
+                UIManager.SettingsWindow.Window.Show();
             }
         }
     }

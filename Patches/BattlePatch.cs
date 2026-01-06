@@ -143,7 +143,12 @@ namespace Multiplayer.Patches
                 _ = Continue();
 
                 PnlVictory.m_CurControls.btnReset.gameObject.SetActive(false);
-                PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").gameObject.GetComponent<Text>().text = Localization.Get("Global", "Next").ToString();
+                
+                if (LobbyManager.LocalLobby.Playlist.Count > 1)
+                {
+                    PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").gameObject.GetComponent<Text>().text =
+                    Localization.Get("Global", "Next").ToString();
+                }
             }
         }
 

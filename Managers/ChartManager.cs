@@ -3,45 +3,43 @@ using CustomAlbums.Managers;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
+using Multiplayer.Data;
 using Multiplayer.Static;
-using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace Multiplayer.Managers
 {
     internal static class ChartManager
     {
-        private static Dictionary<string, MusicInfo> CustomCharts;
-        private static Dictionary<string, bool> CustomChartsRanked;
+        private static Dictionary<string, CustomChartData> CustomCharts;
 
         internal static int CurrentDifficulty => 
             GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 
             && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(GlobalDataBase.dbMusicTag.CurMusicInfo().uid) 
             ? 4 
             : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
-        
+
         /// <summary>
-        /// Checks whether the custom chart is ranked.
+        /// Checks whether the custom chart is on the website.
         /// </summary>
-        internal static async Task<bool> IsCustomRanked(string uid)
+        internal static async Task<bool> IsCustomOnWebsite(string uid)
         {
-            string md5 = GetMD5(uid);
-            bool ranked = false;
-            if (CustomChartsRanked.TryGetValue(md5, out ranked)) return ranked;
+            bool onWebsite = false;
+            if (!CustomCharts.TryGetValue(uid, out CustomChartData data)) return onWebsite;
 
-            var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + md5, true, false, true);
-            if (response.IsSuccessStatusCode)
+            if (data.IsOnWebsite is null)
             {
-                var sheetData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
-                ranked = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(sheetData["chart"].GetRawText())["ranked"].GetBoolean();
-            }
+                var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + GetMD5(uid), true, false, true);
 
-            if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                CustomChartsRanked.Add(md5, ranked);
+                // We want the 404 specifically, because the server might be down or anything.
+                if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    onWebsite = response.IsSuccessStatusCode;
+                    data.IsOnWebsite = onWebsite;
+                }
             }
+            else onWebsite = (bool)data.IsOnWebsite;
 
-            return ranked;
+            return onWebsite;
         }
 
         internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
@@ -102,7 +100,7 @@ namespace Multiplayer.Managers
         {
             if (str.Length >= 16)
             {
-                return CustomCharts[str];
+                return CustomCharts[str].MusicInfo;
             } 
             else
             {
@@ -119,7 +117,7 @@ namespace Multiplayer.Managers
                 if (!album.Sheets.TryGetValue(2, out Sheet sheet)) continue;
                 if (CustomCharts.ContainsKey(sheet.Md5)) continue;
 
-                CustomCharts.Add(sheet.Md5, GlobalDataBase.dbMusicTag.GetMusicInfoFromAll($"{AlbumManager.Uid}-{album.Index}"));
+                CustomCharts.Add(sheet.Md5, new(album));
             }
         }
     }

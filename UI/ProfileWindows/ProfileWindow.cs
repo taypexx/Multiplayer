@@ -18,10 +18,11 @@ namespace Multiplayer.UI.ProfileWindows
     {
         private ForumObject StatsButton;
         private ForumObject FriendsButton;
+        private ForumObject FriendRequestsButton;
         private ForumObject AchievementsButton;
         private ForumObject HQStatsButton;
         private ForumObject MDMoeButton;
-        private ForumObject FriendRequestButton;
+        private ForumObject FriendActionButton;
 
         private PromptWindow FriendRequestPrompt;
         private PromptWindow UnfriendPrompt;
@@ -69,10 +70,21 @@ namespace Multiplayer.UI.ProfileWindows
         {
             StatsButton = AddButton(Localization.Get("ProfileWindow", "Stats"));
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"), UIManager.FriendsWindow);
+
+            if (Player == PlayerManager.LocalPlayer)
+            {
+                FriendRequestsButton = AddButton(Localization.Get("ProfileWindow", "FriendRequests"), UIManager.FriendRequestsWindow);
+            }
+
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
             MDMoeButton = AddButton(Localization.Get("ProfileWindow", "MDMoe"));
-            FriendRequestButton = AddButton(Localization.Get("ProfileWindow", "AddFriend"));
+
+            if (FriendButtonState != 4)
+            {
+                FriendActionButton = AddButton(Localization.Get("ProfileWindow", "AddFriend"));
+            }
+
             AddRefreshButton();
             AddReturnButton();
         }
@@ -111,7 +123,7 @@ namespace Multiplayer.UI.ProfileWindows
         /// </summary>
         private void OpenProfilePage()
         {
-            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}:{Settings.Config.PortHTTP}/profile/{Player.Uid}");
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/profile/{Player.Uid}");
         }
 
         /// <summary>
@@ -137,43 +149,56 @@ namespace Multiplayer.UI.ProfileWindows
 
             Main.Dispatcher.Enqueue(() =>
             {
+                Player localPlayer = PlayerManager.LocalPlayer;
+
+                FriendButtonState =
+                    player == localPlayer ? 4 :
+                    localPlayer.MultiplayerStats.FriendRequests.TryGetValue(player.Uid, out _) ? 0 :
+                    player.MultiplayerStats.FriendRequests.TryGetValue(localPlayer.Uid, out _) ? 1 :
+                    player.MultiplayerStats.Friends.Contains(localPlayer) || localPlayer.MultiplayerStats.Friends.Contains(player) ? 2 :
+                    3;
+
+                RemoveAllButtons();
+                CreateButtons();
+
                 StatsButton.Contents = new
                 (
-                    $"{Player.MultiplayerStats.Bio}\n\n" +
+                    $"{player.MultiplayerStats.Bio}\n\n" +
 
-                    $"[ LVL ]: <color=1eff00ff>{Player.MultiplayerStats.Level}</color>\n" +
-                    $"[ RL ]: <color=1eff00ff>{Player.MoeStats.RL}</color>\n" +
-                    $"[ ELO ]: <color=1eff00ff>{Player.MultiplayerStats.ELO}</color>\n" +
-                    $"[ Rank ]: <color=fff700ff>{Player.MultiplayerStats.Rank}</color>\n" +
-                    $"[ Records ]: <color=fff700ff>{Player.MoeStats.Records}</color>\n" +
-                    $"[ APs ]: <color=fff700ff>{Player.MoeStats.APs}</color>\n" +
-                    $"[ Average Accuracy ]: <color=fff700ff>{Player.MoeStats.AverageAccuracy}%</color>"
+                    $"[ LVL ]: <color=1eff00ff>{player.MultiplayerStats.Level}</color>\n" +
+                    $"[ RL ]: <color=1eff00ff>{player.MoeStats.RL}</color>\n" +
+                    $"[ ELO ]: <color=1eff00ff>{player.MultiplayerStats.ELO}</color>\n" +
+                    $"[ Rank ]: <color=fff700ff>{player.MultiplayerStats.Rank}</color>\n" +
+                    $"[ Records ]: <color=fff700ff>{player.MoeStats.Records}</color>\n" +
+                    $"[ APs ]: <color=fff700ff>{player.MoeStats.APs}</color>\n" +
+                    $"[ Average Accuracy ]: <color=fff700ff>{player.MoeStats.AverageAccuracy}%</color>"
                 );
                 AchievementsButton.Contents = StatsButton.Contents;
                 FriendsButton.Contents = StatsButton.Contents;
-                FriendRequestButton.Contents = StatsButton.Contents;
                 MDMoeButton.Contents = StatsButton.Contents;
                 RefreshButton.Contents = StatsButton.Contents;
                 ReturnButton.Contents = StatsButton.Contents;
 
+                if (FriendActionButton != null)
+                {
+                    FriendActionButton.Contents = StatsButton.Contents;
+                }
+
+                if (FriendRequestsButton != null)
+                {
+                    FriendRequestsButton.Contents = StatsButton.Contents;
+                }
+
                 UIManager.FriendsWindow.Update(player);
+                UIManager.FriendRequestsWindow.Update();
                 UIManager.AchievementsWindow.Update(player);
 
-                Title = Player.MultiplayerStats.NameLocal;
-                AvatarHeadItem.m_ImgHead.sprite = PnlHead.GetSprite(Player.MultiplayerStats.AvatarName);
+                Title = player.MultiplayerStats.NameLocal;
+                AvatarHeadItem.m_ImgHead.sprite = PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
 
-                Player localPlayer = PlayerManager.LocalPlayer;
-
-                FriendButtonState =
-                    Player == localPlayer ? 4 :
-                    localPlayer.MultiplayerStats.FriendRequests.TryGetValue(Player.Uid, out _) ? 0 :
-                    Player.MultiplayerStats.FriendRequests.TryGetValue(localPlayer.Uid, out _) ? 1 :
-                    Player.MultiplayerStats.Friends.Contains(localPlayer) || localPlayer.MultiplayerStats.Friends.Contains(Player) ? 2 :
-                    3;
-
-                FriendRequestButton.Titles = FriendButtonTitles[FriendButtonState];
-                FriendRequestPrompt.Title = Player.MultiplayerStats.NameLocal;
-                UnfriendPrompt.Title = Player.MultiplayerStats.NameLocal;
+                FriendActionButton.Titles = FriendButtonTitles[FriendButtonState];
+                FriendRequestPrompt.Title = player.MultiplayerStats.NameLocal;
+                UnfriendPrompt.Title = player.MultiplayerStats.NameLocal;
             });
         }
 
@@ -221,7 +246,7 @@ namespace Multiplayer.UI.ProfileWindows
         {
             ForumObject button = Window.ForumObjects[objectIndex];
 
-            if (button == FriendRequestButton && FriendButtonState == 4) return;
+            if (button == FriendActionButton && FriendButtonState == 4) return;
             else if (button == StatsButton)
             {
                 OpenProfilePage();
@@ -235,7 +260,7 @@ namespace Multiplayer.UI.ProfileWindows
 
             base.OnButtonClick(window, objectIndex);
 
-            if (button == FriendRequestButton)
+            if (button == FriendActionButton)
             {
                 if (FriendButtonState == 0)
                 {

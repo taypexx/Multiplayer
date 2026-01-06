@@ -1,6 +1,7 @@
 ﻿using MelonLoader.Utils;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Data.Players;
+using UnityEngine;
 
 namespace Multiplayer.Static
 {
@@ -9,19 +10,20 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string Authors = "taypexx & 7OU";
         public const string Version = "0.1.0";
-        public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817";
+        public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty";
 
         internal const string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
-        internal const string ServerHTTPScheme = "http"; //https later
-        internal const string ServerAddress = "127.0.0.1";
+        internal const string ServerHTTPScheme = "https";
+        internal const string ServerAddress = "mdmp.online";
         internal const int PortHTTP = 9095;
         internal const int PortUDP = 9096;
-        internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri={ServerHTTPScheme}%3A%2F%2F{ServerAddress}%3A{PortHTTP}%2Fauth&scope=identify";
+        internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri={ServerHTTPScheme}%3A%2F%2F{ServerAddress}%2Fauth&scope=identify";
+
+        public const KeyCode BattleDisplayKeyCode = KeyCode.Tab;
 
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
 
         public const int BioCharactersMax = 32;
-
         public const int PlayersMin = 2;
         public const int PlayersMax = 8;
         public const int NameCharactersMin = 3;
@@ -31,14 +33,19 @@ namespace Multiplayer.Static
         public const int PlaylistSizeMin = 2;
         public const int PlaylistSizeMax = 32;
 
-        public static readonly TimeSpan BattleSyncInterval = TimeSpan.FromMilliseconds(300);
+        public const int LobbyUpdateIntervalMinMS = 1000;
+        public const int LobbyUpdateIntervalMaxMS = 8000;
+
+        public const int BattleUpdateIntervalMinMS = 200;
+        public const int BattleUpdateIntervalMaxMS = 2000;
+
         public static readonly TimeSpan AwaitBattleInterval = TimeSpan.FromSeconds(1);
         public static readonly TimeSpan CacheCheckInterval = TimeSpan.FromSeconds(5);
         public static readonly TimeSpan PlayerCacheExpiration = TimeSpan.FromMinutes(10);
         public static readonly TimeSpan LobbyCacheExpiration = TimeSpan.FromMinutes(5);
-        public static readonly TimeSpan LobbyUpdateInterval = TimeSpan.FromSeconds(3);
 
         public const string Red = "f5428aff";
+        public const string Orange = "ff6f00ff";
         public const string Yellow = "fff700ff";
         public const string Green = "1eff00ff";
         public const string Blue = "4564ffff";
@@ -69,6 +76,14 @@ namespace Multiplayer.Static
             [AchievementDifficulty.Medium] = Yellow,
             [AchievementDifficulty.Hard] = Red,
             [AchievementDifficulty.Secret] = Pink,
+        };
+
+        public static Dictionary<ushort, string> PingColors = new()
+        {
+            [100] = Green,
+            [250] = Yellow,
+            [500] = Orange,
+            [ushort.MaxValue] = Red
         };
     }
 }

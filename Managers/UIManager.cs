@@ -38,6 +38,7 @@ namespace Multiplayer.Managers
         internal static Action<bool> WarningChooseAction;
 
         internal static MainMenu MainMenu { get; private set; }
+        internal static SettingsWindow SettingsWindow { get; private set; }
         internal static MainMenuOpenButton MainMenuOpenButton { get; private set; }
 
         internal static ProfileWindow ProfileWindow { get; private set; }
@@ -114,11 +115,11 @@ namespace Multiplayer.Managers
         /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/>.
         /// </summary>
         /// <param name="player"><see cref="Player"/> whose profile will show.</param>
-        internal static async Task OpenProfileWindow(Player player)
+        internal static async Task OpenProfileWindow(Player player, bool updatePlayer = true)
         {
             Debounce = true;
 
-            await ProfileWindow.Update(player);
+            await ProfileWindow.Update(player, updatePlayer);
 
             Main.Dispatcher.Enqueue(() =>
             {
@@ -152,40 +153,40 @@ namespace Multiplayer.Managers
             try
             {
                 if (PnlPreparation is null) return;
+
+                MusicInfo curMusicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
+                if (curMusicInfo is null) return;
+
+                GameObject playObject = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
+                GameObject imgObject = playObject.transform.Find("TxtStart/ImgBtnA").gameObject;
+                Text playText = playObject.transform.Find("TxtStart").GetComponent<Text>();
+                Button playButton = playObject.GetComponent<Button>();
+                InputKeyBinding keyBinding = playObject.GetComponent<InputKeyBinding>();
+
+                bool isRemoving = LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, ChartManager.CurrentDifficulty));
+                bool isFull = LobbyManager.LocalLobby.IsPlaylistFull;
+
+                playButton.enabled = (!LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist) && (isRemoving || !isFull);
+                keyBinding.enabled = playButton.enabled;
+                imgObject.SetActive(playButton.enabled);
+
+                if (!LobbyManager.IsInLobby)
+                {
+                    playText.text = "PLAY!";
+                }
+                else if (LobbyManager.CanChangePlaylist)
+                {
+                    playText.text = Localization.Get("PnlPreparation",
+                        isRemoving
+                        ? "PlaylistRemove"
+                        : isFull ? "PlaylistFull" : "PlaylistAdd"
+                    ).ToString();
+                }
+                else
+                {
+                    playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
+                }
             } catch { return; }
-
-            MusicInfo curMusicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
-            if (curMusicInfo is null) return;
-
-            GameObject playObject = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
-            GameObject imgObject = playObject.transform.Find("TxtStart/ImgBtnA").gameObject;
-            Text playText = playObject.transform.Find("TxtStart").GetComponent<Text>();
-            Button playButton = playObject.GetComponent<Button>();
-            InputKeyBinding keyBinding = playObject.GetComponent<InputKeyBinding>();
-
-            bool isRemoving = LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, ChartManager.CurrentDifficulty));
-            bool isFull = LobbyManager.LocalLobby.IsPlaylistFull;
-
-            playButton.enabled = (!LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist) && (isRemoving || !isFull);
-            keyBinding.enabled = playButton.enabled;
-            imgObject.SetActive(playButton.enabled);
-
-            if (!LobbyManager.IsInLobby)
-            {
-                playText.text = "PLAY!";
-            } 
-            else if (LobbyManager.CanChangePlaylist)
-            {
-                playText.text = Localization.Get("PnlPreparation",
-                    isRemoving 
-                    ? "PlaylistRemove"
-                    : isFull ? "PlaylistFull" : "PlaylistAdd"
-                ).ToString();
-            } 
-            else
-            {
-                playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
-            }
         }
 
         /// <summary>
@@ -271,13 +272,13 @@ namespace Multiplayer.Managers
             WarningChoose.OnCompletion += WarningChooseCompletion;
 
             MainMenu = new();
+            SettingsWindow = new();
             MainMenuOpenButton = new();
 
             ProfileWindow = new();
             FriendsWindow = new();
-            AchievementsWindow = new();
-
             FriendRequestsWindow = new();
+            AchievementsWindow = new();
 
             LobbiesWindow = new();
             PublicLobbiesWindow = new();
@@ -295,6 +296,7 @@ namespace Multiplayer.Managers
 
             PnlAwait = new();
 
+            SettingsWindow.CreateButtons();
             ProfileWindow.CreateButtons();
             LobbiesWindow.CreateButtons();
             LobbyCreationWindow.CreateButtons();

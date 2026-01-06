@@ -38,9 +38,9 @@ namespace Multiplayer.Patches
                         PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "VanillaOnly"));
                         return;
                     } 
-                    else if (!await ChartManager.IsCustomRanked(musicInfo.uid))
+                    else if (!await ChartManager.IsCustomOnWebsite(musicInfo.uid))
                     {
-                        PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "RankedOnly"));
+                        PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "WebsiteOnly"));
                         return;
                     }
                 } 

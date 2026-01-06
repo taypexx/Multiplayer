@@ -11,21 +11,6 @@
     "ComingSoon": "Coming soon!",
     "Loading": "Loading..."
   },
-  "Ranks": {
-    "1": "Initiate",
-    "2": "Cadet",
-    "3": "Performer",
-    "4": "Groover",
-    "5": "Master",
-    "6": "Legend",
-    "7": "Sleepwalker"
-  },
-  "Achievements": {
-    "Title": "Achievements",
-    "AchievedOn": "Achieved on",
-    "Welcome!": "Launch the multiplayer for the first time.",
-    "Autoplay.dll": "Reach the top rank in the multiplayer."
-  },
   "BattleDisplay": {
     "LostAP": "Lost AP!",
     "LostFC": "Lost FC!",
@@ -38,7 +23,7 @@
     "PlaylistRemoved": "Removed from the playlist!",
     "VanillaOnly": "Only vanilla charts are allowed!",
     "CustomOnly": "Only custom charts are allowed!",
-    "RankedOnly": "Only ranked custom charts are allowed!",
+    "WebsiteOnly": "Only website custom charts are allowed!",
     "Waiting": "Waiting for host...",
     "PlaylistFull": "Playlist is full"
   },
@@ -68,17 +53,24 @@
     "Bio": "Set Bio",
     "BioDescription": "Enter your bio",
     "BioTooLong": "Your bio must not be longer than {0} characters!",
-    "FriendRequests": "Friend Requests",
     "Lobbies": "Lobbies",
     "MyLobby": "My Lobby",
     "Competitive": "Competitive",
+    "Settings": "Settings",
     "CreditsTitle": "Credits",
     "IncorrectCode": "Incorrect code!"
+  },
+  "SettingsWindow": {
+    "Title": "Settings",
+    "DisplayLobbyStatus": "Display status of your lobby (Public or Private)",
+    "LobbyUpdateIntervalMS": "How often will your lobby data update in milliseconds. Recommended values: 3000ms — 5000ms",
+    "BattleUpdateIntervalMS": "How often will your battle data update in milliseconds. Recommended values: 300ms — 1000ms"
   },
   "ProfileWindow": {
     "Title": "Profile",
     "Stats": "Stats",
     "Friends": "Friends",
+    "FriendRequests": "Friend Requests",
     "Achievements": "Achievements",
     "HQStats": "Headquarters Stats",
     "MDMoe": "Musedash.moe",
@@ -92,6 +84,21 @@
     "RemoveFriendSuccess": "Unfriended!",
     "CancelFriendRequestSuccess": "Cancelled friend request",
     "AddedFriend": "New friend added!"
+  },
+  "Ranks": {
+    "1": "Initiate",
+    "2": "Cadet",
+    "3": "Performer",
+    "4": "Groover",
+    "5": "Master",
+    "6": "Legend",
+    "7": "Sleepwalker"
+  },
+  "Achievements": {
+    "Title": "Achievements",
+    "AchievedOn": "Achieved on",
+    "Welcome!": "Launch the multiplayer for the first time.",
+    "Autoplay.dll": "Reach the top rank in the multiplayer."
   },
   "Lobbies": {
     "Title": "Lobbies",
@@ -132,7 +139,7 @@
   },
   "Lobby": {
     "Title": "Lobby",
-    "Description": "<color=f5428aff>{0}</color>\nID: {1}\n\n[ Host ]: <color=fff700ff>{2}</color>\n[ Players ]: {3}/{4}\n[ Status ]: <color={5}>{6}</color>\n[ Charts ]: <color={7}>{8}</color>\n[ Locked ]: {9}",
+    "Description": "<color=f5428aff>{0}</color> <color={1}>({2})</color>\n<u>ID: {3}</u>\n\n[ Host ]: <color=fff700ff>{4}</color>\n[ Players ]: {5}/{6}\n[ Charts ]: <color={7}>{8}</color>\n[ Locked ]: {9}",
     "Accuracy": "Accuracy",
     "Score": "Score",
     "Custom": "Custom",

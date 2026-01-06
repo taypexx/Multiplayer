@@ -8,7 +8,7 @@ namespace Multiplayer.UI.Displays
         internal MainLobbyDisplay()
         {
             ParentPath = "UI/Standerd/PnlNavigation";
-            AnchorPosition = new(700f, 350f, 0f);
+            AnchorPosition = new(830f, 350f, 0f);
             Step = new(0f, -35f, 0f);
             PopupOffset = new(-135f, 0, 0);
             PopupX = 50f;

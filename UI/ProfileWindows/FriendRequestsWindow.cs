@@ -5,14 +5,14 @@ using Multiplayer.UI.Abstract;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows.Interfaces;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.ProfileWindows
 {
     internal sealed class FriendRequestsWindow : BaseMultiplayerWindow
     {
         private Dictionary<ForumObject, string> ButtonsUids;
         private Dictionary<string, LocalString> CachedNames;
 
-        internal FriendRequestsWindow() : base(Localization.Get("MainMenu", "FriendRequests"), UIManager.MainMenu, "MainMenu.png")
+        internal FriendRequestsWindow() : base(Localization.Get("ProfileWindow", "FriendRequests"), UIManager.ProfileWindow, "Friends.png")
         {
             ButtonsUids = new();
             CachedNames = new();

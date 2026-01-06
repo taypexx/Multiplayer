@@ -42,7 +42,7 @@ namespace Multiplayer.Managers
 
             while (IsAutoUpdating && Client.Connected)
             {
-                await Task.Delay(Constants.LobbyUpdateInterval);
+                await Task.Delay(Settings.Config.LobbyUpdateIntervalMS);
                 await UIManager.LobbyWindow.Update(lobby);
                 
                 if (lobby == LocalLobby)

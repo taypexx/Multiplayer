@@ -74,7 +74,7 @@ namespace Multiplayer.UI.Abstract
         /// <returns><see langword="true"/> if it was removed, otherwise <see langword="false"/>.</returns>
         protected bool RemoveButton(ForumObject button)
         {
-            if (button == null) return false;
+            if (button is null) return false;
 
             if (button == ReturnButton)
             {

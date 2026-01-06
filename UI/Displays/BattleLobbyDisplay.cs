@@ -23,6 +23,25 @@ namespace Multiplayer.UI.Displays
             DoesSort = true;
         }
 
+        internal bool PingMode { get; private set; } = false;
+        internal void UpdateMode()
+        {
+            bool mode = Input.GetKey(Constants.BattleDisplayKeyCode);
+            if (PingMode == mode) return;
+
+            PingMode = mode;
+            UpdateTexts();
+        }
+
+        private string GetPingColor(ushort pingMS)
+        {
+            foreach ((var level, var color) in Constants.PingColors)
+            {
+                if (pingMS < level) return color;
+            }
+            return Constants.PingColors.LastOrDefault().Value;
+        }
+
         protected override void UpdateTexts()
         {
             if (!LobbyManager.IsInLobby) return;
@@ -33,44 +52,47 @@ namespace Multiplayer.UI.Displays
                 Player player = (Player)key;
 
                 BattleStats battleStats = player.BattleStats;
-                string battleInfo = null;
+                string battleInfo = string.Empty;
                 
-                switch (LobbyManager.LocalLobby.Goal)
+                if (!PingMode)
                 {
-                    case LobbyGoal.Accuracy:
+                    switch (LobbyManager.LocalLobby.Goal)
+                    {
+                        case LobbyGoal.Accuracy:
 
-                        if (battleStats.TrueAP)
-                        {
-                            battleInfo = $"<color=#{Constants.Red}>TP</color>";
-                        }
-                        else if (battleStats.AP)
-                        {
-                            battleInfo = $"<color=#{Constants.Yellow}>AP</color>";
-                            if (battleStats.Earlies > 0)
+                            if (battleStats.TrueAP)
                             {
-                                battleInfo += $" <color=#{Constants.Blue}>{battleStats.Earlies}E</color>";
+                                battleInfo = $"<color=#{Constants.Red}>TP</color>";
                             }
-                            if (battleStats.Lates > 0)
+                            else if (battleStats.AP)
                             {
-                                battleInfo += $" <color=#{Constants.Red}>{battleStats.Lates}L</color>";
+                                battleInfo = $"<color=#{Constants.Yellow}>AP</color>";
+                                if (battleStats.Earlies > 0)
+                                {
+                                    battleInfo += $" <color=#{Constants.Blue}>{battleStats.Earlies}E</color>";
+                                }
+                                if (battleStats.Lates > 0)
+                                {
+                                    battleInfo += $" <color=#{Constants.Red}>{battleStats.Lates}L</color>";
+                                }
                             }
-                        }
-                        else if (battleStats.FC)
-                        {
-                            battleInfo = $"<color=#{Constants.Blue}>FC</color> {battleStats.Accuracy}%  {battleStats.Greats}G";
-                        }
-                        else
-                        {
-                            battleInfo = $"{battleStats.Accuracy}%  {battleStats.Misses}M {battleStats.Greats}G";
-                        }
+                            else if (battleStats.FC)
+                            {
+                                battleInfo = $"<color=#{Constants.Blue}>FC</color> {battleStats.Accuracy}%  {battleStats.Greats}G";
+                            }
+                            else
+                            {
+                                battleInfo = $"{battleStats.Accuracy}%  {battleStats.Misses}M {battleStats.Greats}G";
+                            }
 
-                        break;
-                    case LobbyGoal.Score:
-                        battleInfo = $"<color=#{Constants.Blue}>{battleStats.Score}</color>";
-                        break;
-                    case LobbyGoal.Custom:
-                        break;
-                }
+                            break;
+                        case LobbyGoal.Score:
+                            battleInfo = $"<color=#{Constants.Blue}>{battleStats.Score}</color>";
+                            break;
+                        case LobbyGoal.Custom:
+                            break;
+                    }
+                } else battleInfo = $"<color=#{GetPingColor(battleStats.PingMS)}>{battleStats.PingMS}ms</color>";
 
                 var name = Lobby.ReadyPlayers.Contains(player.Uid) ? player.MultiplayerStats.Name : Localization.Get("Global", "Loading").ToString();
                 text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{name}</color>" : name)} — {battleInfo}";

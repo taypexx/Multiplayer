@@ -165,9 +165,15 @@ namespace Multiplayer.UI.Abstract
         {
             if (Lobby is null) { Destroy(); return; }
 
-            if (Title) Title.text = $"{Lobby.Name} " +
-             $"<color=#{Constants.Yellow}>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color> " +
-             $"<color=#{(Lobby.IsPrivate ? Constants.Red : Constants.Green)}>({(Lobby.IsPrivate ? "Private" : "Public")})</color>";
+            if (Title)
+            {
+                Title.text = Lobby.Name + $" <color=#{Constants.Yellow}>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color>";
+
+                if (Settings.Config.DisplayLobbyStatus)
+                {
+                    Title.text += $" <color=#{(Lobby.IsPrivate ? Constants.Red : Constants.Green)}>({(Lobby.IsPrivate ? "Private" : "Public")})</color>";
+                }
+            }
 
             foreach (string playerUid in Lobby.Players)
             {
@@ -200,7 +206,7 @@ namespace Multiplayer.UI.Abstract
                 if (key is not Player) continue;
                 Player player = (Player)key;
 
-                text.text = player == Lobby.Host ? $"<color=#fff700ff>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name;
+                text.text = player == Lobby.Host ? $"<color=#fff700ff>[♫]</color> {player.MultiplayerStats.Name}" : player.MultiplayerStats.Name;
             }
         }
 

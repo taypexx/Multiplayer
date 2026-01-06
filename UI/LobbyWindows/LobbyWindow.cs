@@ -125,11 +125,11 @@ namespace Multiplayer.UI.LobbyWindows
                 MainDescription = new(string.Format(
                     Localization.Get("Lobby", "Description").ToString(),
                     lobby.Name,
+                    lobby.IsPrivate ? Constants.Red : Constants.Green,
+                    lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString(),
                     lobby.Id,
                     lobby.Host.MultiplayerStats.Name,
                     lobby.Players.Count, lobby.MaxPlayers,
-                    lobby.IsPrivate ? Constants.Red : Constants.Green,
-                    lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString(),
                     Constants.PlayTypeColors[lobby.PlayType], Localization.Get("Lobby", lobby.PlayType.ToString()), 
                     lobby.Locked ? Localization.Get("Global", "Yes").ToString() : Localization.Get("Global", "No").ToString()
                 ));
@@ -140,8 +140,14 @@ namespace Multiplayer.UI.LobbyWindows
                 DisbandPrompt.Title = Title;
 
                 ActionButton.Contents = MainDescription;
-                PlaylistButton.Contents = MainDescription;
-                PlayButton.Contents = MainDescription;
+                if (PlaylistButton != null)
+                {
+                    PlaylistButton.Contents = MainDescription;
+                }
+                if (PlayButton != null)
+                {
+                    PlayButton.Contents = MainDescription;
+                }
 
                 ReturnButton.Contents = MainDescription;
                 ReturnWindow = LobbyManager.LocalLobby == Lobby ? UIManager.MainMenu : Lobby.IsPrivate ? UIManager.LobbiesWindow : UIManager.PublicLobbiesWindow;

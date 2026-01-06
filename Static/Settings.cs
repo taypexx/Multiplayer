@@ -3,8 +3,24 @@ using Tomlet.Attributes;
 
 namespace Multiplayer.Static
 {
+    public class Config
+    {
+        internal bool DisplayLobbyStatus { get; set; } = true;
+        internal int LobbyUpdateIntervalMS { get; 
+            set {
+                field = Math.Clamp(value, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS);
+            } 
+        } = 3000;
+        internal int BattleUpdateIntervalMS { get; 
+            set {
+                field = Math.Clamp(value, Constants.BattleUpdateIntervalMinMS, Constants.BattleUpdateIntervalMaxMS);
+            } 
+        } = 300;
+    }
+
     internal static class Settings
     {
+        internal static string ConfigFilePath = Path.Combine("UserData", "Multiplayer.cfg");
         internal static Config Config = new();
 
         internal static void Load()
@@ -12,14 +28,14 @@ namespace Multiplayer.Static
             Main.Logger.Msg("Loading the settings...");
             try
             {
-                if (!File.Exists(Path.Combine("UserData", "Multiplayer.cfg")))
+                if (!File.Exists(ConfigFilePath))
                 {
                     var defaultConfig = TomletMain.TomlStringFrom(Config);
-                    File.WriteAllText(Path.Combine("UserData", "Multiplayer.cfg"), defaultConfig);
+                    File.WriteAllText(ConfigFilePath, defaultConfig);
                 }
 
-                var data = File.ReadAllText(Path.Combine("UserData", "Multiplayer.cfg"));
-                Config = TomletMain.To<Config>(data);
+                Config = TomletMain.To<Config>(File.ReadAllText(ConfigFilePath));
+
                 Main.Logger.Msg("Successfully loaded the settings!");
             }
             catch (Exception ex)
@@ -33,7 +49,7 @@ namespace Multiplayer.Static
             Main.Logger.Msg("Saving the settings...");
             try
             {
-                File.WriteAllText(Path.Combine("UserData", "Multiplayer.cfg"), TomletMain.TomlStringFrom(Config));
+                File.WriteAllText(ConfigFilePath, TomletMain.TomlStringFrom(Config));
                 Main.Logger.Msg("Successfully saved the settings!");
             }
             catch (Exception ex)
@@ -41,23 +57,5 @@ namespace Multiplayer.Static
                 Main.Logger.Error("Failed to save the settings: " + ex);
             }
         }
-    }
-
-    public class Config
-    {
-        [TomlPrecedingComment("Server IP")]
-        internal string ServerAddress { get; set; } = Constants.ServerAddress;
-
-        [TomlPrecedingComment("HTTP port of the server")]
-        internal int PortHTTP { get; set; } = Constants.PortHTTP;
-
-        [TomlPrecedingComment("UDP port of the server")]
-        internal int PortUdp { get; set; } = Constants.PortUDP;
-
-        [TomlPrecedingComment("Allow the invites from friends")]
-        internal bool AllowFriendInvites { get; set; } = true;
-
-        [TomlPrecedingComment("Show friend invites in battle")]
-        internal bool ShowBattleInvites { get; set; } = false;
     }
 }

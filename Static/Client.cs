@@ -23,7 +23,6 @@ namespace Multiplayer.Static
         private static Stopwatch Stopwatch = new Stopwatch();
         internal static ushort PingMS { get; private set; }
 
-        internal static string ServerAddress { get; private set; }
         internal static string ServerVersion { get; private set; }
         internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
         private static LocalString OutdatedWarning;
@@ -81,16 +80,8 @@ namespace Multiplayer.Static
         {
             try
             {
-                Stopwatch.Restart();
-
-                await Udp.SendAsync(data, data.Length, Settings.Config.ServerAddress, Settings.Config.PortUdp);
+                await Udp.SendAsync(data, data.Length, Constants.ServerAddress, Constants.PortUDP);
                 var result = await Udp.ReceiveAsync();
-
-                Stopwatch.Stop();
-                unchecked
-                {
-                    PingMS = (ushort)Stopwatch.ElapsedMilliseconds;
-                }
 
                 return result.Buffer;
             }
@@ -113,7 +104,7 @@ namespace Multiplayer.Static
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, isFullPath ? path : ServerAddress + "/api/" + path);
+                var request = new HttpRequestMessage(HttpMethod.Get, isFullPath ? path : $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/{path}");
 
                 if (!doAuth)
                 {
@@ -152,7 +143,7 @@ namespace Multiplayer.Static
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, isFullPath ? path : ServerAddress + "/api/" + path);
+                var request = new HttpRequestMessage(HttpMethod.Post, isFullPath ? path : $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/{path}");
                 request.Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
                 
                 if (!doAuth)
@@ -160,8 +151,16 @@ namespace Multiplayer.Static
                     request.Headers.Authorization = null;
                 }
 
+                Stopwatch.Restart();
+
                 HttpResponseMessage response = await Http.SendAsync(request);
                 request.Dispose();
+
+                unchecked
+                {
+                    PingMS = (ushort)Stopwatch.ElapsedMilliseconds;
+                }
+                Stopwatch.Stop();
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -198,7 +197,7 @@ namespace Multiplayer.Static
 
             object payload = code is null ? new { Uid = uid } : new { Uid = uid, Code = code };
 
-            var response = await PostAsync(ServerAddress + "/login", payload, true, code is null, true);
+            var response = await PostAsync($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login", payload, true, code is null, true);
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
@@ -247,7 +246,7 @@ namespace Multiplayer.Static
         private static void UpdateModOption(bool doUpdate)
         {
             if (!doUpdate) return;
-            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Settings.Config.ServerAddress}:{Settings.Config.PortHTTP}/home");
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}:{Constants.PortHTTP}/home");
         }
 
         private static void ReconnectOption(bool doReconnect)
@@ -285,9 +284,6 @@ namespace Multiplayer.Static
             Http.DefaultRequestHeaders.ConnectionClose = false;
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Udp = new();
-
-            // Run after settings loaded
-            ServerAddress = $"{Constants.ServerHTTPScheme}://{Settings.Config.ServerAddress}:{Settings.Config.PortHTTP}";
 
             if (File.Exists(TokenPath)) Token = File.ReadAllText(TokenPath);
         }

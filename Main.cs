@@ -82,6 +82,11 @@ namespace Multiplayer
         {
             base.OnUpdate();
             Dispatcher.Update();
+
+            if (UIManager.BattleLobbyDisplay != null)
+            {
+                UIManager.BattleLobbyDisplay.UpdateMode();
+            }
         }
 
         public override void OnDeinitializeMelon()
