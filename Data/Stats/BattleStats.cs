@@ -34,39 +34,17 @@ namespace Multiplayer.Data.Stats
         public ushort Lates { get; internal set; }
         public ushort Misses { get; internal set; } 
 
-        public ushort PingMS { get; internal set; }
-
-        public Grade Grade
+        public Grade Grade => Accuracy switch
         {
-            get
-            {
-                if (Accuracy == 100)
-                {
-                    return Grade.SSS;
-                }
-                else if (Accuracy >= 95)
-                {
-                    return Grade.SS;
-                }
-                else if (Accuracy >= 90)
-                {
-                    return Grade.S;
-                }
-                else if (Accuracy >= 80 || Misses == 0)
-                {
-                    return Grade.A;
-                }
-                else if (Accuracy >= 70)
-                {
-                    return Grade.B;
-                }
-                else if (Accuracy >= 60)
-                {
-                    return Grade.C;
-                }
-                else return Grade.D;
-            }
-        }
+            100f => Grade.SSS,
+            >= 95f => Grade.SS,
+            >= 90f => Grade.S,
+            >= 80f => Grade.A,
+            _ when Misses == 0 => Grade.A,
+            >= 70f => Grade.B,
+            >= 60f => Grade.C,
+            _ => Grade.D
+        };
 
         public BattleStats(Player player)
         {
@@ -88,13 +66,15 @@ namespace Multiplayer.Data.Stats
             Earlies = 0;
             Lates = 0;
             Misses = 0;
-            PingMS = 0;
         }
 
         public bool PrevAP { get; private set; }
         public bool PrevFC { get; private set; }
         public ushort PrevMisses { get; private set; }
 
+        /// <summary>
+        /// Saves previous AP, FC and misses.
+        /// </summary>
         internal void UpdatePrevious()
         {
             PrevAP = AP;

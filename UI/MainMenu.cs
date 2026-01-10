@@ -26,7 +26,6 @@ namespace Multiplayer.UI
 
         internal InputWindow CodeWindow;
         private InputWindow BioWindow;
-        private static PnlHead PnlHead => GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>();
         private static bool PnlHeadWasOpened = false;
 
         private static LocalString MainDescription => Localization.Get("MainMenu", "Description");
@@ -36,13 +35,13 @@ namespace Multiplayer.UI
         {
             CodeWindow = new();
             CodeWindow.AutoReset = true;
-            CodeWindow.OnCompletion += (BaseWindow _) => OnCodeEntered();
+            CodeWindow.OnCompletion += (BaseWindow w) => _ = OnCodeEntered();
 
             BioWindow = new(Localization.Get("MainMenu", "BioDescription"));
             BioWindow.AutoReset = true;
             BioWindow.OnCompletion += OnBioCompletion;
 
-            PnlHead.onClose += (Action)OnPnlHeadClose;
+            UIManager.PnlHead.onClose += (Action)OnPnlHeadClose;
 
             Credits = new(string.Format("———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\n{0}",Constants.Testers));
         }
@@ -50,7 +49,7 @@ namespace Multiplayer.UI
         internal void CreateButtons()
         {
             MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), null, MainDescription);
-            AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), PnlHead, MainDescription);
+            AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), UIManager.PnlHead, MainDescription);
             BioButton = AddButton(Localization.Get("MainMenu", "Bio"), BioWindow, MainDescription);
             LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
@@ -70,7 +69,7 @@ namespace Multiplayer.UI
         /// <summary>
         /// Opens the main menu if connected to the server, otherwise tries to connect first.
         /// </summary>
-        internal void Open()
+        internal void Open(BaseMultiplayerWindow windowToOpen = null)
         {
             if (UIManager.Debounce) return;
 
@@ -82,8 +81,8 @@ namespace Multiplayer.UI
                     UIManager.WarnNotification(Localization.Get("MainMenu", "LocalPlayerBanned"));
                 } else
                 {
-                    if (!LobbyManager.IsInLobby) Window.Show();
-                    else _ = UIManager.OpenLobbyWindow(LobbyManager.LocalLobby);
+                    if (windowToOpen is null) windowToOpen = this;
+                    windowToOpen.Window.Show();
                 }
             } else
             {
@@ -170,7 +169,7 @@ namespace Multiplayer.UI
             {
                 if (LobbyManager.IsInLobby) 
                 {
-                    _ = UIManager.OpenLobbyWindow(LobbyManager.LocalLobby);
+                    _ = UIManager.OpenLobbyWindow();
                 } else
                 {
                     UIManager.LobbiesWindow.Window.Show();

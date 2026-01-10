@@ -1,6 +1,5 @@
 ﻿using Il2CppDG.Tweening;
 using Il2CppDG.Tweening.Core;
-using System.Runtime.InteropServices;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
@@ -35,26 +34,6 @@ namespace Multiplayer.UI.Abstract
             TextList = new();
             PositionList = new();
         }
-
-        /// <summary>
-        /// Displays a small popup near the main text.
-        /// </summary>
-        /// <param name="text">Contents of the message.</param>
-        /// <param name="key">Key to which the text belongs.</param>
-        internal void Popup(string text, object key)
-        {
-            if (!TextList.TryGetValue(key, out Text owner)) return;
-
-            GameObject popup = GameObject.Instantiate(owner.gameObject, Parent);
-            popup.name = "EntryPopup";
-            popup.transform.localPosition = owner.transform.localPosition + PopupOffset;
-            popup.transform.DOMoveX(PopupX, 1.5f).SetRelative().SetEase(Ease.InOutSine).OnComplete((Action)(() => GameObject.Destroy(popup)));
-
-            Text popupText = popup.GetComponent<Text>();
-            popupText.text = text;
-
-            //DOTween.ToAlpha(new(Marshal.GetFunctionPointerForDelegate(() => popupText.color)), new(Marshal.GetFunctionPointerForDelegate(x => popupText.color = x)), 0f, 1.5f);
-       }
 
         /// <summary>
         /// Adds a <see cref="Text"/> to the display, aligning it visually.
@@ -199,15 +178,35 @@ namespace Multiplayer.UI.Abstract
             UpdateTexts();
         }
 
-        protected virtual void UpdateTexts()
+        internal virtual void UpdateTexts()
         {
             foreach ((object key, Text text) in TextList)
             {
                 if (key is not Player) continue;
                 Player player = (Player)key;
 
-                text.text = player == Lobby.Host ? $"<color=#fff700ff>[♫]</color> {player.MultiplayerStats.Name}" : player.MultiplayerStats.Name;
+                text.text = player == Lobby.Host ? $"<color=#fff700ff>[Host]</color> {player.MultiplayerStats.Name}" : player.MultiplayerStats.Name;
             }
+        }
+
+        /// <summary>
+        /// Displays a small popup near the main text.
+        /// </summary>
+        /// <param name="text">Contents of the message.</param>
+        /// <param name="key">Key to which the text belongs.</param>
+        internal virtual void Popup(string text, object key)
+        {
+            if (!TextList.TryGetValue(key, out Text owner)) return;
+
+            GameObject popup = GameObject.Instantiate(owner.gameObject, Parent);
+            popup.name = "EntryPopup";
+            popup.transform.localPosition = owner.transform.localPosition + PopupOffset;
+            popup.transform.DOMoveX(PopupX, 1.5f).SetRelative().SetEase(Ease.InOutSine).OnComplete((Action)(() => GameObject.Destroy(popup)));
+
+            Text popupText = popup.GetComponent<Text>();
+            popupText.text = text;
+
+            //DOTween.ToAlpha(new(Marshal.GetFunctionPointerForDelegate(() => popupText.color)), new(Marshal.GetFunctionPointerForDelegate(x => popupText.color = x)), 0f, 1.5f);
         }
 
         /// <summary>

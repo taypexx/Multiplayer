@@ -1,4 +1,5 @@
-﻿using Multiplayer.Data.Players;
+﻿using LocalizeLib;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -21,14 +22,21 @@ namespace Multiplayer.UI.ProfileWindows
         /// Updates the window to show friends of a <see cref="Player"/>.
         /// </summary>
         /// <param name="player"><see cref="Player"/> whose friends will show.</param>
-        internal void Update(Player player)
+        internal async Task Update(Player player)
         {
             RemoveAllButtons(true);
             ButtonsFriends.Clear();
 
-            foreach (Player friend in player.MultiplayerStats.Friends)
+            if (!player.MultiplayerStats.FriendsCached)
             {
-                ForumObject button = AddButton(friend.MultiplayerStats.NameLocal);
+                await player.MultiplayerStats.CacheFriends();
+            }
+
+            // Might crash, keep an eye on it
+            foreach (string friendUid in player.MultiplayerStats.Friends)
+            {
+                Player friend = PlayerManager.GetCachedPlayer(friendUid);
+                ForumObject button = AddButton((LocalString)friend.MultiplayerStats.Name);
                 ButtonsFriends.Add(button, friend);
             }
         }

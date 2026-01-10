@@ -134,7 +134,7 @@ namespace Multiplayer.UI.LobbyWindows
                     lobby.Locked ? Localization.Get("Global", "Yes").ToString() : Localization.Get("Global", "No").ToString()
                 ));
 
-                Title = lobby.NameLocal;
+                Title = (LocalString)lobby.Name;
                 JoinPrompt.Title = Title;
                 LeavePrompt.Title = Title;
                 DisbandPrompt.Title = Title;
@@ -158,7 +158,7 @@ namespace Multiplayer.UI.LobbyWindows
                     if (ButtonsPlayers.ContainsValue(player)) continue;
 
                     ForumObject button = AddButton(
-                        lobby.Host == player ? new($"<color={Constants.Yellow}>{player.MultiplayerStats.Name}</color>") : player.MultiplayerStats.NameLocal,
+                        lobby.Host == player ? new($"<color={Constants.Yellow}>{player.MultiplayerStats.Name}</color>") : (LocalString)player.MultiplayerStats.Name,
                         null, MainDescription
                     );
                     ButtonsPlayers.Add(button, player);
@@ -205,7 +205,7 @@ namespace Multiplayer.UI.LobbyWindows
                 LocalString msg = success ? ActionButtonResponses[window == LeavePrompt ? 1 : 2] : Localization.Get("Warning", "Unknown");
 
                 UpdateDebounce = false;
-                if (success) await Update(Lobby);
+                if (success && window != DisbandPrompt) await Update(Lobby);
 
                 Main.Dispatcher.Enqueue(() =>
                 {
@@ -251,42 +251,18 @@ namespace Multiplayer.UI.LobbyWindows
             }
         }
 
-        private void OnPlaylistButtonClick()
-        {
-            UIManager.LobbyPlaylistWindow.Update(Lobby);
-            UIManager.LobbyPlaylistWindow.Window.Show();
-        }
-
-        private async Task OnPlayButtonClick()
-        {
-            if (Lobby.Host != PlayerManager.LocalPlayer)
-            {
-                Window.Show();
-                return;
-            }
-
-            if (Lobby.Playlist.Count == 0)
-            {
-                PopupUtils.ShowInfo(Localization.Get("Lobby", "PlaylistEmpty"));
-                Window.Show();
-                return;
-            }
-
-            UIManager.Debounce = true;
-            await LobbyManager.LockLobby(true);
-            UIManager.Debounce = false;
-
-            _ = UIManager.ShowInfoAndStartGame();
-        }
-
         protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
 
             ForumObject button = Window.ForumObjects[objectIndex];
 
-            if (button == PlaylistButton) OnPlaylistButtonClick();
-            else if (button == PlayButton) _ = OnPlayButtonClick();
+            if (button == PlaylistButton) UIManager.OnPlaylistButtonClick();
+            else if (button == PlayButton) 
+            { 
+                UIManager.LobbyWindowQueued = true; 
+                UIManager.PlayConfirmPrompt.Show(); 
+            }
             else if (button == ActionButton) OnActionButtonClick();
             else if (ButtonsPlayers.TryGetValue(button, out Player player))
             {

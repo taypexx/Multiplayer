@@ -75,7 +75,7 @@ namespace Multiplayer.Patches
             {
                 Button pnlPreparationButton = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart").GetComponent<Button>();
                 pnlPreparationButton.onClick.RemoveAllListeners();
-                pnlPreparationButton.onClick.AddListener((UnityAction)new Action(() => OnPnlPreparationClick()));
+                pnlPreparationButton.onClick.AddListener((UnityAction)new Action(() => _ = OnPnlPreparationClick()));
 
                 UIManager.UpdatePnlPreparation();
             }

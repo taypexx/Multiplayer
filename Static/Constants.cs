@@ -10,7 +10,7 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string Authors = "taypexx & 7OU";
         public const string Version = "0.1.0";
-        public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty";
+        public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty, Medeyah";
 
         internal const string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
         internal const string ServerHTTPScheme = "https";
@@ -19,11 +19,11 @@ namespace Multiplayer.Static
         internal const int PortUDP = 9096;
         internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri={ServerHTTPScheme}%3A%2F%2F{ServerAddress}%2Fauth&scope=identify";
 
-        public const KeyCode BattleDisplayKeyCode = KeyCode.Tab;
+        public const KeyCode BattleDisplayKeyCode = KeyCode.LeftShift;
 
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
 
-        public const int BioCharactersMax = 32;
+        public const int BioCharactersMax = 48;
         public const int PlayersMin = 2;
         public const int PlayersMax = 8;
         public const int NameCharactersMin = 3;

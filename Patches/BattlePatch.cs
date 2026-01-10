@@ -186,6 +186,16 @@ namespace Multiplayer.Patches
             }
         }
 
+        [HarmonyPatch(typeof(Il2CppAssets.Scripts.PeroTools.Managers.UnityGameManager), "OnApplicationFocus")]
+        [HarmonyPriority(Priority.First)]
+        internal static class OnApplicationFocusPatch
+        {
+            private static bool Prefix()
+            {
+                return !LobbyManager.IsInLobby;
+            }
+        }
+
         /// <summary>
         /// Doesn't let you restart the chart if you are playing multiplayer.
         /// </summary>

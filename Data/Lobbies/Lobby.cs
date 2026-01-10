@@ -1,5 +1,4 @@
 ﻿using Il2CppAssets.Scripts.Database;
-using LocalizeLib;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -12,7 +11,6 @@ namespace Multiplayer.Data.Lobbies
     {
         public int Id { get; private set; }
         public string Name { get; private set; }
-        public LocalString NameLocal { get; private set; }
 
         public LobbyPlayType PlayType { get; private set; }
         public LobbyChartSelection ChartSelection { get; private set; }
@@ -33,11 +31,11 @@ namespace Multiplayer.Data.Lobbies
         public PlaylistEntry CurrentPlaylistEntry => Playlist?.First();
 
         internal DateTime LastUpdated { get; private set; }
+
         internal Lobby(int id)
         {
             Id = id;
             Name = "Lobby";
-            NameLocal = new(Name);
 
             IsPrivate = true;
             PlayType = LobbyPlayType.All;
@@ -54,11 +52,17 @@ namespace Multiplayer.Data.Lobbies
             Playlist = new();
         }
 
+        /// <summary>
+        /// Checks if the <see cref="Player"/> is in <see langword="this"/> <see cref="Lobby"/>.
+        /// </summary>
         internal bool IsMember(Player player)
         {
             return Players.Contains(player.Uid);
         }
 
+        /// <summary>
+        /// Checks if a <see cref="PlaylistEntry"/> with the provided <paramref name="entry"/> is in the playlist.
+        /// </summary>
         internal bool HasInPlaylist(string entry)
         {
             foreach (var playlistEntry in Playlist)
@@ -68,6 +72,7 @@ namespace Multiplayer.Data.Lobbies
             return false;
         }
 
+        /// <returns>A <see cref="PlaylistEntry"/> which has the given <paramref name="entry"/>.</returns>
         internal PlaylistEntry GetFromPlaylist(string entry)
         {
             foreach (var playlistEntry in Playlist)
@@ -78,24 +83,24 @@ namespace Multiplayer.Data.Lobbies
         }
 
         /// <summary>
-        /// Synchronizes the <see cref="Lobby"/> with the server.
+        /// Gets the <see cref="Lobby"/> data from the server and updates itself.
         /// </summary>
         /// <param name="updatePlayers">Whether to updates players of the lobby.</param>
         /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
         internal async Task<bool> Update(bool updatePlayers = false)
         {
-            var payload = new
+            var response = await Client.PostAsync("getLobby", new
             {
                 Client.Token,
                 PlayerManager.LocalPlayer.Uid,
                 Id
-            };
+            });
 
-            var response = await Client.PostAsync("getLobby", payload);
+            // If the lobby was disbanded
             if (response == null)
             {
-                // Lobby was disbanded
-                if (Host == PlayerManager.LocalPlayer)
+                // Leave if the local player was in this lobby
+                if (IsMember(PlayerManager.LocalPlayer))
                 {
                     UIManager.Debounce = true;
                     await LobbyManager.LeaveLobby(true);
@@ -109,46 +114,43 @@ namespace Multiplayer.Data.Lobbies
             var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
 
             Name = updatedData["Name"].GetString();
-            NameLocal = new(Name);
-
             IsPrivate = updatedData["IsPrivate"].GetBoolean();
+            Locked = updatedData["Locked"].GetBoolean();
+            MaxPlayers = updatedData["MaxPlayers"].GetUInt16();
+            Host = await PlayerManager.GetPlayer(updatedData["HostUid"].GetString());
+            PlaylistSize = updatedData["PlaylistSize"].GetUInt16();
+
             PlayType = (LobbyPlayType)updatedData["PlayType"].GetByte();
             ChartSelection = (LobbyChartSelection)updatedData["ChartSelection"].GetByte();
             Goal = (LobbyGoal)updatedData["Goal"].GetByte();
 
-            Locked = updatedData["Locked"].GetBoolean();
-            Host = await PlayerManager.GetPlayer(updatedData["HostUid"].GetString());
-            MaxPlayers = updatedData["MaxPlayers"].GetUInt16();
-
-            try
+            try // Loves to error
             {
                 Players = JsonSerializer.Deserialize<List<string>>(updatedData["Players"].GetRawText());
             }
             catch { }
 
+            // Cache new players, update current ones if needed
             foreach (string playerUid in Players)
             {
                 Player player = PlayerManager.GetCachedPlayer(playerUid);
                 if (player is null)
                 {
-                    player = await PlayerManager.GetPlayer(playerUid);
+                    await PlayerManager.GetPlayer(playerUid);
                 }
                 else if (updatePlayers) await player.Update();
             }
 
-            if (this == LobbyManager.LocalLobby)
-            {
+            if (this == LobbyManager.LocalLobby) {
                 try
                 {
                     ReadyPlayers = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"].GetRawText());
-                }
-                catch { }
-
-                try
+                } 
+                catch { } try
                 {
                     var playlist = JsonSerializer.Deserialize<List<string>>(updatedData["Playlist"].GetRawText());
 
-                    // Add the new entries from other players
+                    // Add new entries from other players
                     foreach (string entry in playlist)
                     {
                         string[] str = entry.Split("#");
@@ -162,7 +164,7 @@ namespace Multiplayer.Data.Lobbies
                         Playlist.Add(playlistEntry);
                     }
 
-                    // Remove the entries that were removed by other players
+                    // Remove entries that were removed by other players
                     foreach (var playlistEntry in Playlist)
                     {
                         if (playlist.Contains(playlistEntry.Entry)) continue;
@@ -175,7 +177,6 @@ namespace Multiplayer.Data.Lobbies
                 catch { }
             }
 
-            PlaylistSize = updatedData["PlaylistSize"].GetUInt16();
             LastUpdated = DateTime.Now;
             return true;
         }

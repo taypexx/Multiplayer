@@ -69,7 +69,7 @@ namespace Multiplayer.UI.ProfileWindows
         internal void CreateButtons()
         {
             StatsButton = AddButton(Localization.Get("ProfileWindow", "Stats"));
-            FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"), UIManager.FriendsWindow);
+            FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"));
 
             if (Player == PlayerManager.LocalPlayer)
             {
@@ -144,7 +144,7 @@ namespace Multiplayer.UI.ProfileWindows
             Player = player;
             if (updatePlayer)
             {
-                await player.Update(true);
+                await player.Update();
             }
 
             Main.Dispatcher.Enqueue(() =>
@@ -155,7 +155,7 @@ namespace Multiplayer.UI.ProfileWindows
                     player == localPlayer ? 4 :
                     localPlayer.MultiplayerStats.FriendRequests.TryGetValue(player.Uid, out _) ? 0 :
                     player.MultiplayerStats.FriendRequests.TryGetValue(localPlayer.Uid, out _) ? 1 :
-                    player.MultiplayerStats.Friends.Contains(localPlayer) || localPlayer.MultiplayerStats.Friends.Contains(player) ? 2 :
+                    player.MultiplayerStats.Friends.Contains(localPlayer.Uid) || localPlayer.MultiplayerStats.Friends.Contains(player.Uid) ? 2 :
                     3;
 
                 RemoveAllButtons();
@@ -169,9 +169,9 @@ namespace Multiplayer.UI.ProfileWindows
                     $"[ RL ]: <color=1eff00ff>{player.MoeStats.RL}</color>\n" +
                     $"[ ELO ]: <color=1eff00ff>{player.MultiplayerStats.ELO}</color>\n" +
                     $"[ Rank ]: <color=fff700ff>{player.MultiplayerStats.Rank}</color>\n" +
-                    $"[ Records ]: <color=fff700ff>{player.MoeStats.Records}</color>\n" +
-                    $"[ APs ]: <color=fff700ff>{player.MoeStats.APs}</color>\n" +
-                    $"[ Average Accuracy ]: <color=fff700ff>{player.MoeStats.AverageAccuracy}%</color>"
+                    $"[ Records ]: <color=fff700ff>{player.TotalRecords}</color>\n" +
+                    $"[ APs ]: <color=fff700ff>{player.TotalAPs}</color>\n" +
+                    $"[ Average Accuracy ]: <color=fff700ff>{player.TotalAverageAccuracy}%</color>"
                 );
                 AchievementsButton.Contents = StatsButton.Contents;
                 FriendsButton.Contents = StatsButton.Contents;
@@ -189,16 +189,15 @@ namespace Multiplayer.UI.ProfileWindows
                     FriendRequestsButton.Contents = StatsButton.Contents;
                 }
 
-                UIManager.FriendsWindow.Update(player);
                 UIManager.FriendRequestsWindow.Update();
                 UIManager.AchievementsWindow.Update(player);
 
-                Title = player.MultiplayerStats.NameLocal;
+                Title = (LocalString)player.MultiplayerStats.Name;
                 AvatarHeadItem.m_ImgHead.sprite = PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
 
                 FriendActionButton.Titles = FriendButtonTitles[FriendButtonState];
-                FriendRequestPrompt.Title = player.MultiplayerStats.NameLocal;
-                UnfriendPrompt.Title = player.MultiplayerStats.NameLocal;
+                FriendRequestPrompt.Title = (LocalString)player.MultiplayerStats.Name;
+                UnfriendPrompt.Title = (LocalString)player.MultiplayerStats.Name;
             });
         }
 
@@ -234,12 +233,23 @@ namespace Multiplayer.UI.ProfileWindows
                 }
                 await Update(Player, true);
 
+                if (AdvancedPnlHome.Visible) AdvancedPnlHome.UpdateCurrentPage();
+
                 PopupUtils.ShowInfo(msg);
 
                 UIManager.Debounce = false;
             }
 
             Window.Show();
+        }
+
+        private async Task OpenFriendsWindow()
+        {
+            UIManager.Debounce = true;
+            await UIManager.FriendsWindow.Update(Player);
+            UIManager.Debounce = false;
+
+            Main.Dispatcher.Enqueue(() => UIManager.FriendsWindow.Window.Show());
         }
 
         protected override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
@@ -249,13 +259,11 @@ namespace Multiplayer.UI.ProfileWindows
             if (button == FriendActionButton && FriendButtonState == 4) return;
             else if (button == StatsButton)
             {
-                OpenProfilePage();
-                return;
+                OpenProfilePage(); return;
             }
             else if (button == MDMoeButton)
             {
-                OpenMDMoe();
-                return;
+                OpenMDMoe(); return;
             }
 
             base.OnButtonClick(window, objectIndex);
@@ -274,11 +282,8 @@ namespace Multiplayer.UI.ProfileWindows
                 {
                     _ = OnFriendActionDecided();
                 }
-            }
-            else if (button == RefreshButton)
-            {
-                _ = Refresh();
-            }
+            } else if (button == FriendsButton) _ = OpenFriendsWindow();
+            else if (button == RefreshButton) _ = Refresh();
         }
 
         protected override void OnShow(BaseWindow window)

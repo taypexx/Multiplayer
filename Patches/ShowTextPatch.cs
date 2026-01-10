@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
-using Il2CppAssets.Scripts.UI.Controls;
 using LocalizeLib;
+using Il2CppAssets.Scripts.UI.Controls;
 
 namespace Multiplayer.Patches
 {
     /// <summary>
-    /// Doesn't let the "Code doesn't exist" popup to appear.
+    /// Removes "Code doesn't exist" popup.
     /// </summary>
     [HarmonyPatch(typeof(ShowText), nameof(ShowText.ShowInfo))]
     [HarmonyPriority(Priority.First)]

@@ -1,6 +1,8 @@
 ﻿using Il2CppAssets.Scripts.Database;
+using LocalizeLib;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Static;
+using Multiplayer.UI;
 using PopupLib.UI;
 using System.Net.Http.Json;
 
@@ -43,14 +45,15 @@ namespace Multiplayer.Managers
             while (IsAutoUpdating && Client.Connected)
             {
                 await Task.Delay(Settings.Config.LobbyUpdateIntervalMS);
-                await UIManager.LobbyWindow.Update(lobby);
-                
+                await UIManager.LobbyWindow.Update(lobby, InputManager.PingMode); // || AdvancedPnlHome.Visible questionable
+
                 if (lobby == LocalLobby)
                 {
                     Main.Dispatcher.Enqueue(() => 
                     {
                         UIManager.MainLobbyDisplay.Update();
                         UIManager.UpdatePnlPreparation();
+                        AdvancedPnlHome.UpdateAllPages();
                     });
                     if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.CurrentScene == "UISystem_PC")
                     {
@@ -295,6 +298,8 @@ namespace Multiplayer.Managers
 
             Main.Dispatcher.Enqueue(() =>
             {
+                UIManager.PlayConfirmPrompt.Title = (LocalString)lobby.Name;
+                AdvancedPnlHome.Enable();
                 UIManager.MainLobbyDisplay.Create(lobby);
                 UIManager.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
@@ -314,6 +319,7 @@ namespace Multiplayer.Managers
                 UIManager.MainLobbyDisplay.Destroy();
                 UIManager.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
+                AdvancedPnlHome.Disable();
             });
         }
 
@@ -389,7 +395,7 @@ namespace Multiplayer.Managers
                 {
                     if (current - lobby.LastUpdated >= Constants.LobbyCacheExpiration && lobby != LocalLobby)
                     {
-                        // check this too
+                        // Uncomment this whenever you feel like it won't break anything
                         //ClearLobbyFromCache(lobby);
                     }
                 }

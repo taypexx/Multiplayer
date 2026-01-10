@@ -1,6 +1,5 @@
 ﻿using MelonLoader;
 using Multiplayer.Managers;
-using Il2CppAssets.Scripts.Database;
 using Multiplayer.Static;
 using Multiplayer.Patches;
 
@@ -11,6 +10,9 @@ namespace Multiplayer
         internal static Dispatcher Dispatcher { get; private set; }
         internal static MelonLogger.Instance Logger { get; private set; }
         internal static string CurrentScene { get; private set; }
+        internal static bool IsUIScene => CurrentScene == "UISystem_PC";
+
+        private static readonly List<string> Dependencies = new() { "CustomAlbums", "PopupLib", "LocalizeLib" };
 
         public override void OnEarlyInitializeMelon()
         {
@@ -21,6 +23,16 @@ namespace Multiplayer
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
+
+            foreach (var dependencyName in Dependencies)
+            {
+                if (!RegisteredMelons.Any(m => m.Info.Name == dependencyName))
+                {
+                    Logger.Error($"Failed to initialize {Constants.ModName}: {dependencyName} is missing!");
+                    return;
+                }
+            }
+
             Logger = new(Constants.ModName);
 
             InitGlobal();
@@ -38,7 +50,6 @@ namespace Multiplayer
             Localization.Init();
             BattleManager.Init();
             Client.Init();
-            //DiscordManager.Init();
         }
 
         /// <summary>
@@ -59,10 +70,10 @@ namespace Multiplayer
 
             if (sceneName == "UISystem_PC")
             {
+                UIManager.UpdateVanillaPanels();
                 UIManager.Init();
                 UIManager.InitUISystemMain();
 
-                PlayerManager.LocalPlayerLVL = DataHelper.Level;
                 AchievementManager.Check();
                 PlayerManager.SyncProfile();
                 PlayerManager.SyncHiddens();
@@ -71,10 +82,6 @@ namespace Multiplayer
                 UIManager.InitGameMain();
 
                 BattlePatch.SceneLoaded();
-            } else if (LobbyManager.IsInLobby)
-            {
-                UIManager.MainLobbyDisplay.Destroy();
-                UIManager.BattleLobbyDisplay.Destroy();
             }
         }
 
@@ -82,18 +89,13 @@ namespace Multiplayer
         {
             base.OnUpdate();
             Dispatcher.Update();
-
-            if (UIManager.BattleLobbyDisplay != null)
-            {
-                UIManager.BattleLobbyDisplay.UpdateMode();
-            }
+            InputManager.Update();
         }
 
         public override void OnDeinitializeMelon()
         {
             Settings.Save();
-            DiscordManager.Dispose();
-            LobbyManager.LeaveLobby().ContinueWith(t => Client.Disconnect());
+            _ = LobbyManager.LeaveLobby();
 
             base.OnDeinitializeMelon();
         }

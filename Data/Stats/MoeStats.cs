@@ -8,16 +8,10 @@ namespace Multiplayer.Data.Stats
     public class MoeStats
     {
         public Player Player { get; private set; }
-        public float RL { get; private set; }
+        public float RL { get; private set { field = Utilities.RoundFloat(value); } }
         public ushort Records { get; private set; }
         public ushort APs { get; private set; }
-        public float AverageAccuracy { get;
-            private set
-            {
-                if (float.IsNaN(value)) { field = 100f; return; }
-                field = (float)Math.Round((decimal)value * 100) / 100f;
-            }
-        }
+        public float AverageAccuracy { get; private set { field = Utilities.RoundFloat(value); }}
 
         public MoeStats(Player player)
         {
@@ -31,18 +25,17 @@ namespace Multiplayer.Data.Stats
         /// <summary>
         /// Synchronizes stats with <see href="https://musedash.moe"/>.
         /// </summary>
-        /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
-        internal async Task<bool> Update()
+        internal async Task Update()
         {
             var response = await Client.GetAsync("https://api.musedash.moe/player/" + Player.Uid, true, false);
-            if (response == null) return false;
+            if (response == null) return;
 
             var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();
             var plays = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(updatedData["plays"].GetRawText());
 
             unchecked
             {
-                float newRL = 0;
+                float newRL = 0f;
                 updatedData["rl"].TryGetSingle(out newRL);
                 RL = newRL;
                 Records = (ushort)plays.Count;
@@ -52,14 +45,12 @@ namespace Multiplayer.Data.Stats
             float totalAcc = 0f;
             foreach (var play in plays)
             {
-                float acc = 0;
+                float acc = 0f;
                 play["acc"].TryGetSingle(out acc);
-                if (acc == 100) APs++;
+                if (acc == 100f) APs++;
                 totalAcc += acc;
             }
             AverageAccuracy = totalAcc / Records;
-
-            return true;
         }
     }
 }

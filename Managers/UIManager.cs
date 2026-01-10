@@ -17,21 +17,28 @@ using PopupLib.UI.Windows.Abstract;
 using LocalizeLib;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Data.Players;
+using Multiplayer.UI.NavigationButtons;
+using UnityEngine.Events;
 
 namespace Multiplayer.Managers
 {
     internal static class UIManager
     {
+        internal static bool Initialized { get; private set; } = false;
         internal static bool Debounce = false;
         internal static Text WindowTitle { get; private set; }
         private static TimeSpan ShowMsgDuration = TimeSpan.FromSeconds(1);
 
-        internal static GameObject MainFrame => GameObject.Find("UI/Forward/Tips/PnlBulletinNew");
-        internal static PageHome PageHome => GameObject.Find("UI/Standerd/PnlHome").GetComponent<PageHome>();
-        internal static PnlMenu PnlMenu => GameObject.Find("UI/Standerd/PnlMenu").GetComponent<PnlMenu>();
-        internal static PnlNavigation PnlNavigation => GameObject.Find("UI/Standerd/PnlNavigation").GetComponent<PnlNavigation>();
-        internal static PnlPreparation PnlPreparation => GameObject.Find("UI/Standerd/PnlPreparation").GetComponent<PnlPreparation>();
-        internal static PnlStage PnlStage => GameObject.Find("UI/Standerd/PnlStage").GetComponent<PnlStage>();
+        internal static GameObject MainFrame;
+        internal static PageHome PageHome;
+        internal static PnlMenu PnlMenu;
+        internal static PnlNavigation PnlNavigation;
+        internal static PnlPreparation PnlPreparation;
+        internal static PnlStage PnlStage;
+        internal static PnlHead PnlHead;
+
+        internal static PromptWindow PlayConfirmPrompt;
+        internal static bool LobbyWindowQueued = false;
 
         internal static MessageWindow Warning;
         internal static PromptWindow WarningChoose;
@@ -39,7 +46,6 @@ namespace Multiplayer.Managers
 
         internal static MainMenu MainMenu { get; private set; }
         internal static SettingsWindow SettingsWindow { get; private set; }
-        internal static MainMenuOpenButton MainMenuOpenButton { get; private set; }
 
         internal static ProfileWindow ProfileWindow { get; private set; }
         internal static FriendsWindow FriendsWindow { get; private set; }
@@ -60,6 +66,11 @@ namespace Multiplayer.Managers
 
         internal static MainLobbyDisplay MainLobbyDisplay { get; private set; }
         internal static BattleLobbyDisplay BattleLobbyDisplay { get; private set; }
+
+        internal static MainButton MainNavButton { get; private set; }
+        internal static LobbyButton LobbyNavButton { get; private set; }
+        internal static PlayButton PlayNavButton { get; private set; }
+        internal static PlaylistButton PlaylistNavButton { get; private set; }
 
         internal static PnlAwait PnlAwait { get; private set; }
 
@@ -115,8 +126,9 @@ namespace Multiplayer.Managers
         /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/>.
         /// </summary>
         /// <param name="player"><see cref="Player"/> whose profile will show.</param>
-        internal static async Task OpenProfileWindow(Player player, bool updatePlayer = true)
+        internal static async Task OpenProfileWindow(Player player = null, bool updatePlayer = true)
         {
+            if (player is null) player = PlayerManager.LocalPlayer;
             Debounce = true;
 
             await ProfileWindow.Update(player, updatePlayer);
@@ -132,11 +144,17 @@ namespace Multiplayer.Managers
         /// Opens the <see cref="LobbyWindow"/> and displays information and members of the <see cref="Lobby"/>.
         /// </summary>
         /// <param name="lobby"><see cref="Lobby"/> which will be displayed.</param>
-        internal static async Task OpenLobbyWindow(Lobby lobby)
+        internal static async Task OpenLobbyWindow(Lobby lobby = null)
         {
+            if (!LobbyManager.IsInLobby)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "NoLobby"));
+                return;
+            }
+            if (lobby is null) lobby = LobbyManager.LocalLobby;
             Debounce = true;
 
-            await LobbyWindow.Update(lobby, true);
+            await LobbyWindow.Update(lobby, false);
 
             Main.Dispatcher.Enqueue(() =>
             {
@@ -145,48 +163,99 @@ namespace Multiplayer.Managers
             });
         }
 
+        internal static void OnPlaylistButtonClick()
+        {
+            if (!LobbyManager.IsInLobby)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "NoLobby"));
+                return;
+            }
+
+            LobbyPlaylistWindow.Update(LobbyManager.LocalLobby);
+            LobbyPlaylistWindow.Window.Show();
+        }
+
+        private static async Task OnPlayConfirm()
+        {
+            if (!LobbyManager.IsInLobby)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "NoLobby"));
+                return;
+            }
+
+            if (PlayConfirmPrompt.Result != true)
+            {
+                if (LobbyWindowQueued) LobbyWindow.Window.Show();
+                LobbyWindowQueued = false;
+                return;
+            }
+            else LobbyWindowQueued = false;
+
+            var localLobby = LobbyManager.LocalLobby;
+            if (localLobby.Host != PlayerManager.LocalPlayer) return;
+            if (localLobby.Playlist.Count == 0)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "PlaylistEmpty"));
+                LobbyWindow.Window.Show();
+                return;
+            }
+
+            // Sleepwalker check
+            foreach (string playerUid in localLobby.Players)
+            {
+                var player = PlayerManager.GetCachedPlayer(playerUid);
+                if (player is null) continue;
+
+                if (player.MultiplayerStats.GirlIndex == 2)
+                {
+                    PopupUtils.ShowInfo((LocalString)String.Format(Localization.Get("Lobby", "SleepwalkerUsed").ToString(), player.MultiplayerStats.Name));
+                    return;
+                }
+            }
+
+            Debounce = true;
+            await LobbyManager.LockLobby(true);
+            Debounce = false;
+
+            _ = ShowInfoAndStartGame();
+        }
+
         /// <summary>
         /// Locks/unlocks PnlPreparation depending on the local lobby.
         /// </summary>
         internal static void UpdatePnlPreparation()
         {
-            try
+            if (!Main.IsUIScene || PnlPreparation is null) return;
+
+            MusicInfo curMusicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
+            if (curMusicInfo is null) return;
+
+            GameObject playObject = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
+            GameObject imgObject = playObject.transform.Find("TxtStart/ImgBtnA").gameObject;
+            Text playText = playObject.transform.Find("TxtStart").GetComponent<Text>();
+            Button playButton = playObject.GetComponent<Button>();
+            InputKeyBinding keyBinding = playObject.GetComponent<InputKeyBinding>();
+
+            bool isRemoving = LobbyManager.IsInLobby && LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, ChartManager.CurrentDifficulty));
+            bool isFull = LobbyManager.IsInLobby && LobbyManager.LocalLobby.IsPlaylistFull;
+
+            playButton.enabled = (!LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist) && (isRemoving || !isFull);
+            keyBinding.enabled = playButton.enabled;
+            imgObject.SetActive(playButton.enabled);
+
+            if (!LobbyManager.IsInLobby)
             {
-                if (PnlPreparation is null) return;
-
-                MusicInfo curMusicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
-                if (curMusicInfo is null) return;
-
-                GameObject playObject = GameObject.Find("UI/Standerd/PnlPreparation/Start/BtnStart");
-                GameObject imgObject = playObject.transform.Find("TxtStart/ImgBtnA").gameObject;
-                Text playText = playObject.transform.Find("TxtStart").GetComponent<Text>();
-                Button playButton = playObject.GetComponent<Button>();
-                InputKeyBinding keyBinding = playObject.GetComponent<InputKeyBinding>();
-
-                bool isRemoving = LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, ChartManager.CurrentDifficulty));
-                bool isFull = LobbyManager.LocalLobby.IsPlaylistFull;
-
-                playButton.enabled = (!LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist) && (isRemoving || !isFull);
-                keyBinding.enabled = playButton.enabled;
-                imgObject.SetActive(playButton.enabled);
-
-                if (!LobbyManager.IsInLobby)
-                {
-                    playText.text = "PLAY!";
-                }
-                else if (LobbyManager.CanChangePlaylist)
-                {
-                    playText.text = Localization.Get("PnlPreparation",
-                        isRemoving
-                        ? "PlaylistRemove"
-                        : isFull ? "PlaylistFull" : "PlaylistAdd"
-                    ).ToString();
-                }
-                else
-                {
-                    playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
-                }
-            } catch { return; }
+                playText.text = "PLAY!";
+            }
+            else if (LobbyManager.CanChangePlaylist)
+            {
+                playText.text = Localization.Get("PnlPreparation",
+                    isRemoving
+                    ? "PlaylistRemove"
+                    : isFull ? "PlaylistFull" : "PlaylistAdd"
+                ).ToString();
+            }
+            else playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
         }
 
         /// <summary>
@@ -223,16 +292,39 @@ namespace Multiplayer.Managers
 
             Main.Dispatcher.Enqueue(() => 
             {
+                MainLobbyDisplay.Destroy();
+                AdvancedPnlHome.Disable();
+
                 PnlPreparation.OnBattleStart();
                 Debounce = false;
             });
+        }
+
+        internal static void ToggleNavigationButtons(bool state)
+        {
+            if (!Initialized) return;
+            MainNavButton.Toggle(state);
+            LobbyNavButton.Toggle(state);
+            PlayNavButton.Toggle(state);
+            PlaylistNavButton.Toggle(state);
+        }
+
+        internal static void UpdateVanillaPanels()
+        {
+            MainFrame = GameObject.Find("UI/Forward/Tips/PnlBulletinNew");
+            PageHome = GameObject.Find("UI/Standerd/PnlHome").GetComponent<PageHome>();
+            PnlMenu = GameObject.Find("UI/Standerd/PnlMenu").GetComponent<PnlMenu>();
+            PnlNavigation = GameObject.Find("UI/Standerd/PnlNavigation").GetComponent<PnlNavigation>();
+            PnlPreparation = GameObject.Find("UI/Standerd/PnlPreparation").GetComponent<PnlPreparation>();
+            PnlStage = GameObject.Find("UI/Standerd/PnlStage").GetComponent<PnlStage>();
+            PnlHead = GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>();
         }
 
         /// <summary>
         /// Initializes every time a UISystem_PC scene gets loaded.
         /// </summary>
         internal static void InitUISystemMain()
-        {
+        {     
             var windowTitleGo = GameObject.Instantiate(
                 GameObject.Find("UI/Forward/Tips/PnlAchievementsTips/TxtTittle"),
                 MainFrame.transform
@@ -241,10 +333,22 @@ namespace Multiplayer.Managers
             windowTitleGo.SetActive(false);
             WindowTitle = windowTitleGo.GetComponent<Text>();
 
-            MainMenuOpenButton.Create();
+            MainNavButton.Create();
+            LobbyNavButton.Create();
+            PlayNavButton.Create();
+            PlaylistNavButton.Create();
+
             ProfileWindow.CreateAvatarBox();
 
-            if (LobbyManager.IsInLobby) MainLobbyDisplay.Create(LobbyManager.LocalLobby);
+            if (LobbyManager.IsInLobby)
+            {
+                AdvancedPnlHome.Enable();
+                MainLobbyDisplay.Create(LobbyManager.LocalLobby);
+            }
+
+            var updateLobbyDisplayAction = (UnityAction)new Action(MainLobbyDisplay.UpdateTexts);
+            GameObject.Find("UI/Standerd/PnlNavigation/Top/BtnNavigationBack").GetComponent<Button>().onClick.AddListener(updateLobbyDisplayAction);
+            GameObject.Find("UI/Standerd/PnlHome/Bottom/Btn").GetComponent<Button>().onClick.AddListener(updateLobbyDisplayAction);
         }
 
         /// <summary>
@@ -261,7 +365,7 @@ namespace Multiplayer.Managers
 
         internal static void Init()
         {
-            if (MainMenu != null) return;
+            if (Initialized) return;
 
             Warning = new(new(), Localization.Get("Warning", "Title"));
             Warning.AutoReset = true;
@@ -271,9 +375,12 @@ namespace Multiplayer.Managers
 
             WarningChoose.OnCompletion += WarningChooseCompletion;
 
+            PlayConfirmPrompt = new(Localization.Get("Lobby", "PlayConfirm"));
+            PlayConfirmPrompt.AutoReset = true;
+            PlayConfirmPrompt.OnCompletion += (BaseWindow w) => _ = OnPlayConfirm();
+
             MainMenu = new();
             SettingsWindow = new();
-            MainMenuOpenButton = new();
 
             ProfileWindow = new();
             FriendsWindow = new();
@@ -294,6 +401,11 @@ namespace Multiplayer.Managers
             MainLobbyDisplay = new();
             BattleLobbyDisplay = new();
 
+            MainNavButton = new();
+            LobbyNavButton = new();
+            PlayNavButton = new();
+            PlaylistNavButton = new();
+
             PnlAwait = new();
 
             SettingsWindow.CreateButtons();
@@ -302,6 +414,8 @@ namespace Multiplayer.Managers
             LobbyCreationWindow.CreateButtons();
 
             MainMenu.CreateButtons();
+
+            Initialized = true;
         }
     }
 }

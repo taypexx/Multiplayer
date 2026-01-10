@@ -53,11 +53,11 @@ namespace Multiplayer.UI
             {
                 string valueString = prop.PropertyType == typeof(bool)
                     ? (bool)prop.GetValue(Settings.Config) 
-                          ? Localization.Get("Global", "Yes").ToString() 
-                          : Localization.Get("Global", "No").ToString()
-                    : prop.GetValue(Settings.Config).ToString();
+                          ? $"<color={Constants.Green}>{Localization.Get("Global", "Yes").ToString()}</color>"
+                          : $"<color={Constants.Red}>{Localization.Get("Global", "No").ToString()}</color>"
+                    : $"<color={Constants.Yellow}>{prop.GetValue(Settings.Config).ToString()}</color>";
 
-                desc = desc + $"[ <u>{prop.Name}</u> ]: <color={Constants.Yellow}>{valueString}</color>\n{Localization.Get("SettingsWindow", prop.Name).ToString()}\n\n";
+                desc = desc + $"[ <u>{prop.Name}</u> ]: {valueString}\n{Localization.Get("SettingsWindow", prop.Name).ToString()}\n\n";
             }
 
             MainDescription = new(desc);

@@ -22,7 +22,7 @@ namespace Multiplayer.Managers
             Player localPlayer = PlayerManager.LocalPlayer;
             if (localPlayer is null) return;
 
-            if (localPlayer.MultiplayerStats.ELO >= Rank.TopRankELO) Achieve(1);
+            if (localPlayer.MultiplayerStats.ELO >= Ranks.TopRankELO) Achieve(1);
         }
 
         /// <summary>

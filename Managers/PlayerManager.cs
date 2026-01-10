@@ -11,7 +11,6 @@ namespace Multiplayer.Managers
         internal static Player LocalPlayer { get; private set; }
         internal static string LocalPlayerUid { get; private set; }
         internal static string LocalPlayerName { get; private set; }
-        internal static int LocalPlayerLVL { get; set; }
 
         /// <summary>
         /// Synchronizes profile stats of the local <see cref="Player"/>.
@@ -27,6 +26,9 @@ namespace Multiplayer.Managers
                 AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
                 Bio = LocalPlayer.MultiplayerStats.Bio,
                 Level = LocalPlayer.MultiplayerStats.Level,
+                GirlIndex = LocalPlayer.MultiplayerStats.GirlIndex,
+                ElfinIndex = LocalPlayer.MultiplayerStats.ElfinIndex,
+                PingMS = LocalPlayer.PingMS,
             };
             _ = Client.PostAsync("updatePlayer", payload);
         }
@@ -127,7 +129,10 @@ namespace Multiplayer.Managers
                 {
                     if (current - player.LastUpdated >= Constants.PlayerCacheExpiration && player != LocalPlayer)
                     {
-                        // FIX THIS SHIT
+                        // We don't need to clear our mates
+                        if (LobbyManager.IsInLobby && LobbyManager.LocalLobby.IsMember(player)) continue;
+
+                        // Uncomment whenever you feel like it won't break anything
                         //ClearPlayerFromCache(player);
                     }
                 }

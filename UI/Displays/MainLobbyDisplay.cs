@@ -1,5 +1,9 @@
-﻿using Multiplayer.UI.Abstract;
+﻿using Multiplayer.Data.Players;
+using Multiplayer.Managers;
+using Multiplayer.Static;
+using Multiplayer.UI.Abstract;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Multiplayer.UI.Displays
 {
@@ -14,6 +18,27 @@ namespace Multiplayer.UI.Displays
             PopupX = 50f;
             TextAnchor = TextAnchor.UpperRight;
             FontSize = 26;
+        }
+
+        internal override void UpdateTexts()
+        {
+            var playersVisible = !AdvancedPnlHome.Visible;
+            foreach ((object key, Text text) in TextList)
+            {
+                if (key is not Player) continue;
+                Player player = (Player)key;
+
+                text.enabled = playersVisible;
+                if (playersVisible)
+                {
+                    text.text = player == Lobby.Host ? $"<color=#fff700ff>[Host]</color> {player.MultiplayerStats.Name}" : player.MultiplayerStats.Name;
+
+                    if (InputManager.PingMode)
+                    {
+                        text.text += $" — <color=#{Utilities.GetPingColor(player.PingMS)}>{player.PingMS}ms</color>";
+                    }
+                }
+            }
         }
     }
 }

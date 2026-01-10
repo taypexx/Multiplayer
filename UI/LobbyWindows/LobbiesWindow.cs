@@ -84,7 +84,7 @@ namespace Multiplayer.UI.LobbyWindows
 
             if (LobbyManager.IsInLobby)
             {
-                _ = UIManager.OpenLobbyWindow(LobbyManager.LocalLobby);
+                _ = UIManager.OpenLobbyWindow();
                 return;
             }
 

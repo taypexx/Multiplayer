@@ -1,5 +1,4 @@
 ﻿using Il2CppSirenix.Serialization.Utilities;
-using Multiplayer.Data.Players;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -10,6 +9,12 @@ namespace Multiplayer.Static
     public static class Utilities
     {
         public static Font NormalFont = Addressables.LoadAssetAsync<Font>("Normal").WaitForCompletion();
+
+        public static float RoundFloat(float value, int decimalPlaces = 2)
+        {
+            if (float.IsNaN(value)) return 0f;
+            return (float)Math.Round((decimal)(value * (10^decimalPlaces))) / (10^decimalPlaces);
+        }
 
         public static bool IsValidString(string str, int minLength, int maxLength)
         {
@@ -29,6 +34,7 @@ namespace Multiplayer.Static
         {
             GameObject gameObject = new GameObject(name);
             gameObject.transform.SetParent(parent, true);
+            gameObject.transform.localScale = Vector3.one;
 
             Text text = gameObject.GetComponent<Text>() ?? gameObject.AddComponent<Text>();
             text.text = name;
@@ -44,6 +50,15 @@ namespace Multiplayer.Static
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch { }
+        }
+
+        public static string GetPingColor(ushort pingMS)
+        {
+            foreach ((var level, var color) in Constants.PingColors)
+            {
+                if (pingMS < level) return color;
+            }
+            return Constants.PingColors.LastOrDefault().Value;
         }
     }
 }

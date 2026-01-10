@@ -1,4 +1,4 @@
-﻿using LocalizeLib;
+﻿using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -11,29 +11,50 @@ namespace Multiplayer.Data.Stats
     {
         public Player Player { get; private set; }
         public string Name { get; private set; }
-        public LocalString NameLocal { get; private set; }
         public string AvatarName { get; internal set; }
         public string Bio { get; internal set; }
-        public int Level { get; private set; }
+        public int Level { 
+            get => Player == PlayerManager.LocalPlayer ? DataHelper.Level : field;
+            private set; 
+        }
 
-        public List<Player> Friends { get; private set; }
+        public int GirlIndex { 
+            get => Player == PlayerManager.LocalPlayer ? DataHelper.selectedRoleIndex : field;
+            private set; 
+        }
+        public int ElfinIndex { 
+            get => Player == PlayerManager.LocalPlayer ? DataHelper.selectedElfinIndex : field;
+            private set; 
+        }
+
+        public int FavGirlIndex { get; private set; }
+        public int FavElfinIndex { get; private set; }
+
+        public bool FriendsCached { get; private set; }
+        public List<string> Friends { get; private set; }
         public Dictionary<string, string> FriendRequests { get; private set; }
         public Dictionary<DateTime, Achievement> Achievements { get; internal set; }
         public List<string> Hiddens { get; internal set; }
 
         public ushort ELO { get; private set; }
         public bool Banned { get; private set; }
-        public string Rank => GetRank(true);
+        public string Rank => Ranks.GetRank(ELO);
 
         public MultiplayerStats(Player player)
         {
             Player = player;
             Name = PlayerManager.LocalPlayerName ?? player.Uid;
-            NameLocal = new(Name);
             AvatarName = "head_0";
             Bio = "This player did not set their bio.";
             Level = 1;
 
+            GirlIndex = 0;
+            ElfinIndex = -1;
+
+            FavGirlIndex = -1;
+            FavElfinIndex = -1;
+
+            FriendsCached = false;
             Friends = new();
             FriendRequests = new();
             Achievements = new();
@@ -44,46 +65,30 @@ namespace Multiplayer.Data.Stats
         }
 
         /// <summary>
-        /// Gets the <see cref="MultiplayerStats"/> from the server.
+        /// Gets <see cref="MultiplayerStats"/> from the server and updates itself.
         /// </summary>
-        /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
-        internal async Task<bool> Update()
+        internal async Task Update()
         {
-            var payload = new
+            var response = await Client.PostAsync("getPlayer", new
             {
                 Uid = PlayerManager.LocalPlayerUid ?? Player.Uid,
                 TargetUid = Player.Uid,
                 Name = PlayerManager.LocalPlayerName
-            };
-
-            var response = await Client.PostAsync("getPlayer",payload);
-            if (response == null) return false;
+            });
+            if (response is null) return;
 
             var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
 
             Name = updatedData["Name"].GetString();
-            NameLocal = new(Name);
             AvatarName = updatedData["AvatarName"].GetString();
             Bio = updatedData["Bio"].GetString();
-            Level = Player == PlayerManager.LocalPlayer ? PlayerManager.LocalPlayerLVL : updatedData["Level"].GetInt32();
+            Level = updatedData["Level"].GetInt32();
 
-            Friends.Clear();
-            var updatedFriends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"].GetRawText());
-            foreach (string friendUid in updatedFriends)
-            {
-                Friends.Add(PlayerManager.GetPlayer(friendUid).Result);
-            }
-
-            Achievements.Clear();
             try
             {
-                var updatedAchievements = JsonSerializer.Deserialize<Dictionary<long, byte>>(updatedData["Achievements"].GetRawText());
-                foreach ((long unixTimestamp, byte id) in updatedAchievements)
-                {
-                    Achievements.Add(DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).DateTime, AchievementManager.Achievements[id]);
-                }
+                Friends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"].GetRawText());
             }
-            catch {}
+            catch { }
 
             FriendRequests.Clear();
             try
@@ -92,30 +97,40 @@ namespace Multiplayer.Data.Stats
             }
             catch {}
 
+            Achievements.Clear();
+            try
+            {
+                // Converting data to actual achievements with their timestamps 
+                var updatedAchievements = JsonSerializer.Deserialize<Dictionary<long, byte>>(updatedData["Achievements"].GetRawText());
+                foreach ((long unixTimestamp, byte id) in updatedAchievements)
+                {
+                    Achievements.Add(DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).DateTime, AchievementManager.Achievements[id]);
+                }
+            }
+            catch { }
+
             ELO = updatedData["ELO"].GetUInt16();
             Banned = updatedData["Banned"].GetBoolean();
 
-            return true;
+            GirlIndex = updatedData["GirlIndex"].GetInt32();
+            ElfinIndex = updatedData["ElfinIndex"].GetInt32();
+
+            FavGirlIndex = updatedData["FavGirlIndex"].GetInt32();
+            FavElfinIndex = updatedData["FavElfinIndex"].GetInt32();
+
+            Player.PingMS = updatedData["PingMS"].GetUInt16();
         }
 
-        private string GetRank(bool includingSubrank = false)
+        /// <summary>
+        /// Caches every <see cref="Player"/> from friends.
+        /// </summary>
+        internal async Task CacheFriends()
         {
-            for (int i = 0; i < Players.Rank.RanksList.Count; i++)
+            foreach (string friendUid in Friends)
             {
-                Rank rank = Players.Rank.RanksList[i];
-                if (ELO >= rank.ELO)
-                {
-                    if (includingSubrank && rank.SubRanks > 0)
-                    {
-                        return $"{rank.Name} {Players.Rank.SubdivisionSuffixes[(int)Math.Floor((decimal)((ELO - rank.ELO) / Players.Rank.SubdivisionGap))]}";
-                    }
-                    else
-                    {
-                        return rank.Name.ToString();
-                    }
-                }
+                await PlayerManager.GetPlayer(friendUid);
             }
-            return Players.Rank.RanksList.Last().Name.ToString();
+            FriendsCached = true;
         }
     }
 }

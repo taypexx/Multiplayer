@@ -1,11 +1,20 @@
-﻿using Tomlet;
-using Tomlet.Attributes;
+﻿using Multiplayer.Managers;
+using Tomlet;
 
 namespace Multiplayer.Static
 {
     public class Config
     {
+        internal bool ShowNavigationButtons { get;
+            set {
+                UIManager.ToggleNavigationButtons(value);
+                field = value;
+            } 
+        } = true;
+        internal bool FavGirlMode { get; set; } = false;
+        internal bool ShowOtherElfins { get; set; } = true;
         internal bool DisplayLobbyStatus { get; set; } = true;
+        internal bool ShowBattlePopups { get; set; } = true;
         internal int LobbyUpdateIntervalMS { get; 
             set {
                 field = Math.Clamp(value, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS);

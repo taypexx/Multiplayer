@@ -58,7 +58,7 @@ namespace Multiplayer.Managers
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 14), BattleStats.Lates); 
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 16), BattleStats.Misses);
             span[UidSize + 18] = (byte)(BattleStats.FC ? 1 : 0);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 19), BattleStats.PingMS);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 19), BattleStats.Player.PingMS);
 
             // Signed string because the length is not fixed
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 21), (ushort)Client.Token.Length);
@@ -87,7 +87,7 @@ namespace Multiplayer.Managers
             BattleStats.Earlies = (ushort)BattleRoleAttributeComponent.early;
             BattleStats.Lates = (ushort)BattleRoleAttributeComponent.late;
             BattleStats.Misses = (ushort)TaskStageTarget.GetComboMiss();
-            BattleStats.PingMS = Client.PingMS;
+            BattleStats.Player.PingMS = Client.PingMS;
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Multiplayer.Managers
                 battleStats.Lates = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 14));
                 battleStats.Misses = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 16));
                 battleStats.FC = span[startAt + UidSize + 18] != 0;
-                battleStats.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 19));
+                player.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 19));
             }
         }
 

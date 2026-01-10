@@ -97,7 +97,7 @@ namespace Multiplayer.UI.LobbyWindows
             {
                 UIManager.Debounce = false;
 
-                if (success) _ = UIManager.OpenLobbyWindow(LobbyManager.LocalLobby);
+                if (success) _ = UIManager.OpenLobbyWindow();
                 else UIManager.LobbiesWindow.Window.Show();
             });
         }

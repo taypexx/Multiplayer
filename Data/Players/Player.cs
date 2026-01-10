@@ -1,4 +1,6 @@
 ﻿using Multiplayer.Data.Stats;
+using Multiplayer.Managers;
+using Multiplayer.Static;
 
 namespace Multiplayer.Data.Players
 {
@@ -11,11 +13,17 @@ namespace Multiplayer.Data.Players
         public HQStats HQStats { get; private set; }
         public MoeStats MoeStats { get; private set; }
 
-        public ushort TotalRecords { get { return (ushort)(HQStats.Records + MoeStats.Records); } }
-        public ushort TotalAPs { get { return (ushort)(HQStats.APs + MoeStats.APs); } }
-        public float TotalAverageAccuracy { get { return (HQStats.AverageAccuracy + MoeStats.AverageAccuracy) / 2; } }
+        public ushort TotalRecords => (ushort)(HQStats.Records + MoeStats.Records);
+        public ushort TotalAPs => (ushort)(HQStats.APs + MoeStats.APs);
+        public float TotalAverageAccuracy => MoeStats.AverageAccuracy;//(HQStats.AverageAccuracy + MoeStats.AverageAccuracy) / 2;
 
+        public ushort PingMS { 
+            get {
+                return this == PlayerManager.LocalPlayer ? Client.PingMS : field;
+            } internal set; 
+        }
         internal DateTime LastUpdated { get; private set; }
+
         internal Player(string uid)
         {
             Uid = uid;
@@ -25,22 +33,25 @@ namespace Multiplayer.Data.Players
             HQStats = new(this);
         }
 
-        /// <summary>
-        /// Updates stats of the <see cref="Player"/>.
-        /// </summary>
-        /// <param name="fullUpdate">Whether to update HQStats and MoeStats as well.</param>
-        /// <returns><see langword="true"/> if all updates were successful, otherwise <see langword="false"/>.</returns>
-        internal async Task<bool> Update(bool fullUpdate = false)
+        /// <returns><see langword="true"/> if the <paramref name="otherPlayer"/> is a friend of <see langword="this"/> <see cref="Player"/>, otherwise <see langword="false"/>.</returns>
+        internal bool AreFriends(Player otherPlayer)
         {
-            LastUpdated = DateTime.Now;
+            return MultiplayerStats.Friends.Contains(otherPlayer.Uid);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="Player"/> data from the server and updates itself.
+        /// </summary>
+        /// <param name="fullUpdate">Whether to update <see cref="HQStats"/> and <see cref="MoeStats"/> as well.</param>
+        internal async Task Update(bool fullUpdate = false)
+        {
+            await MultiplayerStats.Update();
             if (fullUpdate)
             {
-                return await MultiplayerStats.Update() && await MoeStats.Update() && await HQStats.Update();
+                await MoeStats.Update();
+                await HQStats.Update();
             }
-            else
-            {
-                return await MultiplayerStats.Update();
-            }
+            LastUpdated = DateTime.Now;
         }
     }
 }

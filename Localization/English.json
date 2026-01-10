@@ -11,21 +11,15 @@
     "ComingSoon": "Coming soon!",
     "Loading": "Loading..."
   },
-  "BattleDisplay": {
-    "LostAP": "Lost AP!",
-    "LostFC": "Lost FC!",
-    "Missed": "Missed!"
-  },
-  "PnlPreparation": {
-    "PlaylistAdd": "Add to playlist",
-    "PlaylistRemove": "Remove from playlist",
-    "PlaylistAdded": "Added to the playlist!",
-    "PlaylistRemoved": "Removed from the playlist!",
-    "VanillaOnly": "Only vanilla charts are allowed!",
-    "CustomOnly": "Only custom charts are allowed!",
-    "WebsiteOnly": "Only website custom charts are allowed!",
-    "Waiting": "Waiting for host...",
-    "PlaylistFull": "Playlist is full"
+  "SettingsWindow": {
+    "Title": "Settings",
+    "ShowNavigationButtons": "Show multiplayer buttons on the navigation panel",
+    "FavGirlMode": "Display fav girls instead of equipped combinations on the home page when enabled",
+    "ShowOtherElfins": "Show elfins of other players on the home page",
+    "DisplayLobbyStatus": "Display status of your lobby (Public or Private)",
+    "ShowBattlePopups": "Show popups when someone loses AP/FC or misses",
+    "LobbyUpdateIntervalMS": "How often will your lobby data update in milliseconds. Recommended values: 3000ms — 5000ms",
+    "BattleUpdateIntervalMS": "How often will your battle data update in milliseconds. Recommended values: 300ms — 1000ms"
   },
   "Warning": {
     "Title": "Warning",
@@ -60,12 +54,6 @@
     "CreditsTitle": "Credits",
     "IncorrectCode": "Incorrect code!"
   },
-  "SettingsWindow": {
-    "Title": "Settings",
-    "DisplayLobbyStatus": "Display status of your lobby (Public or Private)",
-    "LobbyUpdateIntervalMS": "How often will your lobby data update in milliseconds. Recommended values: 3000ms — 5000ms",
-    "BattleUpdateIntervalMS": "How often will your battle data update in milliseconds. Recommended values: 300ms — 1000ms"
-  },
   "ProfileWindow": {
     "Title": "Profile",
     "Stats": "Stats",
@@ -99,6 +87,22 @@
     "AchievedOn": "Achieved on",
     "Welcome!": "Launch the multiplayer for the first time.",
     "Autoplay.dll": "Reach the top rank in the multiplayer."
+  },
+  "BattleDisplay": {
+    "LostAP": "Lost AP!",
+    "LostFC": "Lost FC!",
+    "Missed": "Missed!"
+  },
+  "PnlPreparation": {
+    "PlaylistAdd": "Add to playlist",
+    "PlaylistRemove": "Remove from playlist",
+    "PlaylistAdded": "Added to the playlist!",
+    "PlaylistRemoved": "Removed from the playlist!",
+    "VanillaOnly": "Only vanilla charts are allowed!",
+    "CustomOnly": "Only custom charts are allowed!",
+    "WebsiteOnly": "Only website custom charts are allowed!",
+    "Waiting": "Waiting for host...",
+    "PlaylistFull": "Playlist is full"
   },
   "Lobbies": {
     "Title": "Lobbies",
@@ -156,7 +160,7 @@
     "JoinPrompt": "Join the lobby?",
     "PasswordPrompt": "Enter the lobby password:",
     "LeavePrompt": "Are you sure you want to leave this lobby?",
-    "DisbandPrompt": "Are you sure you want to disband this lobby? Everyone will be kicked out.",
+    "DisbandPrompt": "Are you sure you want to disband this lobby? Everyone will be kicked.",
     "FullMessage": "This lobby is full!",
     "JoinSuccess": "You've joined the lobby!",
     "LeaveSuccess": "You've left the lobby!",
@@ -173,6 +177,9 @@
     "PlaylistEmpty": "Playlist is empty!",
     "Starting": "Starting the game...",
     "HiddensLocked": "Cannot hide/unhide charts in lobby!",
-    "ChartHidden": "This chart was hidden by someone."
+    "ChartHidden": "This chart was hidden by someone.",
+    "PlayConfirm": "Start the game?",
+    "NoLobby": "You are not in lobby",
+    "SleepwalkerUsed": "Cannot start - {0} is using sleepwalker"
   }
 }

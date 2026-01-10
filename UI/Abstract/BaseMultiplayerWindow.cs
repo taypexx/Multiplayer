@@ -30,11 +30,11 @@ namespace Multiplayer.UI.Abstract
 
         /// <param name="title">Title of the window.</param>
         /// <param name="returnWindow">(Optional) Window to open after this one is closed.</param>
-        /// <param name="bannerAssetName">(Optional) Path to the image asset relative to "Multiplayer.Assets.UI".</param>
+        /// <param name="bannerAssetName">(Optional) Path to the image asset relative to "Multiplayer.Assets.UI.Banners".</param>
         internal BaseMultiplayerWindow(LocalString title, BaseMultiplayerWindow returnWindow = null, string bannerAssetName = null)
         {
             Title = title;
-            if (bannerAssetName != null) Banner = AssetManager.GetImageAsset("UI." + bannerAssetName);
+            if (bannerAssetName != null) Banner = AssetManager.GetImageAsset("UI.Banners." + bannerAssetName);
 
             ReturnWindow = returnWindow;
             ButtonsWindows = new();

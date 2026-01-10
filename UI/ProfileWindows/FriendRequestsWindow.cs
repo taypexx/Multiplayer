@@ -10,12 +10,10 @@ namespace Multiplayer.UI.ProfileWindows
     internal sealed class FriendRequestsWindow : BaseMultiplayerWindow
     {
         private Dictionary<ForumObject, string> ButtonsUids;
-        private Dictionary<string, LocalString> CachedNames;
 
         internal FriendRequestsWindow() : base(Localization.Get("ProfileWindow", "FriendRequests"), UIManager.ProfileWindow, "Friends.png")
         {
             ButtonsUids = new();
-            CachedNames = new();
             AddReturnButton();
         }
 
@@ -29,14 +27,7 @@ namespace Multiplayer.UI.ProfileWindows
 
             foreach ((string playerUid, string playerName) in PlayerManager.LocalPlayer.MultiplayerStats.FriendRequests)
             {
-                LocalString localString;
-                if (!CachedNames.TryGetValue(playerName, out localString))
-                {
-                    localString = new(playerName);
-                    CachedNames.Add(playerName, localString);
-                }
-
-                ForumObject button = AddButton(localString);
+                ForumObject button = AddButton((LocalString)playerName);
                 ButtonsUids.Add(button, playerUid);
             }
         }

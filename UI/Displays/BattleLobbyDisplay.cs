@@ -23,26 +23,13 @@ namespace Multiplayer.UI.Displays
             DoesSort = true;
         }
 
-        internal bool PingMode { get; private set; } = false;
-        internal void UpdateMode()
+        internal override void Popup(string text, object key)
         {
-            bool mode = Input.GetKey(Constants.BattleDisplayKeyCode);
-            if (PingMode == mode) return;
-
-            PingMode = mode;
-            UpdateTexts();
+            if (!Settings.Config.ShowBattlePopups) return;
+            base.Popup(text, key);
         }
 
-        private string GetPingColor(ushort pingMS)
-        {
-            foreach ((var level, var color) in Constants.PingColors)
-            {
-                if (pingMS < level) return color;
-            }
-            return Constants.PingColors.LastOrDefault().Value;
-        }
-
-        protected override void UpdateTexts()
+        internal override void UpdateTexts()
         {
             if (!LobbyManager.IsInLobby) return;
 
@@ -54,7 +41,7 @@ namespace Multiplayer.UI.Displays
                 BattleStats battleStats = player.BattleStats;
                 string battleInfo = string.Empty;
                 
-                if (!PingMode)
+                if (!InputManager.PingMode)
                 {
                     switch (LobbyManager.LocalLobby.Goal)
                     {
@@ -92,7 +79,7 @@ namespace Multiplayer.UI.Displays
                         case LobbyGoal.Custom:
                             break;
                     }
-                } else battleInfo = $"<color=#{GetPingColor(battleStats.PingMS)}>{battleStats.PingMS}ms</color>";
+                } else battleInfo = $"<color=#{Utilities.GetPingColor(player.PingMS)}>{player.PingMS}ms</color>";
 
                 var name = Lobby.ReadyPlayers.Contains(player.Uid) ? player.MultiplayerStats.Name : Localization.Get("Global", "Loading").ToString();
                 text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{name}</color>" : name)} — {battleInfo}";

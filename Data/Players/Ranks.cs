@@ -5,6 +5,20 @@ namespace Multiplayer.Data.Players
 {
     public class Rank
     {
+        public ushort ELO;
+        public LocalString Name;
+        public byte SubRanks;
+
+        internal Rank(ushort elo, LocalString name, byte subRanks = 3)
+        {
+            ELO = elo;
+            Name = name;
+            SubRanks = subRanks;
+        }
+    }
+
+    internal static class Ranks
+    {
         public const ushort SubdivisionGap = 150;
 
         public static readonly List<string> SubdivisionSuffixes = new()
@@ -12,7 +26,7 @@ namespace Multiplayer.Data.Players
             "I","II","III"
         };
 
-        public static readonly List<Rank> RanksList = new()
+        public static readonly List<Rank> List = new()
         {
             new(3000, Localization.Get("Ranks","1"), 0),
             new(2500, Localization.Get("Ranks","2")),
@@ -28,7 +42,7 @@ namespace Multiplayer.Data.Players
             get
             {
                 ushort top = 0;
-                foreach (var rank in RanksList)
+                foreach (var rank in List)
                 {
                     if (rank.ELO > top) top = rank.ELO;
                 }
@@ -36,15 +50,18 @@ namespace Multiplayer.Data.Players
             }
         }
 
-        public ushort ELO;
-        public LocalString Name;
-        public byte SubRanks;
-
-        internal Rank(ushort elo, LocalString name, byte subRanks = 3)
+        /// <returns>Rank string of the player according to the provided <paramref name="ELO"/>.</returns>
+        public static string GetRank(ushort ELO)
         {
-            ELO = elo;
-            Name = name;
-            SubRanks = subRanks;
+            for (int i = 0; i < List.Count; i++)
+            {
+                Rank rank = List[i];
+                if (ELO >= rank.ELO)
+                {
+                    return $"{rank.Name} {SubdivisionSuffixes[(int)Math.Floor((decimal)((ELO - rank.ELO) / SubdivisionGap))]}";
+                }
+            }
+            return List.Last().Name.ToString();
         }
     }
 }
