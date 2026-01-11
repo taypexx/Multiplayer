@@ -10,10 +10,10 @@ namespace Multiplayer.Static
     {
         public static Font NormalFont = Addressables.LoadAssetAsync<Font>("Normal").WaitForCompletion();
 
-        public static float RoundFloat(float value, int decimalPlaces = 2)
+        public static float RoundFloat(float value)
         {
             if (float.IsNaN(value)) return 0f;
-            return (float)Math.Round((decimal)(value * (10^decimalPlaces))) / (10^decimalPlaces);
+            return (float)Math.Round((decimal)(value * 100)) / 100;
         }
 
         public static bool IsValidString(string str, int minLength, int maxLength)

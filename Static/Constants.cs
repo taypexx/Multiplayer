@@ -20,9 +20,15 @@ namespace Multiplayer.Static
         internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri={ServerHTTPScheme}%3A%2F%2F{ServerAddress}%2Fauth&scope=identify";
 
         public const KeyCode BattleDisplayKeyCode = KeyCode.LeftShift;
+        public const KeyCode MainMenuOpenKeyCode = KeyCode.M;
+        public const KeyCode LobbyOpenKeyCode = KeyCode.L;
+        public const KeyCode PlaylistOpenKeyCode = KeyCode.P;
+        public const KeyCode ChatOpenKeyCode = KeyCode.Slash;
+        public const KeyCode ChatSendKeyCode = KeyCode.Return;
 
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
 
+        public const int ChatMessageCharactersMax = 256;
         public const int BioCharactersMax = 48;
         public const int PlayersMin = 2;
         public const int PlayersMax = 8;
@@ -32,6 +38,8 @@ namespace Multiplayer.Static
         public const int PasswordCharactersMax = 16;
         public const int PlaylistSizeMin = 2;
         public const int PlaylistSizeMax = 32;
+
+        public const int PlayerSpeechBubbleDurationMS = 5000;
 
         public const int LobbyUpdateIntervalMinMS = 1000;
         public const int LobbyUpdateIntervalMaxMS = 8000;

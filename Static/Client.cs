@@ -12,6 +12,7 @@ using Il2CppAssets.Scripts.Database;
 using Il2CppSirenix.Serialization.Utilities;
 using MelonLoader.Utils;
 using System.Net;
+using System.Net.WebSockets;
 
 namespace Multiplayer.Static
 {
@@ -46,6 +47,33 @@ namespace Multiplayer.Static
         private static HttpMessageHandler HttpHandler;
         private static HttpClient Http;
         private static UdpClient Udp;
+        private static ClientWebSocket WebSocket;
+
+        internal static async Task ChatWebsocketListen()
+        {
+            if (!LobbyManager.IsInLobby || WebSocket.State == WebSocketState.Open) return;
+
+            WebSocket.Options.SetRequestHeader("Authorization", $"{PlayerManager.LocalPlayerUid}#{Token}");
+
+            await WebSocket.ConnectAsync(new($"ws://{Constants.ServerAddress}:{Constants.PortHTTP}/ws"), CancellationToken.None);
+            Main.Logger.Msg("WebSocket connection established");
+
+            var buffer = new byte[1024];
+            while (WebSocket.State == WebSocketState.Open && LobbyManager.IsInLobby)
+            {
+                var res = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
+                var msg = System.Text.Json.JsonSerializer.Deserialize<ChatMessage>(Encoding.UTF8.GetString(buffer, 0, res.Count));
+                Chat.Recieve(msg);
+            }
+            Main.Logger.Msg("WebSocket connection ended");
+        }
+
+        internal static void ChatWebsocketSend(string payload)
+        {
+            if (WebSocket.State != WebSocketState.Open) return;
+            var bytes = Encoding.UTF8.GetBytes(payload);
+            _ = WebSocket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
+        }
 
         /// <summary>
         /// Downloads a file from the given path.
@@ -284,6 +312,7 @@ namespace Multiplayer.Static
             Http.DefaultRequestHeaders.ConnectionClose = false;
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Udp = new();
+            WebSocket = new();
 
             if (File.Exists(TokenPath)) Token = File.ReadAllText(TokenPath);
         }

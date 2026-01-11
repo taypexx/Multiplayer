@@ -4,6 +4,7 @@ using Multiplayer.Managers;
 using Multiplayer.Static;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Reflection;
 
 namespace Multiplayer.Data.Stats
 {
@@ -27,8 +28,30 @@ namespace Multiplayer.Data.Stats
             private set; 
         }
 
-        public int FavGirlIndex { get; private set; }
-        public int FavElfinIndex { get; private set; }
+        public int FavGirlIndex { 
+            get
+            {
+                if (Player != PlayerManager.LocalPlayer) return field;
+
+                var favGirl = Main.GetDependency("FavGirl");
+                if (favGirl is null) return GirlIndex;
+
+                return (int)favGirl.GetType("FavGirl.FavSave").GetProperty("FavGirl", BindingFlags.Public | BindingFlags.Static).GetValue(null);
+            }
+            private set; 
+        }
+        public int FavElfinIndex {
+            get
+            {
+                if (Player != PlayerManager.LocalPlayer) return field;
+
+                var favGirl = Main.GetDependency("FavGirl");
+                if (favGirl is null) return ElfinIndex;
+
+                return (int)favGirl.GetType("FavGirl.FavSave").GetProperty("FavElfin", BindingFlags.Public | BindingFlags.Static).GetValue(null);
+            }
+            private set;
+        }
 
         public bool FriendsCached { get; private set; }
         public List<string> Friends { get; private set; }
@@ -52,7 +75,7 @@ namespace Multiplayer.Data.Stats
             ElfinIndex = -1;
 
             FavGirlIndex = -1;
-            FavElfinIndex = -1;
+            ElfinIndex = -2;
 
             FriendsCached = false;
             Friends = new();

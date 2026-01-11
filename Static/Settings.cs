@@ -1,4 +1,5 @@
 ﻿using Multiplayer.Managers;
+using Multiplayer.UI;
 using Tomlet;
 
 namespace Multiplayer.Static
@@ -11,7 +12,13 @@ namespace Multiplayer.Static
                 field = value;
             } 
         } = true;
-        internal bool FavGirlMode { get; set; } = false;
+        internal bool EnableShortcuts { get; set; } = false;
+        internal bool FavGirlMode { get; 
+            set {
+                AdvancedPnlHome.UpdateCurrentPage();
+                field = value;
+            } 
+        } = false;
         internal bool ShowOtherElfins { get; set; } = true;
         internal bool DisplayLobbyStatus { get; set; } = true;
         internal bool ShowBattlePopups { get; set; } = true;

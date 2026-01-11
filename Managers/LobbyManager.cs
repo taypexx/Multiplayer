@@ -45,10 +45,11 @@ namespace Multiplayer.Managers
             while (IsAutoUpdating && Client.Connected)
             {
                 await Task.Delay(Settings.Config.LobbyUpdateIntervalMS);
-                await UIManager.LobbyWindow.Update(lobby, InputManager.PingMode); // || AdvancedPnlHome.Visible questionable
+                await UIManager.LobbyWindow.Update(lobby, InputManager.PingMode); // Also updates the lobby
 
                 if (lobby == LocalLobby)
                 {
+                    PlayerManager.SyncPing();
                     Main.Dispatcher.Enqueue(() => 
                     {
                         UIManager.MainLobbyDisplay.Update();
@@ -295,12 +296,14 @@ namespace Multiplayer.Managers
         {
             LocalLobby = lobby;
             _ = AutoUpdateStart(lobby);
+            _ = Client.ChatWebsocketListen();
 
             Main.Dispatcher.Enqueue(() =>
             {
                 UIManager.PlayConfirmPrompt.Title = (LocalString)lobby.Name;
                 AdvancedPnlHome.Enable();
                 UIManager.MainLobbyDisplay.Create(lobby);
+                UIManager.ChatLobbyDisplay.Create(lobby, true);
                 UIManager.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
             });
@@ -317,6 +320,7 @@ namespace Multiplayer.Managers
             Main.Dispatcher.Enqueue(() =>
             {
                 UIManager.MainLobbyDisplay.Destroy();
+                UIManager.ChatLobbyDisplay.Destroy();
                 UIManager.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
                 AdvancedPnlHome.Disable();

@@ -1,5 +1,6 @@
 ﻿using Il2CppAssets.Scripts.PeroTools.Nice.Events;
 using Il2CppAssets.Scripts.UI;
+using Il2CppAssets.Scripts.UI.Controls;
 using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppAssets.Scripts.UI.Panels.PnlRole;
 using Il2CppAssets.Scripts.UI.Specials;
@@ -107,11 +108,37 @@ namespace Multiplayer.UI
         private static GameObject RightElfinShow;
 
         private static Vector3 MiddleElfinPosition = new(2.5f, 1.5f, 100f);
-        private static Vector3 LeftElfinPosition = MiddleElfinPosition + new Vector3(-(MuseShowGap + 0.5f), -0.3f, 0f);
+        private static Vector3 LeftElfinPosition = MiddleElfinPosition + new Vector3(-1 * (MuseShowGap + 0.5f), -0.3f, 0f);
         private static Vector3 RightElfinPosition = MiddleElfinPosition + new Vector3(MuseShowGap - 0.5f, -0.3f, 0f);
 
         private static Vector3 MiddleElfinScale = new(-1.5f, 1.5f, 1.5f);
         private static Vector3 SideElfinScale = new(-1.2f, 1.2f, 1.2f);
+
+        private static async System.Threading.Tasks.Task EndPlayerSpeak(DefaultTalkBubble bubble)
+        {
+            await System.Threading.Tasks.Task.Delay(Constants.PlayerSpeechBubbleDurationMS);
+            Main.Dispatcher.Enqueue(bubble.EndTalk);
+        }
+
+        internal static void PlayerSpeak(Player player, string msg)
+        {
+            if (!Enabled) return;
+
+            GameObject museShow = CurrentPage.IndexOf(player) switch
+            {
+                0 => LeftMuseShow,
+                1 => RightMuseShow,
+                _ when player == PlayerManager.LocalPlayer => MiddleMuseShow,
+                _ => null
+            };
+            if (museShow == null) return;
+
+            var bubble = museShow.transform.Find("FirstTwnTalkBubble").gameObject.GetComponent<DefaultTalkBubble>();
+            if (bubble == null) return;
+
+            bubble.SetTalkTxt(msg);
+            _ = EndPlayerSpeak(bubble);
+        }
 
         private static string GetName(Player player)
         {
@@ -190,16 +217,14 @@ namespace Multiplayer.UI
             {
                 Player player = CurrentPage[0];
 
-                var girlIndex = Settings.Config.FavGirlMode ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
-
+                var girlIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
                 if (girlIndex != LeftGirlIndex)
                 {
                     ReplaceGirl(LeftMuseShow, girlIndex);
                     LeftGirlIndex = girlIndex;
                 }
 
-                var elfinIndex = Settings.Config.FavGirlMode ? player.MultiplayerStats.FavElfinIndex : player.MultiplayerStats.ElfinIndex;
-
+                var elfinIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavElfinIndex >= 0 ? player.MultiplayerStats.FavElfinIndex : player.MultiplayerStats.ElfinIndex;
                 if (elfinIndex != LeftElfinIndex && Settings.Config.ShowOtherElfins)
                 {
                     ReplaceElfin(LeftElfinShow, elfinIndex);
@@ -213,16 +238,18 @@ namespace Multiplayer.UI
             {
                 Player player = CurrentPage[1];
 
-                if (player.MultiplayerStats.GirlIndex != RightGirlIndex)
+                var girlIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
+                if (girlIndex != RightGirlIndex)
                 {
-                    ReplaceGirl(RightMuseShow, player.MultiplayerStats.GirlIndex);
-                    RightGirlIndex = player.MultiplayerStats.GirlIndex;
+                    ReplaceGirl(RightMuseShow, girlIndex);
+                    RightGirlIndex = girlIndex;
                 }
 
-                if (player.MultiplayerStats.ElfinIndex != RightElfinIndex && Settings.Config.ShowOtherElfins)
+                var elfinIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavElfinIndex >= 0 ? player.MultiplayerStats.FavElfinIndex : player.MultiplayerStats.ElfinIndex;
+                if (elfinIndex != RightElfinIndex && Settings.Config.ShowOtherElfins)
                 {
-                    ReplaceElfin(RightElfinShow, player.MultiplayerStats.ElfinIndex);
-                    RightElfinIndex = player.MultiplayerStats.ElfinIndex;
+                    ReplaceElfin(RightElfinShow, elfinIndex);
+                    RightElfinIndex = elfinIndex;
                 }
 
                 RightName.text = GetName(player);
@@ -397,13 +424,13 @@ namespace Multiplayer.UI
             LeftElfinShow.name = "LeftElfinShow";
             RightElfinShow.name = "RightElfinShow";
 
-            MiddleElfinShow.transform.position = MiddleElfinPosition;
-            LeftElfinShow.transform.position = LeftElfinPosition;
-            RightElfinShow.transform.position = RightElfinPosition;
-
             MiddleElfinShow.transform.localScale = MiddleElfinScale;
             LeftElfinShow.transform.localScale = SideElfinScale;
             RightElfinShow.transform.localScale = SideElfinScale;
+
+            MiddleElfinShow.transform.position = MiddleElfinPosition;
+            LeftElfinShow.transform.position = LeftElfinPosition;
+            RightElfinShow.transform.position = RightElfinPosition;
 
             LeftButton = GameObject.Instantiate(OriginalButton, OriginalMuseShow.transform.parent);
             RightButton = GameObject.Instantiate(OriginalButton, OriginalMuseShow.transform.parent);

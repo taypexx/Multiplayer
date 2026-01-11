@@ -2,6 +2,7 @@
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.Patches;
+using System.Reflection;
 
 namespace Multiplayer
 {
@@ -12,7 +13,15 @@ namespace Multiplayer
         internal static string CurrentScene { get; private set; }
         internal static bool IsUIScene => CurrentScene == "UISystem_PC";
 
-        private static readonly List<string> Dependencies = new() { "CustomAlbums", "PopupLib", "LocalizeLib" };
+        private static readonly string[] Dependencies = { "CustomAlbums", "PopupLib", "LocalizeLib" };
+        private static readonly string[] AdditionalDependencies = { "FavGirl" };
+        private static Dictionary<string, Assembly> AdditionalDependenciesInstalled = new();
+
+        internal static Assembly GetDependency(string dependencyName)
+        {
+            if (!AdditionalDependenciesInstalled.TryGetValue(dependencyName, out var asm)) return null;
+            return asm;
+        }
 
         public override void OnEarlyInitializeMelon()
         {
@@ -30,7 +39,13 @@ namespace Multiplayer
                 {
                     Logger.Error($"Failed to initialize {Constants.ModName}: {dependencyName} is missing!");
                     return;
-                }
+                } 
+            }
+
+            foreach (var dependencyName in AdditionalDependencies)
+            {
+                if (!RegisteredMelons.Any(m => m.Info.Name == dependencyName)) continue;
+                AdditionalDependenciesInstalled.Add(dependencyName, AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == dependencyName));
             }
 
             Logger = new(Constants.ModName);

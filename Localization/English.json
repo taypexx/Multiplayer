@@ -14,12 +14,20 @@
   "SettingsWindow": {
     "Title": "Settings",
     "ShowNavigationButtons": "Show multiplayer buttons on the navigation panel",
+    "EnableShortcuts": "Enable shortcuts to quickly open multiplayer tabs",
     "FavGirlMode": "Display fav girls instead of equipped combinations on the home page when enabled",
     "ShowOtherElfins": "Show elfins of other players on the home page",
     "DisplayLobbyStatus": "Display status of your lobby (Public or Private)",
     "ShowBattlePopups": "Show popups when someone loses AP/FC or misses",
     "LobbyUpdateIntervalMS": "How often will your lobby data update in milliseconds. Recommended values: 3000ms — 5000ms",
     "BattleUpdateIntervalMS": "How often will your battle data update in milliseconds. Recommended values: 300ms — 1000ms"
+  },
+  "SystemChatMessages": {
+    "LobbyJoin": "{0} has joined the lobby!",
+    "LobbyLeave": "{0} has left the lobby.",
+    "PlaylistAdd": "{0} added <color=#fff700ff>{1}</color> to the playlist.",
+    "PlaylistRemove": "{0} removed <color=#fff700ff>{1}</color> from the playlist.",
+    "ChatPlaceholderText": "Press / or click here to start typing"
   },
   "Warning": {
     "Title": "Warning",
@@ -177,9 +185,10 @@
     "PlaylistEmpty": "Playlist is empty!",
     "Starting": "Starting the game...",
     "HiddensLocked": "Cannot hide/unhide charts in lobby!",
-    "ChartHidden": "This chart was hidden by someone.",
+    "ChartHidden": "This chart was hidden by someone",
     "PlayConfirm": "Start the game?",
     "NoLobby": "You are not in lobby",
-    "SleepwalkerUsed": "Cannot start - {0} is using sleepwalker"
+    "SleepwalkerUsed": "Cannot start - {0} is using sleepwalker",
+    "NotHost": "Only host can start the game"
   }
 }

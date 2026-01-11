@@ -15,6 +15,11 @@ namespace Multiplayer.UI.NavigationButtons
                 PopupUtils.ShowInfo(Localization.Get("Lobby", "NoLobby"));
                 return;
             }
+            if (LobbyManager.LocalLobby.Host != PlayerManager.LocalPlayer)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "NotHost"));
+                return;
+            }
             UIManager.PlayConfirmPrompt.Show();
         }
         internal PlayButton() : base("Play.png", 2, false, "BtnMultiplayerPlay")

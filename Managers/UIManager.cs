@@ -19,6 +19,7 @@ using Multiplayer.Data.Lobbies;
 using Multiplayer.Data.Players;
 using Multiplayer.UI.NavigationButtons;
 using UnityEngine.Events;
+using Il2CppAssets.Scripts.UI.Panels.PnlRole;
 
 namespace Multiplayer.Managers
 {
@@ -36,6 +37,8 @@ namespace Multiplayer.Managers
         internal static PnlPreparation PnlPreparation;
         internal static PnlStage PnlStage;
         internal static PnlHead PnlHead;
+        internal static PnlRole PnlRole;
+        internal static PnlElfin PnlElfin;
 
         internal static PromptWindow PlayConfirmPrompt;
         internal static bool LobbyWindowQueued = false;
@@ -66,6 +69,7 @@ namespace Multiplayer.Managers
 
         internal static MainLobbyDisplay MainLobbyDisplay { get; private set; }
         internal static BattleLobbyDisplay BattleLobbyDisplay { get; private set; }
+        internal static ChatLobbyDisplay ChatLobbyDisplay { get; private set; }
 
         internal static MainButton MainNavButton { get; private set; }
         internal static LobbyButton LobbyNavButton { get; private set; }
@@ -146,11 +150,6 @@ namespace Multiplayer.Managers
         /// <param name="lobby"><see cref="Lobby"/> which will be displayed.</param>
         internal static async Task OpenLobbyWindow(Lobby lobby = null)
         {
-            if (!LobbyManager.IsInLobby)
-            {
-                PopupUtils.ShowInfo(Localization.Get("Lobby", "NoLobby"));
-                return;
-            }
             if (lobby is null) lobby = LobbyManager.LocalLobby;
             Debounce = true;
 
@@ -293,6 +292,7 @@ namespace Multiplayer.Managers
             Main.Dispatcher.Enqueue(() => 
             {
                 MainLobbyDisplay.Destroy();
+                ChatLobbyDisplay.Destroy();
                 AdvancedPnlHome.Disable();
 
                 PnlPreparation.OnBattleStart();
@@ -318,6 +318,8 @@ namespace Multiplayer.Managers
             PnlPreparation = GameObject.Find("UI/Standerd/PnlPreparation").GetComponent<PnlPreparation>();
             PnlStage = GameObject.Find("UI/Standerd/PnlStage").GetComponent<PnlStage>();
             PnlHead = GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>();
+            PnlRole = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole").GetComponent<PnlRole>();
+            PnlElfin = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlElfin").GetComponent<PnlElfin>();
         }
 
         /// <summary>
@@ -344,6 +346,7 @@ namespace Multiplayer.Managers
             {
                 AdvancedPnlHome.Enable();
                 MainLobbyDisplay.Create(LobbyManager.LocalLobby);
+                ChatLobbyDisplay.Create(LobbyManager.LocalLobby, true);
             }
 
             var updateLobbyDisplayAction = (UnityAction)new Action(MainLobbyDisplay.UpdateTexts);
@@ -399,6 +402,7 @@ namespace Multiplayer.Managers
             LobbyPlaylistWindow = new();
 
             MainLobbyDisplay = new();
+            ChatLobbyDisplay = new();
             BattleLobbyDisplay = new();
 
             MainNavButton = new();
@@ -414,6 +418,19 @@ namespace Multiplayer.Managers
             LobbyCreationWindow.CreateButtons();
 
             MainMenu.CreateButtons();
+
+            // Caching every character
+            for (int i = 0; i < ((DBConfigCharacter)(GlobalDataBase.dbConfig.m_ConfigDic["character"])).list.Count; i++)
+            {
+                PnlRole.JumpToCharacterByIndex(i, false);
+            }
+
+            /* Caching every elfin
+            for (int i = 0; i < ((DBConfigCharacter)(GlobalDataBase.dbConfig.m_ConfigDic["elfin"])).list.Count; i++)
+            {
+                PnlElfin.
+            }
+            */
 
             Initialized = true;
         }

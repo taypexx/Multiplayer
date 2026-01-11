@@ -28,6 +28,21 @@ namespace Multiplayer.Managers
                 Level = LocalPlayer.MultiplayerStats.Level,
                 GirlIndex = LocalPlayer.MultiplayerStats.GirlIndex,
                 ElfinIndex = LocalPlayer.MultiplayerStats.ElfinIndex,
+                FavGirlIndex = LocalPlayer.MultiplayerStats.FavGirlIndex,
+                FavElfinIndex = LocalPlayer.MultiplayerStats.FavElfinIndex,
+                PingMS = LocalPlayer.PingMS,
+            };
+            _ = Client.PostAsync("updatePlayer", payload);
+        }
+
+        /// <summary>
+        /// Synchronizes ping of the local <see cref="Player"/>.
+        /// </summary>
+        internal static void SyncPing()
+        {
+            var payload = new
+            {
+                Uid = LocalPlayerUid,
                 PingMS = LocalPlayer.PingMS,
             };
             _ = Client.PostAsync("updatePlayer", payload);
@@ -50,6 +65,7 @@ namespace Multiplayer.Managers
             {
                 Uid = LocalPlayerUid,
                 Achievements = achievementsConverted,
+                PingMS = LocalPlayer.PingMS,
             };
             _ = Client.PostAsync("updatePlayer", payload);
         }
@@ -71,6 +87,7 @@ namespace Multiplayer.Managers
             {
                 Uid = LocalPlayerUid,
                 Hiddens = LocalPlayer.MultiplayerStats.Hiddens,
+                PingMS = LocalPlayer.PingMS,
             };
             _ = Client.PostAsync("updatePlayer", payload);
         }

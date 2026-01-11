@@ -73,12 +73,24 @@ namespace Multiplayer.UI.Abstract
         internal void RemoveText(object key)
         {
             Text text = TextList[key];
+            var removeAt = PositionList.IndexOf(key);
+
             TextList.Remove(key);
             PositionList.Remove(key);
+
             if (text != null)
             {
                 GameObject obj = text.gameObject;
                 if (obj != null) UnityEngine.Object.Destroy(obj);
+            }
+
+            // Fill the gap
+            foreach ((object k, Text t) in TextList)
+            {
+                if (PositionList.IndexOf(k) >= removeAt)
+                {
+                    t.gameObject.transform.localPosition -= Step;
+                }
             }
         }
 
@@ -140,7 +152,7 @@ namespace Multiplayer.UI.Abstract
         /// <summary>
         /// Updates the display to show the <see cref="Data.Lobbies.Lobby"/> information.
         /// </summary>
-        internal void Update()
+        internal virtual void Update()
         {
             if (Lobby is null) { Destroy(); return; }
 
@@ -185,7 +197,7 @@ namespace Multiplayer.UI.Abstract
                 if (key is not Player) continue;
                 Player player = (Player)key;
 
-                text.text = player == Lobby.Host ? $"<color=#fff700ff>[Host]</color> {player.MultiplayerStats.Name}" : player.MultiplayerStats.Name;
+                text.text = player == Lobby.Host ? $"<color=#{Constants.Yellow}>[Host]</color> {player.MultiplayerStats.Name}" : player.MultiplayerStats.Name;
             }
         }
 
@@ -213,7 +225,7 @@ namespace Multiplayer.UI.Abstract
         /// Creates the display for the given <see cref="Data.Lobbies.Lobby"/>.
         /// </summary>
         /// <param name="lobby"><see cref="Data.Lobbies.Lobby"/> whose information will be displayed.</param>
-        internal void Create(Lobby lobby, bool addTitle = true)
+        internal virtual void Create(Lobby lobby, bool addTitle = true)
         {
             if (lobby is null || Lobby != null) return;
             Lobby = lobby;
@@ -225,7 +237,7 @@ namespace Multiplayer.UI.Abstract
         /// <summary>
         /// Destroys the current display of the <see cref="Data.Lobbies.Lobby"/>.
         /// </summary>
-        internal void Destroy()
+        internal virtual void Destroy()
         {
             if (Lobby is null) return;
             ClearText();
