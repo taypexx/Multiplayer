@@ -15,10 +15,12 @@ namespace Multiplayer.UI.Displays
         {
             ParentPath = "Forward";
             AnchorPosition = new(-825f, -425f, 0f);
+            EntrySize = new(200f, 200f);
             Step = new(0f, 35f, 0f);
             PopupOffset = new(330f, 0, 0);
             PopupX = 50f;
             TextAnchor = TextAnchor.LowerLeft;
+            TextHorizontalWrapMode = HorizontalWrapMode.Overflow;
             FontSize = 28;
             DoesSort = true;
         }

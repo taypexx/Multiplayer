@@ -1,7 +1,7 @@
-﻿using Multiplayer.Static;
+﻿using Il2CppAssets.Scripts.PeroTools.Commons;
+using Multiplayer.Static;
 using Multiplayer.UI;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Multiplayer.Managers
@@ -9,13 +9,44 @@ namespace Multiplayer.Managers
     internal static class InputManager
     {
         internal static bool PingMode { get; private set; } = false;
+        internal static bool InputEnabled
+        {
+            get; 
+            private set
+            {
+                value = value || LobbyManager.IsInLobby;
+                try
+                {
+                    Singleton<Il2CppAssets.Scripts.PeroTools.Managers.InputManager>.instance.isStopKeyAction = !value;
+                }
+                catch { }
+                field = value;
+            }
+        } = true;
+
+        internal static void FocusOnChatField()
+        {
+            if (UIManager.ChatLobbyDisplay == null) return;
+
+            var inputField = UIManager.ChatLobbyDisplay.Title.GetComponent<InputField>();
+            inputField.text = string.Empty;
+            inputField.Select();
+            inputField.ActivateInputField();
+        }
 
         internal static void Update()
         {
-            if (!UIManager.Initialized && EventSystem.current.currentSelectedGameObject != null) return;
+            if (!UIManager.Initialized) return;
+
+            /*
+            if (UIManager.EventSystem != null && InputEnabled != (UIManager.EventSystem.currentSelectedGameObject == null))
+            {
+                InputEnabled = !InputEnabled;
+            }
+            */
 
             bool pingModeToggled = Input.GetKey(Constants.BattleDisplayKeyCode);
-            if (PingMode != pingModeToggled)
+            if (InputEnabled && PingMode != pingModeToggled)
             {
                 PingMode = pingModeToggled;
 
@@ -33,15 +64,24 @@ namespace Multiplayer.Managers
                 return;
             }
 
-            if (Main.IsUIScene && Settings.Config.EnableShortcuts)
+            if (Input.GetKeyDown(Constants.ChatSendKeyCode) && UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
             {
-                if (Input.GetKeyDown(Constants.ChatOpenKeyCode) && UIManager.ChatLobbyDisplay.Lobby != null)
+                // Send a chat message
+                var inputField = UIManager.ChatLobbyDisplay.Title.GetComponent<InputField>();
+                var msg = inputField.text;
+                if (msg != string.Empty)
                 {
-                    // Focus on the chat InputField
-                    var inputField = UIManager.ChatLobbyDisplay.Title.GetComponent<InputField>();
                     inputField.text = string.Empty;
-                    inputField.Select();
-                    inputField.ActivateInputField();
+                    inputField.DeactivateInputField();
+                    Chat.Send(msg);
+                }
+            }
+
+            if (InputEnabled && Main.IsUIScene && Settings.Config.EnableShortcuts)
+            {
+                if (Input.GetKeyDown(Constants.ChatOpenKeyCode))
+                {
+                    FocusOnChatField();
                 }
                 else if (Input.GetKeyDown(Constants.MainMenuOpenKeyCode))
                 {
@@ -54,18 +94,6 @@ namespace Multiplayer.Managers
                 else if (Input.GetKeyDown(Constants.PlaylistOpenKeyCode))
                 {
                     UIManager.PlaylistNavButton.ButtonAction.Invoke();
-                }
-            }
-
-            if (Input.GetKeyDown(Constants.ChatSendKeyCode) && UIManager.ChatLobbyDisplay.Lobby != null)
-            {
-                // Send a chat message
-                var inputField = UIManager.ChatLobbyDisplay.Title.GetComponent<InputField>();
-                var msg = inputField.text;
-                if (msg != string.Empty)
-                {
-                    inputField.text = string.Empty;
-                    Chat.Send(msg);
                 }
             }
         }

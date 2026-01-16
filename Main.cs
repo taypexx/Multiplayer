@@ -3,6 +3,8 @@ using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.Patches;
 using System.Reflection;
+using System.Drawing;
+using Multiplayer.Data;
 
 namespace Multiplayer
 {
@@ -48,7 +50,7 @@ namespace Multiplayer
                 AdditionalDependenciesInstalled.Add(dependencyName, AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == dependencyName));
             }
 
-            Logger = new(Constants.ModName);
+            Logger = new(Constants.ModName, Color.Magenta);
 
             InitGlobal();
 
@@ -63,6 +65,7 @@ namespace Multiplayer
             Settings.Load();
             AssetManager.Init();
             Localization.Init();
+            ChatCommand.CreateCommands();
             BattleManager.Init();
             Client.Init();
         }

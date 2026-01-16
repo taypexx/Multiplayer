@@ -42,6 +42,12 @@ namespace Multiplayer.Managers
             return onWebsite;
         }
 
+        internal static string GetNiceChartName(MusicInfo musicInfo, int diff) => String.Format(
+            "{0} {1}★",
+            musicInfo.name,
+            musicInfo.GetMusicLevelStringByDiff(diff)
+        );
+
         internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
 
         /// <summary>

@@ -1,26 +1,31 @@
-﻿using Multiplayer.Data.Lobbies;
+﻿using Multiplayer.Data;
+using Multiplayer.Data.Lobbies;
+using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Multiplayer.UI.Displays
 {
     internal sealed class ChatLobbyDisplay : BaseLobbyDisplay
     {
-        internal int MaxMessages { get; private set; } = 12;
+        internal int MaxLines { get; private set; } = 10;
         private InputField InputField;
         private GameObject PlaceholderText;
 
         internal ChatLobbyDisplay() : base()
         {
             ParentPath = "UI/Standerd/PnlNavigation";
-            AnchorPosition = new(-830f, 350f, 0f);
-            Step = new(0f, -35f, 0f);
+            AnchorPosition = new(-635f, 350f, 0f);
+            EntrySize = new(600f, 200f);
+            Step = new(0f, -30f, 0f);
             PopupOffset = new(-135f, 0, 0);
             PopupX = 50f;
             TextAnchor = TextAnchor.UpperLeft;
-            FontSize = 26;
+            TextHorizontalWrapMode = HorizontalWrapMode.Wrap;
+            FontSize = 20;
         }
 
         internal override void Update()
@@ -33,12 +38,18 @@ namespace Multiplayer.UI.Displays
 
         internal void AddMessage(ChatMessage chatMessage)
         {
-            if (TextList.Count >= MaxMessages)
+            while (GetTotalLines() >= MaxLines)
             {
                 RemoveText(PositionList.First());
             }
 
-            AddText(chatMessage);
+            Text text = AddText(chatMessage);
+            text.text = chatMessage.ToString();
+
+            PositionList.Remove(Lobby);
+            PositionList.Add(Lobby);
+
+            SetTextPositions();
             Update();
         }
 
@@ -48,13 +59,18 @@ namespace Multiplayer.UI.Displays
 
             InputField = Title.gameObject.AddComponent<InputField>();
             InputField.textComponent = Title;
+            InputField.lineType = UnityEngine.UI.InputField.LineType.MultiLineSubmit;
             InputField.characterLimit = Constants.ChatMessageCharactersMax;
+
+            Title.raycastTarget = true;
 
             PlaceholderText = GameObject.Instantiate(Title.gameObject, Title.transform.parent);
             PlaceholderText.name = "PlaceholderEntry";
             Component.Destroy(PlaceholderText.GetComponent<InputField>());
 
             var placeholderText = PlaceholderText.GetComponent<Text>();
+            placeholderText.raycastTarget = false;
+            placeholderText.horizontalOverflow = HorizontalWrapMode.Overflow;
             placeholderText.color = new(1f, 1f, 1f, 0.7f);
             placeholderText.text = Localization.Get("SystemChatMessages", "ChatPlaceholderText").ToString();
             InputField.placeholder = placeholderText;

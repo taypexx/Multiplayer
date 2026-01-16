@@ -14,17 +14,20 @@ namespace Multiplayer.UI.Abstract
         internal string ParentPath;
         internal Transform Parent => GameObject.Find(ParentPath).transform;
 
+        internal Vector3 EntrySize;
         internal Vector3 AnchorPosition;
         internal Vector3 Step;
         internal Vector3 PopupOffset;
         internal float PopupX;
  
         internal TextAnchor TextAnchor;
+        internal HorizontalWrapMode TextHorizontalWrapMode;
         internal int FontSize;
 
         internal Text Title;
         internal Dictionary<object, Text> TextList;
         internal List<object> PositionList;
+
 
         internal Lobby Lobby;
         internal bool DoesSort = false;
@@ -33,6 +36,30 @@ namespace Multiplayer.UI.Abstract
         {
             TextList = new();
             PositionList = new();
+        }
+
+        /// <returns>Total amount of lines current display shows.</returns>
+        internal int GetTotalLines(int? untilIndex = null)
+        {
+            int count = 0;
+            Canvas.ForceUpdateCanvases(); // well, this fixes the choppy textgenerator
+
+            if (untilIndex is null)
+            {
+                foreach ((_, var text) in TextList)
+                {
+                    count += text.cachedTextGenerator.lineCount;
+                }
+            } else
+            {
+                foreach (object key in PositionList)
+                {
+                    if (PositionList.IndexOf(key) == untilIndex) break;
+                    Text text = TextList[key];
+                    count += text.cachedTextGenerator.lineCount;
+                }
+            }
+            return count;
         }
 
         /// <summary>
@@ -48,15 +75,15 @@ namespace Multiplayer.UI.Abstract
                 return null;
             }
 
-            GameObject newTextObj = Utilities.CreateText(Parent, "LobbyEntry");
-            newTextObj.transform.localPosition = AnchorPosition + Step * TextList.Count;
+            GameObject newTextObj = Utilities.CreateText(Parent, "TextEntry");
+            newTextObj.transform.localPosition = AnchorPosition + Step * GetTotalLines();
             newTextObj.transform.localScale = Vector3.one;
-            newTextObj.GetComponent<RectTransform>().sizeDelta = new(200f,200f);
+            newTextObj.GetComponent<RectTransform>().sizeDelta = EntrySize;
 
             Text text = newTextObj.GetComponent<Text>();
             text.alignment = TextAnchor;
             text.fontSize = FontSize;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.horizontalOverflow = TextHorizontalWrapMode;
             text.raycastTarget = false;
 
             TextList.Add(key, text);
@@ -78,20 +105,19 @@ namespace Multiplayer.UI.Abstract
             TextList.Remove(key);
             PositionList.Remove(key);
 
-            if (text != null)
-            {
-                GameObject obj = text.gameObject;
-                if (obj != null) UnityEngine.Object.Destroy(obj);
-            }
+            if (text == null) return;
 
             // Fill the gap
             foreach ((object k, Text t) in TextList)
             {
                 if (PositionList.IndexOf(k) >= removeAt)
                 {
-                    t.gameObject.transform.localPosition -= Step;
+                    t.gameObject.transform.localPosition -= Step * text.cachedTextGenerator.lineCount;
                 }
             }
+
+            GameObject obj = text.gameObject;
+            if (obj != null) UnityEngine.Object.Destroy(obj);
         }
 
         /// <summary>
@@ -102,10 +128,12 @@ namespace Multiplayer.UI.Abstract
         {
             foreach ((object key, _) in TextList)
             {
-                if (keepTitle && key is not Player) continue;
+                if (keepTitle && key is Lobby) continue;
 
                 RemoveText(key);
             }
+
+            SetTextPositions();
         }
 
         /// <summary>
@@ -141,11 +169,15 @@ namespace Multiplayer.UI.Abstract
                 case LobbyGoal.Custom:
                     break;
             }
+            SetTextPositions();
+        }
 
+        internal void SetTextPositions()
+        {
             foreach (object key in PositionList)
             {
                 Text text = TextList[key];
-                text.transform.localPosition = AnchorPosition + Step * PositionList.IndexOf(key);
+                text.transform.localPosition = AnchorPosition + Step * GetTotalLines(PositionList.IndexOf(key));
             }
         }
 

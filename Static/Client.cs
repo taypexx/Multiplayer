@@ -13,6 +13,7 @@ using Il2CppSirenix.Serialization.Utilities;
 using MelonLoader.Utils;
 using System.Net;
 using System.Net.WebSockets;
+using Multiplayer.Data;
 
 namespace Multiplayer.Static
 {
@@ -24,9 +25,17 @@ namespace Multiplayer.Static
         private static Stopwatch Stopwatch = new Stopwatch();
         internal static ushort PingMS { get; private set; }
 
+        internal static readonly string APIAddress = $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/";
+        internal static readonly Uri WebsocketAddress = new($"wss://{Constants.ServerAddress}/chat");
+
         internal static string ServerVersion { get; private set; }
         internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
         private static LocalString OutdatedWarning;
+
+        private static HttpMessageHandler HttpHandler;
+        private static HttpClient Http;
+        private static UdpClient Udp;
+        private static ClientWebSocket WebSocket;
 
         internal static string Token { get; 
             private set 
@@ -44,28 +53,41 @@ namespace Multiplayer.Static
         }
         internal static readonly string TokenPath = Path.Combine(MelonEnvironment.GameRootDirectory, "mdmp.token");
 
-        private static HttpMessageHandler HttpHandler;
-        private static HttpClient Http;
-        private static UdpClient Udp;
-        private static ClientWebSocket WebSocket;
-
         internal static async Task ChatWebsocketListen()
         {
             if (!LobbyManager.IsInLobby || WebSocket.State == WebSocketState.Open) return;
 
-            WebSocket.Options.SetRequestHeader("Authorization", $"{PlayerManager.LocalPlayerUid}#{Token}");
+            WebSocket.Options.SetRequestHeader("Authorization", $"Basic {PlayerManager.LocalPlayerUid}#{Token}");
 
-            await WebSocket.ConnectAsync(new($"ws://{Constants.ServerAddress}:{Constants.PortHTTP}/ws"), CancellationToken.None);
-            Main.Logger.Msg("WebSocket connection established");
+            Main.Logger.Msg("Connecting to the chat Websocket...");
+            await WebSocket.ConnectAsync(WebsocketAddress, CancellationToken.None);
+            Main.Logger.Msg("Websocket connection was successfully established at " + WebsocketAddress);
 
-            var buffer = new byte[1024];
+            var buffer = new byte[4096];
             while (WebSocket.State == WebSocketState.Open && LobbyManager.IsInLobby)
             {
-                var res = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
-                var msg = System.Text.Json.JsonSerializer.Deserialize<ChatMessage>(Encoding.UTF8.GetString(buffer, 0, res.Count));
-                Chat.Recieve(msg);
+                var msgBuilder = new StringBuilder();
+                WebSocketReceiveResult res = null;
+
+                do {
+                    res = await WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                    if (res.MessageType == WebSocketMessageType.Close || !LobbyManager.IsInLobby)
+                    {
+                        await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                        goto End;
+                    }
+                    else if (res.MessageType != WebSocketMessageType.Text) continue;
+
+                    msgBuilder.Append(Encoding.UTF8.GetString(buffer, 0, res.Count));
+                } 
+                while (!res.EndOfMessage);
+
+                ChatMessage chatMessage = System.Text.Json.JsonSerializer.Deserialize<ChatMessage>(msgBuilder.ToString());
+                Chat.Recieve(chatMessage);
             }
-            Main.Logger.Msg("WebSocket connection ended");
+            End:
+            Main.Logger.Msg("Websocket connection ended.");
         }
 
         internal static void ChatWebsocketSend(string payload)
@@ -132,7 +154,7 @@ namespace Multiplayer.Static
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, isFullPath ? path : $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/{path}");
+                var request = new HttpRequestMessage(HttpMethod.Get, isFullPath ? path : APIAddress + path);
 
                 if (!doAuth)
                 {
@@ -171,7 +193,7 @@ namespace Multiplayer.Static
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, isFullPath ? path : $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/{path}");
+                var request = new HttpRequestMessage(HttpMethod.Post, isFullPath ? path : APIAddress + path);
                 request.Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
                 
                 if (!doAuth)

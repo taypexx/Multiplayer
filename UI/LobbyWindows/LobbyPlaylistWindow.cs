@@ -37,11 +37,7 @@ namespace Multiplayer.UI.LobbyWindows
 
             foreach (PlaylistEntry entry in lobby.Playlist)
             {
-                ForumObject button =  AddButton(new(String.Format(
-                    "{0} {1}★", 
-                    entry.MusicInfo.name,
-                    entry.MusicInfo.GetMusicLevelStringByDiff(entry.Difficulty)
-                )), null, MainDescription);
+                ForumObject button = AddButton((LocalString)ChartManager.GetNiceChartName(entry.MusicInfo,entry.Difficulty), null, MainDescription);
                 ButtonsEntries.Add(button, entry);
             }
 

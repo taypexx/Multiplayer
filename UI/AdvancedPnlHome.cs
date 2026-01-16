@@ -1,6 +1,7 @@
-﻿using Il2CppAssets.Scripts.PeroTools.Nice.Events;
+﻿using Il2Cpp;
+using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.PeroTools.Nice.Events;
 using Il2CppAssets.Scripts.UI;
-using Il2CppAssets.Scripts.UI.Controls;
 using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppAssets.Scripts.UI.Panels.PnlRole;
 using Il2CppAssets.Scripts.UI.Specials;
@@ -10,6 +11,7 @@ using Multiplayer.Static;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using static Il2CppRewired.UI.ControlMapper.ControlMapper;
 
 namespace Multiplayer.UI
 {
@@ -17,10 +19,13 @@ namespace Multiplayer.UI
     {
         private static GameObject PnlHome;
         private static GameObject PnlRole;
-        private static SelectableFancyPanel SelectableFancyPanel => PnlRole?.GetComponent<SelectableFancyPanel>();
+        private static GameObject PnlElfin;
+        private static SelectableFancyPanel GirlFancyPanel;
+        private static SelectableFancyPanel ElfinFancyPanel;
 
         internal static bool Visible => Main.IsUIScene && Enabled && (PnlHome?.active ?? false);
         internal static bool Enabled { get; private set; } = false;
+        internal static bool GirlsCached { get; private set; } = false;
 
         private static List<List<Player>> Pages = new();
         private static int CurrentPageIndex;
@@ -50,8 +55,8 @@ namespace Multiplayer.UI
         private static float MuseShowGap = 6f;
 
         private static Vector3 MiddleMusePosition = new(2f, -0.9f, 100f);
-        private static Vector3 LeftMusePosition = MiddleMusePosition + new Vector3(-MuseShowGap, -0.35f, 0f);
-        private static Vector3 RightMusePosition = MiddleMusePosition + new Vector3(MuseShowGap, -0.35f, 0f);
+        private static Vector3 LeftMusePosition = MiddleMusePosition + new Vector3(-MuseShowGap, -0.75f, 0f);
+        private static Vector3 RightMusePosition = MiddleMusePosition + new Vector3(MuseShowGap, -0.75f, 0f);
 
         private static Vector3 MiddleMuseScale = new(0.75f, 0.75f, 0.75f);
         private static Vector3 SideMuseScale = new(0.6f, 0.6f, 0.6f);
@@ -69,8 +74,8 @@ namespace Multiplayer.UI
         private static int SideNameFontSize = 52;
 
         private static Vector3 MiddleNamePosition = new(0f, 3.1f, 100f);
-        private static Vector3 LeftNamePosition = MiddleNamePosition + new Vector3(-MuseShowGap, -0.65f, 0f);
-        private static Vector3 RightNamePosition = MiddleNamePosition + new Vector3(MuseShowGap, -0.65f, 0f);
+        private static Vector3 LeftNamePosition = MiddleNamePosition + new Vector3(-MuseShowGap, -1f, 0f);
+        private static Vector3 RightNamePosition = MiddleNamePosition + new Vector3(MuseShowGap, -1f, 0f);
 
         private static GameObject MiddleInfoLabel;
         private static GameObject LeftInfoLabel;
@@ -114,17 +119,34 @@ namespace Multiplayer.UI
         private static Vector3 MiddleElfinScale = new(-1.5f, 1.5f, 1.5f);
         private static Vector3 SideElfinScale = new(-1.2f, 1.2f, 1.2f);
 
-        private static async System.Threading.Tasks.Task EndPlayerSpeak(DefaultTalkBubble bubble)
+        private static Dictionary<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble, CancellationTokenSource> BubbleCancelTokens;
+
+        internal static void AllPlayersEndSpeak()
         {
-            await System.Threading.Tasks.Task.Delay(Constants.PlayerSpeechBubbleDurationMS);
-            Main.Dispatcher.Enqueue(bubble.EndTalk);
+            foreach (var museShow in new List<GameObject>{ MiddleMuseShow, LeftMuseShow, RightMuseShow })
+            {
+                var bubble = museShow.transform.Find("FirstTwnTalkBubble").gameObject.GetComponent<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble>();
+                if (bubble == null) continue;
+                ResetBubbleCancelToken(bubble);
+                bubble.EndTalk();
+            }
+        }
+
+        internal static async Task PlayerEndSpeak(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble)
+        {
+            try
+            {
+                await Task.Delay(Constants.PlayerSpeechBubbleDurationMS, BubbleCancelTokens[bubble].Token);
+                Main.Dispatcher.Enqueue(bubble.EndTalk);
+            }
+            catch (OperationCanceledException) { }
         }
 
         internal static void PlayerSpeak(Player player, string msg)
         {
             if (!Enabled) return;
 
-            GameObject museShow = CurrentPage.IndexOf(player) switch
+            GameObject museShow = CurrentPage is null ? MiddleMuseShow : CurrentPage.IndexOf(player) switch
             {
                 0 => LeftMuseShow,
                 1 => RightMuseShow,
@@ -133,11 +155,19 @@ namespace Multiplayer.UI
             };
             if (museShow == null) return;
 
-            var bubble = museShow.transform.Find("FirstTwnTalkBubble").gameObject.GetComponent<DefaultTalkBubble>();
+            var bubble = museShow.transform.Find("FirstTwnTalkBubble").gameObject.GetComponent<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble>();
             if (bubble == null) return;
 
             bubble.SetTalkTxt(msg);
-            _ = EndPlayerSpeak(bubble);
+
+            ResetBubbleCancelToken(bubble);
+            _ = PlayerEndSpeak(bubble);
+        }
+
+        private static void ResetBubbleCancelToken(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble)
+        {
+            if (BubbleCancelTokens.TryGetValue(bubble, out var cancelToken)) cancelToken.Cancel();
+            BubbleCancelTokens[bubble] = new CancellationTokenSource();
         }
 
         private static string GetName(Player player)
@@ -152,12 +182,12 @@ namespace Multiplayer.UI
 
         private static void ReplaceGirl(GameObject museShow, int girlIndex)
         {
-            if (SelectableFancyPanel is null) return;
+            if (GirlFancyPanel is null || museShow == OriginalMuseShow) return;
 
             var prefab = museShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject;
             var museShowComponent = prefab.GetComponent<MuseShow>();
 
-            var subControl = SelectableFancyPanel.GetCellComponent<PnlRoleSubControl>(girlIndex);
+            var subControl = GirlFancyPanel.GetCellComponent<PnlRoleSubControl>(girlIndex);
             if (subControl is null) return;
             var charApply = subControl.characterApply;
             if (charApply is null) return;
@@ -174,13 +204,35 @@ namespace Multiplayer.UI
 
         private static void ReplaceElfin(GameObject elfinShow, int elfinIndex)
         {
-            if (elfinIndex < 0)
+            if (ElfinFancyPanel is null || elfinShow == OriginalElfinShow) return;
+
+            var elfinVisible = elfinIndex >= 0;
+            elfinShow.SetActive(elfinVisible);
+            if (!elfinVisible) return;
+
+            for (int i = 0; i < elfinShow.transform.childCount; i++)
             {
-                elfinShow.SetActive(false);
-                return;
+                GameObject.Destroy(elfinShow.transform.GetChild(i).gameObject);
             }
 
+            var scrollView = ElfinFancyPanel.m_FancyScrollView;
+            scrollView.ScrollToDataIndex(elfinIndex, 0, true);
 
+            var cell = scrollView.GetCell(elfinIndex);
+            bool destroyCellAfter = false;
+            if (cell == null) 
+            {
+                cell = scrollView.CreateNewCell(elfinIndex);
+                cell.Init();
+                cell.UpdateData(elfinIndex);
+                cell.SetVisible(elfinVisible);
+                destroyCellAfter = true;
+            }
+
+            GameObject.Instantiate(cell.gameObject.transform.GetChild(0).gameObject, elfinShow.transform);
+            if (destroyCellAfter) UnityEngine.Object.Destroy(cell);
+
+            scrollView.ScrollToDataIndex(DataHelper.selectedElfinIndex, 0, true);
         }
 
         internal static void UpdateCurrentPage(bool infoOnly = false)
@@ -319,11 +371,27 @@ namespace Multiplayer.UI
 
             PnlHome = GameObject.Find("UI/Standerd/PnlHome");
             PnlRole = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole");
+            PnlElfin = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlElfin");
+            GirlFancyPanel = PnlRole.GetComponent<PnlRole>().fancyPanel;
+            ElfinFancyPanel = PnlElfin.GetComponent<PnlElfin>().fancyPanel;
+
             OriginalMuseShow = GameObject.Find("UI/Standerd/PnlHome/MuseShow");
             OriginalElfinShow = GameObject.Find("UI/Standerd/PnlHome/ElfinShow");
             OriginalButton = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole/MainShow/FancyScrollView/BtnPrevious");
 
             if (OriginalMuseShow is null || OriginalButton is null) return;
+
+            if (!GirlsCached)
+            {
+                GirlsCached = true;
+                for (int i = 0; i < GirlFancyPanel.m_FancyScrollView.itemCount; i++) //GlobalDataBase.dbConfig.m_ConfigDic["character"].count
+                {
+                    GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(i, 0, true);
+                }
+                GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(DataHelper.selectedRoleIndex, 0, true);
+            }
+
+            OriginalMuseShow.transform.Find("BtnInteraction").gameObject.SetActive(false);
 
             OriginalMusePosition = OriginalMuseShow.transform.position;
             OriginalMuseScale = OriginalMuseShow.transform.localScale;
@@ -337,6 +405,7 @@ namespace Multiplayer.UI
             MiddleMuseShow = OriginalMuseShow;
             LeftMuseShow = GameObject.Instantiate(MiddleMuseShow, MiddleMuseShow.transform.parent);
             RightMuseShow = GameObject.Instantiate(MiddleMuseShow, MiddleMuseShow.transform.parent);
+
 
             var leftComp = LeftMuseShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject.GetComponent<MuseShow>();
             var rightComp = RightMuseShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject.GetComponent<MuseShow>();
@@ -411,27 +480,6 @@ namespace Multiplayer.UI
             LeftInfo.alignment = TextAnchor.MiddleCenter;
             RightInfo.alignment = TextAnchor.MiddleCenter;
 
-            MiddleElfinShow = OriginalElfinShow;
-            LeftElfinShow = GameObject.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
-            RightElfinShow = GameObject.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
-
-            Component.Destroy(LeftElfinShow.GetComponent<OnActivate>());
-            Component.Destroy(RightElfinShow.GetComponent<OnActivate>());
-
-            Component.Destroy(LeftElfinShow.GetComponent<DesElfinIfLessThanZero>());
-            Component.Destroy(RightElfinShow.GetComponent<DesElfinIfLessThanZero>());
-
-            LeftElfinShow.name = "LeftElfinShow";
-            RightElfinShow.name = "RightElfinShow";
-
-            MiddleElfinShow.transform.localScale = MiddleElfinScale;
-            LeftElfinShow.transform.localScale = SideElfinScale;
-            RightElfinShow.transform.localScale = SideElfinScale;
-
-            MiddleElfinShow.transform.position = MiddleElfinPosition;
-            LeftElfinShow.transform.position = LeftElfinPosition;
-            RightElfinShow.transform.position = RightElfinPosition;
-
             LeftButton = GameObject.Instantiate(OriginalButton, OriginalMuseShow.transform.parent);
             RightButton = GameObject.Instantiate(OriginalButton, OriginalMuseShow.transform.parent);
 
@@ -459,6 +507,29 @@ namespace Multiplayer.UI
             MiddleName.text = PlayerManager.LocalPlayer.MultiplayerStats.Name;
             MiddleInfo.text = String.Format(InfoFormat, PlayerManager.LocalPlayer.MoeStats.RL);
 
+            MiddleElfinShow = OriginalElfinShow;
+            LeftElfinShow = GameObject.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
+            RightElfinShow = GameObject.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
+
+            Component.Destroy(LeftElfinShow.GetComponent<OnActivate>());
+            Component.Destroy(RightElfinShow.GetComponent<OnActivate>());
+
+            Component.Destroy(LeftElfinShow.GetComponent<DesElfinIfLessThanZero>());
+            Component.Destroy(RightElfinShow.GetComponent<DesElfinIfLessThanZero>());
+
+            LeftElfinShow.name = "LeftElfinShow";
+            RightElfinShow.name = "RightElfinShow";
+
+            MiddleElfinShow.transform.localScale = MiddleElfinScale;
+            LeftElfinShow.transform.localScale = SideElfinScale;
+            RightElfinShow.transform.localScale = SideElfinScale;
+
+            MiddleElfinShow.transform.position = MiddleElfinPosition;
+            LeftElfinShow.transform.position = LeftElfinPosition;
+            RightElfinShow.transform.position = RightElfinPosition;
+
+            BubbleCancelTokens = new();
+
             Enabled = true;
             UpdateAllPages();
         }
@@ -470,6 +541,8 @@ namespace Multiplayer.UI
             {
                 Pages.Clear();
                 OriginalElfinShow.SetActive(true);
+
+                OriginalMuseShow.transform.Find("BtnInteraction").gameObject.SetActive(true);
 
                 OriginalMuseShow.transform.position = OriginalMusePosition;
                 OriginalMuseShow.transform.localScale = OriginalMuseScale;
@@ -495,6 +568,8 @@ namespace Multiplayer.UI
 
                 GameObject.Destroy(LeftButton);
                 GameObject.Destroy(RightButton);
+
+                BubbleCancelTokens = null;
 
             } catch (Exception ex)
             {

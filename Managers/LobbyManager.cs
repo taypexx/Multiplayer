@@ -56,7 +56,7 @@ namespace Multiplayer.Managers
                         UIManager.UpdatePnlPreparation();
                         AdvancedPnlHome.UpdateAllPages();
                     });
-                    if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.CurrentScene == "UISystem_PC")
+                    if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.IsUIScene && LocalLobby.CurrentPlaylistEntry != null && !LocalLobby.CurrentPlaylistEntry.StartedPlaying)
                     {
                         _ = UIManager.ShowInfoAndStartGame();
                     }

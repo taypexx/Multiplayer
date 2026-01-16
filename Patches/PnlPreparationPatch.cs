@@ -107,6 +107,7 @@ namespace Multiplayer.Patches
                 if (!startCondition) return startCondition;
 
                 var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
+                entry.Play();
 
                 UIManager.JumpToChart(entry.MusicInfo.uid);
                 //TODO: Get back to diff 3 the hidden was unlocked for some reason

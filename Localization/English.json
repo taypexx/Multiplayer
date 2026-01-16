@@ -23,11 +23,18 @@
     "BattleUpdateIntervalMS": "How often will your battle data update in milliseconds. Recommended values: 300ms — 1000ms"
   },
   "SystemChatMessages": {
-    "LobbyJoin": "{0} has joined the lobby!",
-    "LobbyLeave": "{0} has left the lobby.",
-    "PlaylistAdd": "{0} added <color=#fff700ff>{1}</color> to the playlist.",
-    "PlaylistRemove": "{0} removed <color=#fff700ff>{1}</color> from the playlist.",
+    "LobbyJoin": "<color=#fff700ff>{0}</color> has joined the lobby!",
+    "LobbyLeave": "<color=#fff700ff>{0}</color> has left the lobby.",
+    "PlaylistAdd": "<color=#fff700ff>{0}</color> added <color=#fff700ff>{1}</color> to the playlist.",
+    "PlaylistRemove": "<color=#fff700ff>{0}</color> removed <color=#fff700ff>{1}</color> from the playlist.",
     "ChatPlaceholderText": "Press / or click here to start typing"
+  },
+  "CommandDescriptions": {
+    "help": "Show all available commands",
+    "clear": "Clear the entire chat",
+    "website": "Open Multiplayer home page",
+    "mdmc": "Open MDMC website",
+    "discord": "Join the MDMP discord server"
   },
   "Warning": {
     "Title": "Warning",

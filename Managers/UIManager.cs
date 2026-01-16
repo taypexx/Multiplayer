@@ -20,11 +20,14 @@ using Multiplayer.Data.Players;
 using Multiplayer.UI.NavigationButtons;
 using UnityEngine.Events;
 using Il2CppAssets.Scripts.UI.Panels.PnlRole;
+using UnityEngine.EventSystems;
 
 namespace Multiplayer.Managers
 {
     internal static class UIManager
     {
+        internal static EventSystem EventSystem { get; private set; }
+
         internal static bool Initialized { get; private set; } = false;
         internal static bool Debounce = false;
         internal static Text WindowTitle { get; private set; }
@@ -326,7 +329,9 @@ namespace Multiplayer.Managers
         /// Initializes every time a UISystem_PC scene gets loaded.
         /// </summary>
         internal static void InitUISystemMain()
-        {     
+        {
+            EventSystem = GameObject.Find("UI/EventSystem").GetComponent<EventSystem>();
+
             var windowTitleGo = GameObject.Instantiate(
                 GameObject.Find("UI/Forward/Tips/PnlAchievementsTips/TxtTittle"),
                 MainFrame.transform
@@ -350,8 +355,13 @@ namespace Multiplayer.Managers
             }
 
             var updateLobbyDisplayAction = (UnityAction)new Action(MainLobbyDisplay.UpdateTexts);
-            GameObject.Find("UI/Standerd/PnlNavigation/Top/BtnNavigationBack").GetComponent<Button>().onClick.AddListener(updateLobbyDisplayAction);
-            GameObject.Find("UI/Standerd/PnlHome/Bottom/Btn").GetComponent<Button>().onClick.AddListener(updateLobbyDisplayAction);
+            var navBackButton = GameObject.Find("UI/Standerd/PnlNavigation/Top/BtnNavigationBack").GetComponent<Button>();
+            var homeStartButton = GameObject.Find("UI/Standerd/PnlHome/Bottom/Btn").GetComponent<Button>();
+
+            navBackButton.onClick.AddListener(updateLobbyDisplayAction);
+            homeStartButton.onClick.AddListener(updateLobbyDisplayAction);
+
+            navBackButton.onClick.AddListener((UnityAction)new Action(AdvancedPnlHome.AllPlayersEndSpeak));
         }
 
         /// <summary>
@@ -418,19 +428,6 @@ namespace Multiplayer.Managers
             LobbyCreationWindow.CreateButtons();
 
             MainMenu.CreateButtons();
-
-            // Caching every character
-            for (int i = 0; i < ((DBConfigCharacter)(GlobalDataBase.dbConfig.m_ConfigDic["character"])).list.Count; i++)
-            {
-                PnlRole.JumpToCharacterByIndex(i, false);
-            }
-
-            /* Caching every elfin
-            for (int i = 0; i < ((DBConfigCharacter)(GlobalDataBase.dbConfig.m_ConfigDic["elfin"])).list.Count; i++)
-            {
-                PnlElfin.
-            }
-            */
 
             Initialized = true;
         }

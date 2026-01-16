@@ -13,10 +13,12 @@ namespace Multiplayer.UI.Displays
         {
             ParentPath = "UI/Standerd/PnlNavigation";
             AnchorPosition = new(830f, 350f, 0f);
+            EntrySize = new(200f, 200f);
             Step = new(0f, -35f, 0f);
             PopupOffset = new(-135f, 0, 0);
             PopupX = 50f;
             TextAnchor = TextAnchor.UpperRight;
+            TextHorizontalWrapMode = HorizontalWrapMode.Overflow;
             FontSize = 26;
         }
 
