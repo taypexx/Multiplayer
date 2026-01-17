@@ -2,7 +2,7 @@
 using Multiplayer.Managers;
 using Multiplayer.Static;
 
-namespace Multiplayer.Data
+namespace Multiplayer.Data.Websocket
 {
     public class ChatMessage
     {
@@ -12,7 +12,7 @@ namespace Multiplayer.Data
         public string ExtraData { get; set; }
         internal bool IsSystemMessage => AuthorName.ToLower() == "system";
         internal bool IsCommand => Message != null && Message.StartsWith("/") && ChatCommand.TotalCommands.ContainsKey(Message.Substring(1));
-        internal ChatCommand? Command => IsCommand ? ChatCommand.TotalCommands[Message.Substring(1)] : null;
+        internal ChatCommand Command => IsCommand ? ChatCommand.TotalCommands[Message.Substring(1)] : null;
 
         public override string ToString()
         {
@@ -32,8 +32,8 @@ namespace Multiplayer.Data
                         }
                     }
 
-                    return String.Format(Localization.Get("SystemChatMessages", Message).ToString() ?? "Unknown system message", param);
-                } 
+                    return string.Format(Localization.Get("SystemChatMessages", Message).ToString() ?? "Unknown system message", param);
+                }
                 else return Message;
             }
             else return $"<b><color=#{(LobbyManager.LocalLobby.Host.Uid == AuthorUid ? Constants.Yellow : "ffffff")}>[{AuthorName}]:</color></b> <color=#e8e8e8>{Message}</color>";

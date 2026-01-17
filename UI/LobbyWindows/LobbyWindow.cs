@@ -75,8 +75,9 @@ namespace Multiplayer.UI.LobbyWindows
         /// Updates the <see cref="LobbyWindow"/> to display the information about the given <see cref="Data.Lobbies.Lobby"/>.
         /// </summary>
         /// <param name="lobby"><see cref="Data.Lobbies.Lobby"/> that will now appear in the window.</param>
+        /// <param name="updateLobby">Whether to update the <see cref="Data.Lobbies.Lobby"/> before displaying its information.</param>
         /// <param name="updatePlayers">Whether to update players in the lobby.</param>
-        internal async Task Update(Lobby lobby, bool updatePlayers = false)
+        internal async Task Update(Lobby lobby, bool updateLobby = true, bool updatePlayers = false)
         {
             if (UpdateDebounce || lobby is null) return;
             UpdateDebounce = true;
@@ -84,7 +85,7 @@ namespace Multiplayer.UI.LobbyWindows
             int prevPlayers = lobby.Players.Count;
 
             Lobby = lobby;
-            await lobby.Update(updatePlayers);
+            if (updateLobby) await lobby.Update(updatePlayers);
 
             Main.Dispatcher.Enqueue(() =>
             {

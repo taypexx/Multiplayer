@@ -10,7 +10,6 @@ using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using PopupLib.UI.Windows.Interfaces;
-using UnityEngine;
 
 namespace Multiplayer.UI
 {
@@ -28,7 +27,7 @@ namespace Multiplayer.UI
         private InputWindow BioWindow;
         private static bool PnlHeadWasOpened = false;
 
-        private static LocalString MainDescription => Localization.Get("MainMenu", "Description");
+        private static LocalString MainDescription;
         private static LocalString Credits;
 
         internal MainMenu() : base(Localization.Get("MainMenu", "Title"), null, "MainMenu.png")
@@ -43,7 +42,8 @@ namespace Multiplayer.UI
 
             UIManager.PnlHead.onClose += (Action)OnPnlHeadClose;
 
-            Credits = new(string.Format("———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Muse Dash mod development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\n{0}",Constants.Testers));
+            MainDescription = Localization.Get("MainMenu", "Description");
+            Credits = new(string.Format("———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Mod & backend development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\n{0}",Constants.Testers));
         }
 
         internal void CreateButtons()
@@ -124,7 +124,7 @@ namespace Multiplayer.UI
         }
 
         /// <summary>
-        /// Calls every time <see cref="Il2CppAssets.Scripts.UI.Panels.PnlHead"/> gets closed.
+        /// Calls every time <see cref="PnlHead"/> gets closed.
         /// </summary>
         private void OnPnlHeadClose()
         {

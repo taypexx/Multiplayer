@@ -36,19 +36,6 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Synchronizes ping of the local <see cref="Player"/>.
-        /// </summary>
-        internal static void SyncPing()
-        {
-            var payload = new
-            {
-                Uid = LocalPlayerUid,
-                PingMS = LocalPlayer.PingMS,
-            };
-            _ = Client.PostAsync("updatePlayer", payload);
-        }
-
-        /// <summary>
         /// Synchronizes achievements of the local <see cref="Player"/> with the server.
         /// </summary>
         internal static void SyncAchievements()

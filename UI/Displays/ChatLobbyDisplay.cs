@@ -1,5 +1,5 @@
-﻿using Multiplayer.Data;
-using Multiplayer.Data.Lobbies;
+﻿using Multiplayer.Data.Lobbies;
+using Multiplayer.Data.Websocket;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -12,7 +12,7 @@ namespace Multiplayer.UI.Displays
     internal sealed class ChatLobbyDisplay : BaseLobbyDisplay
     {
         internal int MaxLines { get; private set; } = 10;
-        private InputField InputField;
+        internal InputField InputField { get; private set; }
         private GameObject PlaceholderText;
 
         internal ChatLobbyDisplay() : base()

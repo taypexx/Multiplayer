@@ -7,13 +7,12 @@ using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Net.Http.Headers;
 using System.Diagnostics;
-using Newtonsoft.Json;
 using Il2CppAssets.Scripts.Database;
 using Il2CppSirenix.Serialization.Utilities;
 using MelonLoader.Utils;
 using System.Net;
 using System.Net.WebSockets;
-using Multiplayer.Data;
+using Multiplayer.Data.Websocket;
 
 namespace Multiplayer.Static
 {
@@ -26,7 +25,7 @@ namespace Multiplayer.Static
         internal static ushort PingMS { get; private set; }
 
         internal static readonly string APIAddress = $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/";
-        internal static readonly Uri WebsocketAddress = new($"wss://{Constants.ServerAddress}/chat");
+        internal static readonly Uri WebsocketAddress = new($"wss://{Constants.ServerAddress}/ws");
 
         internal static string ServerVersion { get; private set; }
         internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
@@ -53,13 +52,13 @@ namespace Multiplayer.Static
         }
         internal static readonly string TokenPath = Path.Combine(MelonEnvironment.GameRootDirectory, "mdmp.token");
 
-        internal static async Task ChatWebsocketListen()
+        internal static async Task WebsocketListen()
         {
             if (!LobbyManager.IsInLobby || WebSocket.State == WebSocketState.Open) return;
 
             WebSocket.Options.SetRequestHeader("Authorization", $"Basic {PlayerManager.LocalPlayerUid}#{Token}");
 
-            Main.Logger.Msg("Connecting to the chat Websocket...");
+            Main.Logger.Msg("Connecting to the Websocket...");
             await WebSocket.ConnectAsync(WebsocketAddress, CancellationToken.None);
             Main.Logger.Msg("Websocket connection was successfully established at " + WebsocketAddress);
 
@@ -71,6 +70,11 @@ namespace Multiplayer.Static
 
                 do {
                     res = await WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    unchecked
+                    {
+                        PingMS = Stopwatch.ElapsedMilliseconds == 0 ? PingMS : (ushort)Stopwatch.ElapsedMilliseconds;
+                    }
+                    Stopwatch.Stop();
 
                     if (res.MessageType == WebSocketMessageType.Close || !LobbyManager.IsInLobby)
                     {
@@ -83,18 +87,28 @@ namespace Multiplayer.Static
                 } 
                 while (!res.EndOfMessage);
 
-                ChatMessage chatMessage = System.Text.Json.JsonSerializer.Deserialize<ChatMessage>(msgBuilder.ToString());
-                Chat.Recieve(chatMessage);
+                var message = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(msgBuilder.ToString());
+                switch (message["Type"].GetString())
+                {
+                    case "Sync":
+                        _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true);
+                        break;
+                    case "Chat":
+                        Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"]));
+                        break;
+                }
             }
             End:
             Main.Logger.Msg("Websocket connection ended.");
         }
 
-        internal static void ChatWebsocketSend(string payload)
+        internal static async Task WebsocketSend(object payload, bool recordPing = false)
         {
             if (WebSocket.State != WebSocketState.Open) return;
-            var bytes = Encoding.UTF8.GetBytes(payload);
-            _ = WebSocket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
+            var bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(payload));
+
+            if (recordPing) Stopwatch.Restart();
+            await WebSocket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
         /// <summary>
@@ -194,23 +208,15 @@ namespace Multiplayer.Static
             try
             {
                 var request = new HttpRequestMessage(HttpMethod.Post, isFullPath ? path : APIAddress + path);
-                request.Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+                request.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
                 
                 if (!doAuth)
                 {
                     request.Headers.Authorization = null;
                 }
 
-                Stopwatch.Restart();
-
                 HttpResponseMessage response = await Http.SendAsync(request);
                 request.Dispose();
-
-                unchecked
-                {
-                    PingMS = (ushort)Stopwatch.ElapsedMilliseconds;
-                }
-                Stopwatch.Stop();
 
                 if (!response.IsSuccessStatusCode)
                 {

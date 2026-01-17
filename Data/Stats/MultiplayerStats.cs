@@ -87,21 +87,8 @@ namespace Multiplayer.Data.Stats
             Banned = false;
         }
 
-        /// <summary>
-        /// Gets <see cref="MultiplayerStats"/> from the server and updates itself.
-        /// </summary>
-        internal async Task Update()
+        internal void UpdateFields(Dictionary<string, JsonElement> updatedData)
         {
-            var response = await Client.PostAsync("getPlayer", new
-            {
-                Uid = PlayerManager.LocalPlayerUid ?? Player.Uid,
-                TargetUid = Player.Uid,
-                Name = PlayerManager.LocalPlayerName
-            });
-            if (response is null) return;
-
-            var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
-
             Name = updatedData["Name"].GetString();
             AvatarName = updatedData["AvatarName"].GetString();
             Bio = updatedData["Bio"].GetString();
@@ -109,22 +96,22 @@ namespace Multiplayer.Data.Stats
 
             try
             {
-                Friends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"].GetRawText());
+                Friends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"]);
             }
             catch { }
 
             FriendRequests.Clear();
             try
             {
-                FriendRequests = JsonSerializer.Deserialize<Dictionary<string, string>>(updatedData["FriendRequests"].GetRawText());
+                FriendRequests = JsonSerializer.Deserialize<Dictionary<string, string>>(updatedData["FriendRequests"]);
             }
-            catch {}
+            catch { }
 
             Achievements.Clear();
             try
             {
                 // Converting data to actual achievements with their timestamps 
-                var updatedAchievements = JsonSerializer.Deserialize<Dictionary<long, byte>>(updatedData["Achievements"].GetRawText());
+                var updatedAchievements = JsonSerializer.Deserialize<Dictionary<long, byte>>(updatedData["Achievements"]);
                 foreach ((long unixTimestamp, byte id) in updatedAchievements)
                 {
                     Achievements.Add(DateTimeOffset.FromUnixTimeSeconds(unixTimestamp).DateTime, AchievementManager.Achievements[id]);
@@ -142,6 +129,22 @@ namespace Multiplayer.Data.Stats
             FavElfinIndex = updatedData["FavElfinIndex"].GetInt32();
 
             Player.PingMS = updatedData["PingMS"].GetUInt16();
+        }
+
+        /// <summary>
+        /// Gets <see cref="MultiplayerStats"/> from the server and updates itself.
+        /// </summary>
+        internal async Task Update()
+        {
+            var response = await Client.PostAsync("getPlayer", new
+            {
+                Uid = PlayerManager.LocalPlayerUid ?? Player.Uid,
+                TargetUid = Player.Uid,
+                Name = PlayerManager.LocalPlayerName
+            });
+            if (response is null) return;
+
+            UpdateFields(await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>());
         }
 
         /// <summary>

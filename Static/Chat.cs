@@ -1,4 +1,4 @@
-﻿using Multiplayer.Data;
+﻿using Multiplayer.Data.Websocket;
 using Multiplayer.Managers;
 using Multiplayer.UI;
 using Newtonsoft.Json;
@@ -26,18 +26,22 @@ namespace Multiplayer.Static
         {
             if (!LobbyManager.IsInLobby) return;
 
-            ChatMessage chatMessage = new()
+            var message = new
             {
-                Message = msg,
-                AuthorName = PlayerManager.LocalPlayer.MultiplayerStats.Name,
-                AuthorUid = PlayerManager.LocalPlayerUid
+                Type = "Chat",
+                Body = new ChatMessage
+                {
+                    Message = msg,
+                    AuthorName = PlayerManager.LocalPlayer.MultiplayerStats.Name,
+                    AuthorUid = PlayerManager.LocalPlayerUid
+                }
             };
 
-            if (chatMessage.IsCommand)
+            if (message.Body.IsCommand)
             {
-                chatMessage.Command.Run();
+                message.Body.Command.Run();
             } 
-            else Client.ChatWebsocketSend(JsonConvert.SerializeObject(chatMessage));
+            else _ = Client.WebsocketSend(message);
         }
     }
 }

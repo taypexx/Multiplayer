@@ -156,7 +156,7 @@ namespace Multiplayer.Managers
             if (lobby is null) lobby = LobbyManager.LocalLobby;
             Debounce = true;
 
-            await LobbyWindow.Update(lobby, false);
+            await LobbyWindow.Update(lobby, lobby != LobbyManager.LocalLobby);
 
             Main.Dispatcher.Enqueue(() =>
             {
@@ -360,8 +360,6 @@ namespace Multiplayer.Managers
 
             navBackButton.onClick.AddListener(updateLobbyDisplayAction);
             homeStartButton.onClick.AddListener(updateLobbyDisplayAction);
-
-            navBackButton.onClick.AddListener((UnityAction)new Action(AdvancedPnlHome.AllPlayersEndSpeak));
         }
 
         /// <summary>

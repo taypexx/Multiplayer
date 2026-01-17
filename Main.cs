@@ -4,7 +4,7 @@ using Multiplayer.Static;
 using Multiplayer.Patches;
 using System.Reflection;
 using System.Drawing;
-using Multiplayer.Data;
+using Multiplayer.Data.Websocket;
 
 namespace Multiplayer
 {
@@ -113,8 +113,6 @@ namespace Multiplayer
         public override void OnDeinitializeMelon()
         {
             Settings.Save();
-            _ = LobbyManager.LeaveLobby();
-
             base.OnDeinitializeMelon();
         }
 

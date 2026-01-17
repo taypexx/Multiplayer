@@ -9,15 +9,16 @@ namespace Multiplayer.Managers
     internal static class InputManager
     {
         internal static bool PingMode { get; private set; } = false;
+        internal static Il2CppAssets.Scripts.PeroTools.Managers.InputManager PeroInputManager = Singleton<Il2CppAssets.Scripts.PeroTools.Managers.InputManager>.instance;
         internal static bool InputEnabled
         {
             get; 
             private set
             {
-                value = value || LobbyManager.IsInLobby;
+                value = value || !LobbyManager.IsInLobby;
                 try
                 {
-                    Singleton<Il2CppAssets.Scripts.PeroTools.Managers.InputManager>.instance.isStopKeyAction = !value;
+                    PeroInputManager.isStopKeyAction = !value;
                 }
                 catch { }
                 field = value;
@@ -28,7 +29,7 @@ namespace Multiplayer.Managers
         {
             if (UIManager.ChatLobbyDisplay == null) return;
 
-            var inputField = UIManager.ChatLobbyDisplay.Title.GetComponent<InputField>();
+            var inputField = UIManager.ChatLobbyDisplay.InputField;
             inputField.text = string.Empty;
             inputField.Select();
             inputField.ActivateInputField();
@@ -38,12 +39,10 @@ namespace Multiplayer.Managers
         {
             if (!UIManager.Initialized) return;
 
-            /*
-            if (UIManager.EventSystem != null && InputEnabled != (UIManager.EventSystem.currentSelectedGameObject == null))
+            if (UIManager.ChatLobbyDisplay != null && InputEnabled == UIManager.ChatLobbyDisplay.InputField?.isFocused)
             {
                 InputEnabled = !InputEnabled;
             }
-            */
 
             bool pingModeToggled = Input.GetKey(Constants.BattleDisplayKeyCode);
             if (InputEnabled && PingMode != pingModeToggled)
@@ -67,12 +66,12 @@ namespace Multiplayer.Managers
             if (Input.GetKeyDown(Constants.ChatSendKeyCode) && UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
             {
                 // Send a chat message
-                var inputField = UIManager.ChatLobbyDisplay.Title.GetComponent<InputField>();
+                var inputField = UIManager.ChatLobbyDisplay.InputField;
                 var msg = inputField.text;
                 if (msg != string.Empty)
                 {
                     inputField.text = string.Empty;
-                    inputField.DeactivateInputField();
+                    //inputField.DeactivateInputField();
                     Chat.Send(msg);
                 }
             }

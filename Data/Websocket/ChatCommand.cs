@@ -2,7 +2,7 @@
 using Multiplayer.Managers;
 using Multiplayer.Static;
 
-namespace Multiplayer.Data
+namespace Multiplayer.Data.Websocket
 {
     internal class ChatCommand
     {
@@ -26,7 +26,7 @@ namespace Multiplayer.Data
         {
             TotalCommands.Clear();
 
-            new ChatCommand("help", new(() => 
+            new ChatCommand("help", new(() =>
             {
                 if (UIManager.ChatLobbyDisplay == null) return;
 

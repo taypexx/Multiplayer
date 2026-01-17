@@ -6,6 +6,7 @@ using Constants = Multiplayer.Static.Constants;
 [assembly: MelonGame("PeroPeroGames", "MuseDash")]
 [assembly: MelonColor(255, 255, 0, 255)]
 [assembly: MelonAdditionalDependencies("FavGirl")]
+[assembly: MelonIncompatibleAssemblies("PracticeMod")]
 
 [assembly: AssemblyTitle(Constants.ModName)]
 [assembly: AssemblyDescription("Muse Dash Multiplayer client mod that allows you to play against other players. ")]

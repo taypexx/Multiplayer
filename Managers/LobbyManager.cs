@@ -1,6 +1,7 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using LocalizeLib;
 using Multiplayer.Data.Lobbies;
+using Multiplayer.Data.Websocket;
 using Multiplayer.Static;
 using Multiplayer.UI;
 using PopupLib.UI;
@@ -45,11 +46,13 @@ namespace Multiplayer.Managers
             while (IsAutoUpdating && Client.Connected)
             {
                 await Task.Delay(Settings.Config.LobbyUpdateIntervalMS);
-                await UIManager.LobbyWindow.Update(lobby, InputManager.PingMode); // Also updates the lobby
+
+                // Websocket handles the lobby update (if local lobby), we just update the window
+                await UIManager.LobbyWindow.Update(lobby, lobby != LocalLobby); 
 
                 if (lobby == LocalLobby)
                 {
-                    PlayerManager.SyncPing();
+                    await SyncLobby();
                     Main.Dispatcher.Enqueue(() => 
                     {
                         UIManager.MainLobbyDisplay.Update();
@@ -62,6 +65,25 @@ namespace Multiplayer.Managers
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Synchronizes the local lobby via websocket.
+        /// </summary>
+        internal static async Task SyncLobby()
+        {
+            var payload = new
+            {
+                Type = "Sync",
+                Body = new Dictionary<string, object>
+                {
+                    ["Uid"] = PlayerManager.LocalPlayerUid,
+                    ["Id"] = LocalLobby.Id,
+                    ["GetPlayers"] = true,
+                    ["PingMS"] = Client.PingMS
+                }
+            };
+            await Client.WebsocketSend(payload, true);
         }
 
         /// <summary>
@@ -295,8 +317,8 @@ namespace Multiplayer.Managers
         private static void AfterJoin(Lobby lobby)
         {
             LocalLobby = lobby;
+            _ = Client.WebsocketListen();
             _ = AutoUpdateStart(lobby);
-            _ = Client.ChatWebsocketListen();
 
             Main.Dispatcher.Enqueue(() =>
             {

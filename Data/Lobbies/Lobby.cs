@@ -82,37 +82,8 @@ namespace Multiplayer.Data.Lobbies
             return null;
         }
 
-        /// <summary>
-        /// Gets the <see cref="Lobby"/> data from the server and updates itself.
-        /// </summary>
-        /// <param name="updatePlayers">Whether to updates players of the lobby.</param>
-        /// <returns><see langword="true"/> if update was successful, otherwise <see langword="false"/>.</returns>
-        internal async Task<bool> Update(bool updatePlayers = false)
+        internal async Task UpdateFields(Dictionary<string, JsonElement> updatedData, bool updatePlayers = false, bool playersUpdated = false)
         {
-            var response = await Client.PostAsync("getLobby", new
-            {
-                Client.Token,
-                PlayerManager.LocalPlayer.Uid,
-                Id
-            });
-
-            // If the lobby was disbanded
-            if (response == null)
-            {
-                // Leave if the local player was in this lobby
-                if (IsMember(PlayerManager.LocalPlayer))
-                {
-                    UIManager.Debounce = true;
-                    await LobbyManager.LeaveLobby(true);
-                    UIManager.Debounce = false;
-                }
-                LobbyManager.ClearLobbyFromCache(this);
-
-                return false;
-            }
-
-            var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
-
             Name = updatedData["Name"].GetString();
             IsPrivate = updatedData["IsPrivate"].GetBoolean();
             Locked = updatedData["Locked"].GetBoolean();
@@ -126,7 +97,16 @@ namespace Multiplayer.Data.Lobbies
 
             try // Loves to error
             {
-                Players = JsonSerializer.Deserialize<List<string>>(updatedData["Players"].GetRawText());
+                if (playersUpdated)
+                {
+                    var newPlayers = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, JsonElement>>>(updatedData["Players"]);
+                    Players = newPlayers.Keys.ToList();
+                    foreach ((var playerUid, var playerStats) in newPlayers)
+                    {
+                        (await PlayerManager.GetPlayer(playerUid)).MultiplayerStats.UpdateFields(playerStats);
+                    }
+                } 
+                else Players = JsonSerializer.Deserialize<List<string>>(updatedData["Players"]);
             }
             catch { }
 
@@ -141,14 +121,16 @@ namespace Multiplayer.Data.Lobbies
                 else if (updatePlayers) await player.Update();
             }
 
-            if (this == LobbyManager.LocalLobby) {
+            if (this == LobbyManager.LocalLobby)
+            {
                 try
                 {
-                    ReadyPlayers = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"].GetRawText());
-                } 
-                catch { } try
+                    ReadyPlayers = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"]);
+                }
+                catch { }
+                try
                 {
-                    var playlist = JsonSerializer.Deserialize<List<string>>(updatedData["Playlist"].GetRawText());
+                    var playlist = JsonSerializer.Deserialize<List<string>>(updatedData["Playlist"]);
 
                     // Add new entries from other players
                     foreach (string entry in playlist)
@@ -178,7 +160,37 @@ namespace Multiplayer.Data.Lobbies
             }
 
             LastUpdated = DateTime.Now;
-            return true;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="Lobby"/> data from the server and updates itself.
+        /// </summary>
+        /// <param name="updatePlayers">Whether to updates players of the lobby.</param>
+        /// <param name="body">(Optional) The recieved lobby data body from somewhere else.</param>
+        internal async Task Update(bool updatePlayers = false)
+        {
+            var response = await Client.PostAsync("getLobby", new
+            {
+                Client.Token,
+                PlayerManager.LocalPlayer.Uid,
+                Id
+            });
+
+            // If the lobby was disbanded
+            if (response == null)
+            {
+                // Leave if the local player was in this lobby
+                if (IsMember(PlayerManager.LocalPlayer))
+                {
+                    UIManager.Debounce = true;
+                    await LobbyManager.LeaveLobby(true);
+                    UIManager.Debounce = false;
+                }
+                LobbyManager.ClearLobbyFromCache(this);
+                return;
+            }
+
+            await UpdateFields(await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>());
         }
     }
 }

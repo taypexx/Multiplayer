@@ -6,14 +6,16 @@ namespace Multiplayer.Static
 {
     public class Config
     {
-        internal bool ShowNavigationButtons { get;
+        internal bool ShowNavigationButtons { 
+            get;
             set {
                 UIManager.ToggleNavigationButtons(value);
                 field = value;
             } 
         } = true;
         internal bool EnableShortcuts { get; set; } = false;
-        internal bool FavGirlMode { get; 
+        internal bool FavGirlMode { 
+            get; 
             set {
                 AdvancedPnlHome.UpdateCurrentPage();
                 field = value;
@@ -22,12 +24,14 @@ namespace Multiplayer.Static
         internal bool ShowOtherElfins { get; set; } = true;
         internal bool DisplayLobbyStatus { get; set; } = true;
         internal bool ShowBattlePopups { get; set; } = true;
-        internal int LobbyUpdateIntervalMS { get; 
+        internal int LobbyUpdateIntervalMS { 
+            get; 
             set {
                 field = Math.Clamp(value, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS);
             } 
         } = 3000;
-        internal int BattleUpdateIntervalMS { get; 
+        internal int BattleUpdateIntervalMS { 
+            get; 
             set {
                 field = Math.Clamp(value, Constants.BattleUpdateIntervalMinMS, Constants.BattleUpdateIntervalMaxMS);
             } 
