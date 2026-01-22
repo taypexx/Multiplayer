@@ -43,7 +43,9 @@
     "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?",
     "Outdated": "Current mod version ({0}) is outdated. Would you like to update the mod? ({1})",
     "NoInvites": "Invites are not available at the moment. Please contact mod developers and let them know.",
-    "LoginRequired": "Login is required to continue. Proceed to the authorization page?"
+    "LoginRequired": "Login is required to continue. Proceed to the authorization page?",
+    "LowLevel": "Reach LVL {0} to unlock multiplayer!",
+    "NoInternet": "You are offline. Connect to the internet to play multiplayer!"
   },
   "Window": {
     "RefreshButton": "— Refresh —",
@@ -196,6 +198,7 @@
     "PlayConfirm": "Start the game?",
     "NoLobby": "You are not in lobby",
     "SleepwalkerUsed": "Cannot start - {0} is using sleepwalker",
-    "NotHost": "Only host can start the game"
+    "NotHost": "Only host can start the game",
+    "IntermissionLabel": "Coming up: <color=#{0}>{1}</color>   Top combo: <color=#{2}>{3} / {4}</color>   Time left: <color=#{5}>{6}s</color>"
   }
 }

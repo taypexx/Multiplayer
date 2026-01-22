@@ -66,8 +66,9 @@ namespace Multiplayer.UI.Abstract
         /// Adds a <see cref="Text"/> to the display, aligning it visually.
         /// </summary>
         /// <param name="key">Key to which this <see cref="Text"/> will be linked.</param>
+        /// <param name="clickAction">(Optional) Invokes this <see cref="Action"/> when the <see cref="Button"/> is clicked. Will not add the <see cref="Button"/> component if <see langword="null"/>.</param>
         /// <returns>A new <see cref="Text"/>.</returns>
-        internal Text AddText(object key)
+        internal Text AddText(object key, Action clickAction = null)
         {
             if (Parent is null)
             {
@@ -84,7 +85,13 @@ namespace Multiplayer.UI.Abstract
             text.alignment = TextAnchor;
             text.fontSize = FontSize;
             text.horizontalOverflow = TextHorizontalWrapMode;
-            text.raycastTarget = false;
+            text.raycastTarget = clickAction != null;
+
+            if (clickAction != null)
+            {/*
+                var button = newTextObj.AddComponent<Button>();
+                button.onClick.AddListener(clickAction);
+            */}
 
             TextList.Add(key, text);
             PositionList.Add(key);

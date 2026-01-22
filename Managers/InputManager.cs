@@ -2,14 +2,12 @@
 using Multiplayer.Static;
 using Multiplayer.UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Multiplayer.Managers
 {
     internal static class InputManager
     {
         internal static bool PingMode { get; private set; } = false;
-        internal static Il2CppAssets.Scripts.PeroTools.Managers.InputManager PeroInputManager = Singleton<Il2CppAssets.Scripts.PeroTools.Managers.InputManager>.instance;
         internal static bool InputEnabled
         {
             get; 
@@ -18,7 +16,7 @@ namespace Multiplayer.Managers
                 value = value || !LobbyManager.IsInLobby;
                 try
                 {
-                    PeroInputManager.isStopKeyAction = !value;
+                    Singleton<Il2CppAssets.Scripts.PeroTools.Managers.InputManager>.instance.isStopKeyAction = !value;
                 }
                 catch { }
                 field = value;
@@ -59,7 +57,7 @@ namespace Multiplayer.Managers
                     UIManager.BattleLobbyDisplay.UpdateTexts();
                 }
 
-                AdvancedPnlHome.UpdateCurrentPage(true);
+                PnlHomeExtension.UpdateCurrentPage(true);
                 return;
             }
 
@@ -71,7 +69,7 @@ namespace Multiplayer.Managers
                 if (msg != string.Empty)
                 {
                     inputField.text = string.Empty;
-                    //inputField.DeactivateInputField();
+                    inputField.DeactivateInputField();
                     Chat.Send(msg);
                 }
             }
@@ -82,17 +80,20 @@ namespace Multiplayer.Managers
                 {
                     FocusOnChatField();
                 }
-                else if (Input.GetKeyDown(Constants.MainMenuOpenKeyCode))
+                else if (UIManager.MainFrame != null && !UIManager.MainFrame.active)
                 {
-                    UIManager.MainNavButton.ButtonAction.Invoke();
-                }
-                else if (Input.GetKeyDown(Constants.LobbyOpenKeyCode))
-                {
-                    UIManager.LobbyNavButton.ButtonAction.Invoke();
-                }
-                else if (Input.GetKeyDown(Constants.PlaylistOpenKeyCode))
-                {
-                    UIManager.PlaylistNavButton.ButtonAction.Invoke();
+                    if (Input.GetKeyDown(Constants.MainMenuOpenKeyCode))
+                    {
+                        UIManager.MainNavButton.ButtonAction.Invoke();
+                    }
+                    else if (Input.GetKeyDown(Constants.LobbyOpenKeyCode))
+                    {
+                        UIManager.LobbyNavButton.ButtonAction.Invoke();
+                    }
+                    else if (Input.GetKeyDown(Constants.PlaylistOpenKeyCode))
+                    {
+                        UIManager.PlaylistNavButton.ButtonAction.Invoke();
+                    }
                 }
             }
         }

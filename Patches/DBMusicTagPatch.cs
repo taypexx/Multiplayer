@@ -9,6 +9,9 @@ namespace Multiplayer.Patches
 {
     internal static class DBMusicTagPatch
     {
+        /// <summary>
+        /// Prevents the local player from adding/removing charts to/from the hidden tab. Also synchronizes with the server when hiddens were updated.
+        /// </summary>
         [HarmonyPatch]
         [HarmonyPriority(Priority.First)]
         internal static class UpdateHiddenPatch
@@ -29,6 +32,45 @@ namespace Multiplayer.Patches
             }
 
             private static void Postfix() { PlayerManager.SyncHiddens(); }
+        }
+
+        /// <summary>
+        /// Tricks the game to think that the current selected chart is the first chart from the playlist.
+        /// </summary>
+        [HarmonyPatch(typeof(DBMusicTag), nameof(DBMusicTag.CurMusicInfo))]
+        internal static class BattleStartMusicInfoPatch
+        {
+            private static bool Prefix(ref MusicInfo __result)
+            {
+                if (LobbyManager.IsPlaylistChartComingUp)
+                {
+                    __result = LobbyManager.LocalLobby.CurrentPlaylistEntry.MusicInfo;
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Always returns true (says that current master is unlocked) if this is a chart from the playlist.
+        /// </summary>
+        [HarmonyPatch]
+        internal static class BattleStartMasterUnlockPatch
+        {
+            private static IEnumerable<MethodBase> TargetMethods()
+            {
+                return typeof(DataHelper).GetMethods().Where(m => m.Name == nameof(DataHelper.CheckMusicUnlockMaster));
+            }
+
+            private static bool Prefix(ref bool __result)
+            {
+                if (LobbyManager.IsPlaylistChartComingUp)
+                {
+                    __result = true;
+                    return false;
+                }
+                return true;
+            }
         }
     }
 }

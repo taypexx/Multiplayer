@@ -4,7 +4,6 @@ using Multiplayer.Static;
 using Multiplayer.Patches;
 using System.Reflection;
 using System.Drawing;
-using Multiplayer.Data.Websocket;
 
 namespace Multiplayer
 {
@@ -65,7 +64,7 @@ namespace Multiplayer
             Settings.Load();
             AssetManager.Init();
             Localization.Init();
-            ChatCommand.CreateCommands();
+            Chat.Init();
             BattleManager.Init();
             Client.Init();
         }

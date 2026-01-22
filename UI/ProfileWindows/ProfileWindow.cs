@@ -233,7 +233,7 @@ namespace Multiplayer.UI.ProfileWindows
                 }
                 await Update(Player, true);
 
-                if (AdvancedPnlHome.Visible) AdvancedPnlHome.UpdateCurrentPage();
+                if (PnlHomeExtension.Visible) PnlHomeExtension.UpdateCurrentPage();
 
                 PopupUtils.ShowInfo(msg);
 

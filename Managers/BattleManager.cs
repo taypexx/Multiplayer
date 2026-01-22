@@ -42,7 +42,7 @@ namespace Multiplayer.Managers
         private static StageBattleComponent StageBattleComponent;
 
         /// <summary>
-        /// Sends datagrams to the server and recieves stats of other players.
+        /// Sends a datagram to the server and recieves <see cref="Data.Stats.BattleStats"/> of other players.
         /// </summary>
         private static async Task<byte[]> ServerSync()
         {
@@ -68,7 +68,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Gets local battle information and updates <see cref="Data.Stats.BattleStats"/> of the local player.
+        /// Gets local battle information and updates <see cref="Data.Stats.BattleStats"/> of the local <see cref="Player"/>.
         /// </summary>
         private static void UpdateLocalBattleStats()
         {
@@ -91,7 +91,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Updates battle stats of every other player in the lobby.
+        /// Updates <see cref="Data.Stats.BattleStats"/> of every other <see cref="Player"/> in the lobby.
         /// </summary>
         private static void UpdateOthersBattleStats()
         {
@@ -123,10 +123,18 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Runs an async loop and handles data sending/recieving.
+        /// Starts sending/recieving data to/from the server.
         /// </summary>
-        private static async Task StartSyncLoop()
+        internal static async Task SyncStart()
         {
+            if (Synchronizing || !LobbyManager.IsInLobby || PlayerManager.LocalPlayer is null) return;
+
+            TaskStageTarget = TaskStageTarget.instance;
+            BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;
+            StageBattleComponent = StageBattleComponent.instance;
+
+            Main.Logger.Msg("Battle synchronization started!");
+
             Synchronizing = true;
             while (Synchronizing && Client.Connected)
             {
@@ -144,24 +152,9 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Starts synchronizing with the server.
+        /// Stops sending/recieving data to/from the server.
         /// </summary>
-        internal static void BattleSyncStart()
-        {
-            if (Synchronizing || !LobbyManager.IsInLobby || PlayerManager.LocalPlayer is null) return;
-
-            TaskStageTarget = TaskStageTarget.instance;
-            BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;
-            StageBattleComponent = StageBattleComponent.instance;
-
-            _ = StartSyncLoop();
-            Main.Logger.Msg("Battle synchronization started!");
-        }
-
-        /// <summary>
-        /// Ends synchronizing with the server.
-        /// </summary>
-        internal static void BattleSyncStop()
+        internal static void SyncStop()
         {
             Synchronizing = false;
 

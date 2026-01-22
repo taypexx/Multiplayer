@@ -4,7 +4,6 @@ using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Multiplayer.UI.Displays
@@ -43,7 +42,7 @@ namespace Multiplayer.UI.Displays
                 RemoveText(PositionList.First());
             }
 
-            Text text = AddText(chatMessage);
+            Text text = AddText(chatMessage, chatMessage.Message != "PlaylistAdd" ? null : new(() => UIManager.JumpToChart(chatMessage.ExtraData)));
             text.text = chatMessage.ToString();
 
             PositionList.Remove(Lobby);

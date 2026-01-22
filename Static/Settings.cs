@@ -17,7 +17,7 @@ namespace Multiplayer.Static
         internal bool FavGirlMode { 
             get; 
             set {
-                AdvancedPnlHome.UpdateCurrentPage();
+                PnlHomeExtension.UpdateCurrentPage();
                 field = value;
             } 
         } = false;

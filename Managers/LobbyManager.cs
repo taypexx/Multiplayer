@@ -32,6 +32,7 @@ namespace Multiplayer.Managers
         internal static Lobby LocalLobby { get; set; }
         internal static bool IsInLobby => LocalLobby != null;
         internal static bool CanChangePlaylist => IsInLobby && (LocalLobby.Host == PlayerManager.LocalPlayer || (!LocalLobby.Locked && LocalLobby.ChartSelection == LobbyChartSelection.Playlist));
+        internal static bool IsPlaylistChartComingUp => IsInLobby && LocalLobby.Locked && LocalLobby.CurrentPlaylistEntry != null;
 
         internal static bool IsAutoUpdating = false;
 
@@ -56,12 +57,12 @@ namespace Multiplayer.Managers
                     Main.Dispatcher.Enqueue(() => 
                     {
                         UIManager.MainLobbyDisplay.Update();
-                        UIManager.UpdatePnlPreparation();
-                        AdvancedPnlHome.UpdateAllPages();
+                        PnlPreparationExtension.UpdatePnlPreparation();
+                        PnlHomeExtension.UpdateAllPages();
                     });
                     if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.IsUIScene && LocalLobby.CurrentPlaylistEntry != null && !LocalLobby.CurrentPlaylistEntry.StartedPlaying)
                     {
-                        _ = UIManager.ShowInfoAndStartGame();
+                        _ = Intermission.Start();
                     }
                 }
             }
@@ -101,7 +102,11 @@ namespace Multiplayer.Managers
             var response = await Client.PostAsync("lobbyPlaylistContinue", payload);
             bool success = response != null;
 
-            if (success) LocalLobby.Playlist.RemoveAt(0);
+            if (success) 
+            {
+                LocalLobby.Playlist.RemoveAt(0);
+                if (LocalLobby.Playlist.Count == 0) _ = LockLobby(false);
+            }
             return success;
         }
 
@@ -129,7 +134,7 @@ namespace Multiplayer.Managers
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistAdded"));
                     UIManager.LobbyPlaylistWindow.Update(LocalLobby);
-                    UIManager.UpdatePnlPreparation();
+                    PnlPreparationExtension.UpdatePnlPreparation();
                 });
             } else PopupUtils.ShowInfo(Localization.Get("Lobby", "ChartHidden"));
 
@@ -160,7 +165,7 @@ namespace Multiplayer.Managers
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistRemoved"));
                     UIManager.LobbyPlaylistWindow.Update(LocalLobby);
-                    UIManager.UpdatePnlPreparation();
+                    PnlPreparationExtension.UpdatePnlPreparation();
                 });
             }
             return success;
@@ -297,7 +302,7 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if left successfully, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> LeaveLobby(bool leaveAnyway = false)
         {
-            if (!Client.Connected || !IsInLobby) return false;
+            if (!Client.Connected || !IsInLobby || LocalLobby.Locked) return false;
 
             var payload = new
             {
@@ -323,10 +328,10 @@ namespace Multiplayer.Managers
             Main.Dispatcher.Enqueue(() =>
             {
                 UIManager.PlayConfirmPrompt.Title = (LocalString)lobby.Name;
-                AdvancedPnlHome.Enable();
+                PnlHomeExtension.Enable();
                 UIManager.MainLobbyDisplay.Create(lobby);
                 UIManager.ChatLobbyDisplay.Create(lobby, true);
-                UIManager.UpdatePnlPreparation();
+                PnlPreparationExtension.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
             });
         }
@@ -343,9 +348,9 @@ namespace Multiplayer.Managers
             {
                 UIManager.MainLobbyDisplay.Destroy();
                 UIManager.ChatLobbyDisplay.Destroy();
-                UIManager.UpdatePnlPreparation();
+                PnlPreparationExtension.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
-                AdvancedPnlHome.Disable();
+                PnlHomeExtension.Disable();
             });
         }
 

@@ -24,7 +24,7 @@ namespace Multiplayer.UI.Displays
 
         internal override void UpdateTexts()
         {
-            var playersVisible = !AdvancedPnlHome.Visible;
+            var playersVisible = !PnlHomeExtension.Visible;
             foreach ((object key, Text text) in TextList)
             {
                 if (key is not Player) continue;

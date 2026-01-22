@@ -46,7 +46,7 @@ namespace Multiplayer.Patches
         {
             if (BattleManager.Synchronizing)
             {
-                BattleManager.BattleSyncStop();
+                BattleManager.SyncStop();
             }
             UIManager.BattleLobbyDisplay.Destroy();
             _ = LobbyManager.SetReady(false);
@@ -92,7 +92,7 @@ namespace Multiplayer.Patches
                 if (!LobbyManager.IsInLobby || AwaitingForOthers) return;
 
                 UIManager.PnlAwait.Destroy();
-                BattleManager.BattleSyncStart();
+                _ = BattleManager.SyncStart();
                 GameObject.Find("UI_2D/Standard/PnlBattle/PnlBattleUI/PnlBattleOthers/Up/BtnPause").SetActive(false);
 
                 var infoPlusLabel = GameObject.Find("InfoPlus_TextLowerLeft");

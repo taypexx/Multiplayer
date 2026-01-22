@@ -87,6 +87,10 @@ namespace Multiplayer.Data.Stats
             Banned = false;
         }
 
+        /// <summary>
+        /// Updates fields of the <see cref="MultiplayerStats"/> by the given <paramref name="updatedData"/> JSON dictionary.
+        /// </summary>
+        /// <param name="updatedData">JSON dictionary containing fields as keys and their values.</param>
         internal void UpdateFields(Dictionary<string, JsonElement> updatedData)
         {
             Name = updatedData["Name"].GetString();
@@ -132,7 +136,7 @@ namespace Multiplayer.Data.Stats
         }
 
         /// <summary>
-        /// Gets <see cref="MultiplayerStats"/> from the server and updates itself.
+        /// Gets <see cref="MultiplayerStats"/> from the server and updates fields.
         /// </summary>
         internal async Task Update()
         {

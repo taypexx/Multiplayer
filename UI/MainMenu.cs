@@ -23,7 +23,6 @@ namespace Multiplayer.UI
         private ForumObject SettingsButton;
         private ForumObject CreditsButton;
 
-        internal InputWindow CodeWindow;
         private InputWindow BioWindow;
         private static bool PnlHeadWasOpened = false;
 
@@ -32,10 +31,6 @@ namespace Multiplayer.UI
 
         internal MainMenu() : base(Localization.Get("MainMenu", "Title"), null, "MainMenu.png")
         {
-            CodeWindow = new();
-            CodeWindow.AutoReset = true;
-            CodeWindow.OnCompletion += (BaseWindow w) => _ = OnCodeEntered();
-
             BioWindow = new(Localization.Get("MainMenu", "BioDescription"));
             BioWindow.AutoReset = true;
             BioWindow.OnCompletion += OnBioCompletion;
@@ -92,17 +87,8 @@ namespace Multiplayer.UI
                     return;
                 }
 
-                _ = Client.Connect();
+                Client.Connect();
             }
-        }
-
-        private async Task OnCodeEntered()
-        {
-            if (CodeWindow.Result.IsNullOrWhitespace()) return;
-
-            UIManager.Debounce = true;
-            await Client.Connect(CodeWindow.Result.ToString());
-            UIManager.Debounce = false;
         }
 
         /// <summary>

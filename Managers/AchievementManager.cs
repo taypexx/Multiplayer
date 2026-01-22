@@ -15,7 +15,7 @@ namespace Multiplayer.Managers
         private static Il2CppAssets.Scripts.GameCore.Managers.AchievementManager PeroAchievementManager => Singleton<Il2CppAssets.Scripts.GameCore.Managers.AchievementManager>.instance;
 
         /// <summary>
-        /// Performs an achievements check and rewards the local <see cref="Player"/> if some conditions are met.
+        /// Performs an achievements check and rewards the local <see cref="Player"/> if the conditions are met.
         /// </summary>
         internal static void Check()
         {
@@ -38,18 +38,11 @@ namespace Multiplayer.Managers
             }
 
             PnlMessage.FinishMessage();
-            PatchAchievements();
-        }
 
-        /// <summary>
-        /// Patches the default achievement animation and replaces the text to the custom one.
-        /// </summary>
-        private static void PatchAchievements()
-        {
             for (int i = 0; i < PnlMessage.layout.transform.childCount; i++)
             {
                 Achievement achievement = QueuedAchievements[i];
-                PnlMessage.layout.transform.GetChild(i).Find("TxtDescription").GetComponent<Text>().text = 
+                PnlMessage.layout.transform.GetChild(i).Find("TxtDescription").GetComponent<Text>().text =
                     $"<color=#ffca5fff>{achievement.Name}</color>    {achievement.Description}";
             }
 

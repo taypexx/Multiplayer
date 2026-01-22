@@ -11,8 +11,8 @@ namespace Multiplayer.Data.Websocket
         public string AuthorUid { get; set; }
         public string ExtraData { get; set; }
         internal bool IsSystemMessage => AuthorName.ToLower() == "system";
-        internal bool IsCommand => Message != null && Message.StartsWith("/") && ChatCommand.TotalCommands.ContainsKey(Message.Substring(1));
-        internal ChatCommand Command => IsCommand ? ChatCommand.TotalCommands[Message.Substring(1)] : null;
+        internal bool IsCommand => Message != null && Message.StartsWith("/") && Chat.TotalCommands.ContainsKey(Message.Substring(1));
+        internal ChatCommand Command => IsCommand ? Chat.TotalCommands[Message.Substring(1)] : null;
 
         public override string ToString()
         {
@@ -29,6 +29,7 @@ namespace Multiplayer.Data.Websocket
                         {
                             param[1] = ChartManager.GetNiceChartName(musicInfo, int.Parse(param[2]));
                             param[2] = null;
+                            ExtraData = musicInfo.uid;
                         }
                     }
 

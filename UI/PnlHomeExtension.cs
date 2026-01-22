@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace Multiplayer.UI
 {
-    internal static class AdvancedPnlHome
+    internal static class PnlHomeExtension
     {
         private static GameObject PnlHome;
         private static GameObject PnlRole;
@@ -409,14 +409,13 @@ namespace Multiplayer.UI
             if (!pnlRole.m_IsInit)
             {
                 pnlRole.Init();
-                for (int i = 0; i < GirlFancyPanel.m_FancyScrollView.itemCount; i++) //GlobalDataBase.dbConfig.m_ConfigDic["character"].count
-                {
-                    GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(i, 0, true);
-                }
-                GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(DataHelper.selectedRoleIndex, 0, true);
-
                 DBConfigCharacter = pnlRole.m_ConfigCharacter;
             }
+            for (int i = 0; i < GirlFancyPanel.m_FancyScrollView.itemCount; i++) //GlobalDataBase.dbConfig.m_ConfigDic["character"].count
+            {
+                GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(i, 0, true);
+            }
+            GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(DataHelper.selectedRoleIndex, 0, true);
 
             OriginalMuseShow.transform.Find("BtnInteraction").gameObject.SetActive(false);
 

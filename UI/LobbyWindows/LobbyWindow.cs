@@ -183,8 +183,12 @@ namespace Multiplayer.UI.LobbyWindows
                 string passwordGuess = null;
                 if (PasswordPrompt.Completed) passwordGuess = PasswordPrompt.Result;
 
+                Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
+
                 bool success = await LobbyManager.JoinLobby(Lobby, passwordGuess);
                 LocalString msg = success ? ActionButtonResponses[0] : window == PasswordPrompt ? Localization.Get("Lobby", "IncorrectPassword") : Localization.Get("Warning", "Unknown");
+
+                Main.Dispatcher.Enqueue(() => UIManager.PnlCloudMessageEnd(success));
 
                 UpdateDebounce = false;
                 if (success) await Update(Lobby);
@@ -202,8 +206,12 @@ namespace Multiplayer.UI.LobbyWindows
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
+                Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
+
                 bool success = await LobbyManager.LeaveLobby();
                 LocalString msg = success ? ActionButtonResponses[window == LeavePrompt ? 1 : 2] : Localization.Get("Warning", "Unknown");
+
+                Main.Dispatcher.Enqueue(() => UIManager.PnlCloudMessageEnd(success));
 
                 UpdateDebounce = false;
                 if (success && window != DisbandPrompt) await Update(Lobby);

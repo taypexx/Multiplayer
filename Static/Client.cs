@@ -13,6 +13,8 @@ using MelonLoader.Utils;
 using System.Net;
 using System.Net.WebSockets;
 using Multiplayer.Data.Websocket;
+using HarmonyLib;
+using UnityEngine;
 
 namespace Multiplayer.Static
 {
@@ -30,6 +32,7 @@ namespace Multiplayer.Static
         internal static string ServerVersion { get; private set; }
         internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
         private static LocalString OutdatedWarning;
+        private static LocalString LowLevelWarning;
 
         private static HttpMessageHandler HttpHandler;
         private static HttpClient Http;
@@ -189,7 +192,7 @@ namespace Multiplayer.Static
             catch (Exception)
             {
                 Main.Logger.Error("Couldn't perform a GET request!");
-                Disconnect();
+                if (!isFullPath) Disconnect();
                 return null;
             }
         }
@@ -229,31 +232,43 @@ namespace Multiplayer.Static
             catch (Exception)
             {
                 Main.Logger.Error("Couldn't perform a POST request!");
-                Disconnect();
+                if (!isFullPath) Disconnect();
                 return null;
             }
         }
 
-        internal static async Task Connect(string code = null)
+        internal static async Task AwaitAndConnect()
         {
-            if (Connected || TriedConnecting) return;
+            var listener = new HttpListener();
+            listener.Prefixes.Add($"http://localhost:{Constants.PortHTTP}/");
+            listener.Start();
 
-            if (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace())
-            {
-                UIManager.WarnNotification(Localization.Get("Warning", "NoAccount"));
-                return;
-            }
+            Main.Logger.Msg("Awaiting for token...");
 
-            string uid = DataHelper.PeroUid;
-            if (uid == null) return;
+            Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
 
-            TriedConnecting = true;
-            PopupUtils.ShowInfo(Localization.Get("MainMenu", "Connecting"));
+            HttpListenerContext context = await listener.GetContextAsync();
+            var request = context.Request;
+            var response = context.Response;
+
+            var code = request.Url.Query.Split("=")[1];
+            response.Redirect($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/authFinish");
+
+            context.Response.Close();
+            listener.Stop();
+
+            Connect(code);
+        }
+
+        private static async Task Login(string uid, string code = null)
+        {
             Main.Logger.Msg("Connecting to the server...");
+            TriedConnecting = true;
 
             object payload = code is null ? new { Uid = uid } : new { Uid = uid, Code = code };
 
             var response = await PostAsync($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login", payload, true, code is null, true);
+            Main.Dispatcher.Enqueue(() => UIManager.PnlCloudMessageEnd(response.IsSuccessStatusCode));
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
@@ -290,13 +305,46 @@ namespace Multiplayer.Static
             }
         }
 
+        internal static void Connect(string code = null)
+        {
+            if (Connected || TriedConnecting) return;
+
+            if (DataHelper.Level < Constants.ModUnlockLevel)
+            {
+                if (LowLevelWarning is null)
+                {
+                    LowLevelWarning = new(String.Format(Localization.Get("Warning", "LowLevel").ToString(), Constants.ModUnlockLevel));
+                }
+                UIManager.WarnNotification(LowLevelWarning);
+                return;
+            }
+
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                UIManager.WarnNotification(Localization.Get("Warning", "NoInternet"));
+                return;
+            }
+
+            if (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace())
+            {
+                UIManager.WarnNotification(Localization.Get("Warning", "NoAccount"));
+                return;
+            }
+
+            string uid = DataHelper.PeroUid;
+            if (uid == null) return;
+
+            UIManager.PnlCloudMessageStart();
+            _ = Login(uid, code);
+        }
+
         private static void LoginOption(bool doLogin)
         {
             if (!doLogin) return;
 
             TriedConnecting = false;
+            _ = AwaitAndConnect();
             Utilities.OpenBrowserLink(Constants.DiscordAuthURL);
-            UIManager.MainMenu.CodeWindow.Show();
         }
 
         private static void UpdateModOption(bool doUpdate)

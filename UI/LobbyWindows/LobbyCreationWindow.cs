@@ -89,6 +89,7 @@ namespace Multiplayer.UI.LobbyWindows
                 return;
             };
 
+            Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
             UIManager.Debounce = true;
 
             bool success = await LobbyManager.CreateLobby(MaxPlayersField,GoalField,PlayTypeField,ChartSelectionField,NameField,PlaylistSizeField,PasswordField);
@@ -96,6 +97,7 @@ namespace Multiplayer.UI.LobbyWindows
             Main.Dispatcher.Enqueue(() =>
             {
                 UIManager.Debounce = false;
+                UIManager.PnlCloudMessageEnd(success);
 
                 if (success) _ = UIManager.OpenLobbyWindow();
                 else UIManager.LobbiesWindow.Window.Show();

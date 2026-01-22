@@ -17,7 +17,7 @@ namespace Multiplayer.Static
         internal const string ServerAddress = "mdmp.online";
         internal const int PortHTTP = 9095;
         internal const int PortUDP = 9096;
-        internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri={ServerHTTPScheme}%3A%2F%2F{ServerAddress}%2Fauth&scope=identify";
+        internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A{PortHTTP}&scope=identify";
 
         public const KeyCode BattleDisplayKeyCode = KeyCode.LeftShift;
         public const KeyCode MainMenuOpenKeyCode = KeyCode.M;
@@ -27,6 +27,10 @@ namespace Multiplayer.Static
         public const KeyCode ChatSendKeyCode = KeyCode.Return;
 
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
+
+        public const int ModUnlockLevel = 100;
+        public const int IntermissionTimeMS = 22000;
+        public const int PlayerSpeechBubbleDurationMS = 5000;
 
         public const int ChatMessageCharactersMax = 256;
         public const int BioCharactersMax = 48;
@@ -38,8 +42,6 @@ namespace Multiplayer.Static
         public const int PasswordCharactersMax = 16;
         public const int PlaylistSizeMin = 2;
         public const int PlaylistSizeMax = 32;
-
-        public const int PlayerSpeechBubbleDurationMS = 5000;
 
         public const int LobbyUpdateIntervalMinMS = 1000;
         public const int LobbyUpdateIntervalMaxMS = 8000;

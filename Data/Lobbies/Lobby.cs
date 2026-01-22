@@ -82,6 +82,12 @@ namespace Multiplayer.Data.Lobbies
             return null;
         }
 
+        /// <summary>
+        /// Updates fields of the <see cref="Lobby"/> by the given <paramref name="updatedData"/> JSON dictionary.
+        /// </summary>
+        /// <param name="updatedData">JSON dictionary containing fields as keys and their values.</param>
+        /// <param name="updatePlayers">Whether to updates players of the <see cref="Lobby"/>.</param>
+        /// <param name="playersUpdated">Treats <paramref name="updatedData"/>["Players"] as a <see cref="Dictionary{TKey,TValue}"/> if <see langword="true"/>, or as <see cref="List{T}"/> if <see langword="false"/>.</param>
         internal async Task UpdateFields(Dictionary<string, JsonElement> updatedData, bool updatePlayers = false, bool playersUpdated = false)
         {
             Name = updatedData["Name"].GetString();
@@ -163,10 +169,9 @@ namespace Multiplayer.Data.Lobbies
         }
 
         /// <summary>
-        /// Gets the <see cref="Lobby"/> data from the server and updates itself.
+        /// Gets the <see cref="Lobby"/> data from the server and updates fields.
         /// </summary>
-        /// <param name="updatePlayers">Whether to updates players of the lobby.</param>
-        /// <param name="body">(Optional) The recieved lobby data body from somewhere else.</param>
+        /// <param name="updatePlayers">Whether to updates players of the <see cref="Lobby"/>.</param>
         internal async Task Update(bool updatePlayers = false)
         {
             var response = await Client.PostAsync("getLobby", new

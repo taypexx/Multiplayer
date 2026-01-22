@@ -26,7 +26,7 @@ namespace Multiplayer.Managers
             {
                 if (AssetHolder == null)
                 {
-                    AssetHolder = new("MultiplayerAssetHolder");
+                    AssetHolder = new("MultiplayerAssets");
                     UnityEngine.Object.DontDestroyOnLoad(AssetHolder);
                 }
 
