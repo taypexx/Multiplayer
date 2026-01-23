@@ -37,6 +37,8 @@ namespace Multiplayer.UI
             }
             else if (LobbyManager.CanChangePlaylist)
             {
+                SoundManager.PlayClick();
+
                 MusicInfo musicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
                 int difficulty = ChartManager.CurrentDifficulty;
 
@@ -110,34 +112,6 @@ namespace Multiplayer.UI
                 ).ToString();
             }
             else playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
-        }
-
-        /// <summary>
-        /// Registers the playlist entry as played, jumps to the chart and locks/unlocks the hidden difficulty if needed.
-        /// </summary>
-        internal static void PrepareBeforeBattle()
-        {
-            var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
-            entry.Play();
-
-            UIManager.JumpToChart(entry.MusicInfo.uid);
-
-            var specialSongManager = Singleton<SpecialSongManager>.instance;
-            var currentHiddenUnlocked = specialSongManager.IsInvokeHideBms(entry.MusicInfo.uid);
-
-            // If the current chart's hidden is not unlocked and entry diff is 4
-            if (entry.Difficulty == 4 && !currentHiddenUnlocked)
-            {
-                specialSongManager.InvokeHideBms(entry.MusicInfo, true);
-            }
-            // If the current chart's hidden is unlocked and entry diff is 3
-            else if (entry.Difficulty == 3 && currentHiddenUnlocked)
-            {
-                // TODO: figure this out
-            }
-
-            GlobalDataBase.dbMusicTag.selectedDiffTglIndex = entry.Difficulty;
-            GlobalDataBase.dbMusicTag.pnlSelectMusicUid = entry.MusicInfo.uid;
         }
     }
 }

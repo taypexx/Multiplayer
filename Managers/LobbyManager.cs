@@ -60,7 +60,9 @@ namespace Multiplayer.Managers
                         PnlPreparationExtension.UpdatePnlPreparation();
                         PnlHomeExtension.UpdateAllPages();
                     });
-                    if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.IsUIScene && LocalLobby.CurrentPlaylistEntry != null && !LocalLobby.CurrentPlaylistEntry.StartedPlaying)
+
+                    // Start condition (for everyone except host)
+                    if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.IsUIScene && LocalLobby.CurrentPlaylistEntry != null)
                     {
                         _ = Intermission.Start();
                     }
@@ -99,15 +101,20 @@ namespace Multiplayer.Managers
                 Uid = PlayerManager.LocalPlayerUid
             };
 
-            var response = await Client.PostAsync("lobbyPlaylistContinue", payload);
-            bool success = response != null;
-
-            if (success) 
+            // If the current index is not the last one
+            if (LocalLobby.CurrentPlaylistEntryIndex < LocalLobby.Playlist.Count - 1)
             {
-                LocalLobby.Playlist.RemoveAt(0);
-                if (LocalLobby.Playlist.Count == 0) _ = LockLobby(false);
+                var response = await Client.PostAsync("lobbyPlaylistContinue", payload);
+                bool success = response != null;
+
+                return success;
             }
-            return success;
+            // If that was the last chart in the playlist
+            else
+            {
+                LocalLobby.Playlist.Clear();
+                return await LockLobby(false);
+            }
         }
 
         /// <summary>
@@ -233,7 +240,7 @@ namespace Multiplayer.Managers
             Lobby lobby = await GetLobby(id, true);
             if (lobby is null) return false;
 
-            AfterJoin(lobby);
+            OnJoin(lobby);
             return true;
         }
 
@@ -265,7 +272,7 @@ namespace Multiplayer.Managers
                 if (id != 0)
                 {
                     Lobby lobby = await GetLobby(id);
-                    AfterJoin(lobby);
+                    OnJoin(lobby);
                 } 
                 else return false;
             }
@@ -291,7 +298,7 @@ namespace Multiplayer.Managers
             var response = await Client.PostAsync("joinLobby", payload);
             bool success = response != null;
 
-            if (success) AfterJoin(lobby);
+            if (success) OnJoin(lobby);
             return success;
         }
 
@@ -312,14 +319,14 @@ namespace Multiplayer.Managers
             var response = await Client.PostAsync("leaveLobby", payload);
             bool success = response != null;
 
-            if (success || leaveAnyway) AfterLeave();
+            if (success || leaveAnyway) OnLeave();
             return success;
         }
 
         /// <summary>
         /// Assigns LocalLobby to the new <see cref="Lobby"/> and updates everything.
         /// </summary>
-        private static void AfterJoin(Lobby lobby)
+        private static void OnJoin(Lobby lobby)
         {
             LocalLobby = lobby;
             _ = Client.WebsocketListen();
@@ -339,7 +346,7 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Removes LocalLobby and updates everything.
         /// </summary>
-        private static void AfterLeave()
+        private static void OnLeave()
         {
             LocalLobby = null;
             IsAutoUpdating = false;

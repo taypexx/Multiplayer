@@ -78,6 +78,7 @@ namespace Multiplayer
             await PlayerManager.Init();
             await LobbyManager.Init();
             ChartManager.Init();
+            SoundManager.Init();
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)

@@ -2,6 +2,7 @@
 using Multiplayer.Static;
 using Multiplayer.UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Multiplayer.Managers
 {
@@ -31,6 +32,16 @@ namespace Multiplayer.Managers
             inputField.text = string.Empty;
             inputField.Select();
             inputField.ActivateInputField();
+        }
+
+        private static async Task DelayInputFieldReset(InputField inputField)
+        {
+            await Task.Delay(100);
+            Main.Dispatcher.Enqueue(() =>
+            {
+                inputField.text = string.Empty;
+                inputField.DeactivateInputField();
+            });
         }
 
         internal static void Update()
@@ -68,8 +79,7 @@ namespace Multiplayer.Managers
                 var msg = inputField.text;
                 if (msg != string.Empty)
                 {
-                    inputField.text = string.Empty;
-                    inputField.DeactivateInputField();
+                    _ = DelayInputFieldReset(inputField);
                     Chat.Send(msg);
                 }
             }

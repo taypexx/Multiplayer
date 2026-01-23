@@ -10,6 +10,7 @@ using UnityEngine.UI;
 using Multiplayer.Data.Lobbies;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Il2Cpp;
 
 namespace Multiplayer.UI
 {
@@ -65,19 +66,22 @@ namespace Multiplayer.UI
             );
         }
 
-        private static async Task GetTopRank(PlaylistEntry entry)
+        private static async Task UpdateTopRank(PlaylistEntry entry)
         {
             var response = await Client.GetAsync($"https://api.musedash.moe/rank/{entry.MusicInfo.uid}/{entry.Difficulty-1}/all", true, false);
             if (response == null) return;
 
-            var scores = await response.Content.ReadFromJsonAsync<List<List<object>>>();
+            var scores = await response.Content.ReadFromJsonAsync<List<List<JsonElement>>>();
             var topScore = scores.First();
-            CurrentTopGirlID = (int)topScore[6];
-            CurrentTopElfinID = (int)topScore[7];
+            CurrentTopGirlID = int.Parse(topScore[6].GetString());
+            CurrentTopElfinID = int.Parse(topScore[7].GetString());
         }
 
         private static void SetPnlMenu()
         {
+            var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
+            UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
+
             var pnlMenu = UIManager.PnlMenu.gameObject;
             BtnBack = pnlMenu.transform.Find("MenuNavigation/BtnBack").gameObject;
             BtnBack.SetActive(false);
@@ -109,9 +113,6 @@ namespace Multiplayer.UI
                     toggle.gameObject.SetActive(false);
                 }
             }
-
-            // Get ranks from the peropero server and update top combo
-            _ = GetTopRank(LobbyManager.LocalLobby.CurrentPlaylistEntry);
         }
 
         private static void UnsetPnlMenu()
@@ -120,10 +121,33 @@ namespace Multiplayer.UI
             UIManager.MainLobbyDisplay.Destroy();
             UIManager.ChatLobbyDisplay.Destroy();
             PnlHomeExtension.Disable();
+        }
 
-            BtnBack.SetActive(true);
-            UIManager.PnlPreparation.gameObject.SetActive(true);
-            UIManager.PnlPreparation.OnBattleStart();
+        private static void StartBattle()
+        {
+            if (!LobbyManager.IsPlaylistChartComingUp) return;
+
+            var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
+            var specialSongManager = Singleton<SpecialSongManager>.instance;
+            var currentHiddenUnlocked = specialSongManager.IsInvokeHideBms(entry.MusicInfo.uid);
+
+            // If the current chart's hidden is not unlocked and entry diff is 4
+            if (entry.Difficulty == 4 && !currentHiddenUnlocked)
+            {
+                specialSongManager.InvokeHideBms(entry.MusicInfo, true);
+            }
+            // If the current chart's hidden is unlocked and entry diff is 3
+            else if (entry.Difficulty == 3 && currentHiddenUnlocked)
+            {
+                // TODO: figure this out
+            }
+
+            UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
+            GlobalDataBase.dbMusicTag.selectedDiffTglIndex = entry.Difficulty == 4 ? 3 : entry.Difficulty;
+            GlobalDataBase.dbMusicTag.pnlSelectMusicUid = entry.MusicInfo.uid;
+
+            // DB music tag will trick the CurMusicInfo to return the current playlist entry
+            BattleHelper.GameBattleStart(new Il2CppSystem.Object());
         }
 
         internal static async Task Start()
@@ -132,18 +156,22 @@ namespace Multiplayer.UI
             Active = true;
 
             UIManager.Debounce = true;
+            LobbyManager.LocalLobby.SyncPlaylistEntry();
+            await UpdateTopRank(LobbyManager.LocalLobby.CurrentPlaylistEntry);
+
             Stopwatch.Restart();
             Main.Dispatcher.Enqueue(SetPnlMenu);
 
             while (Stopwatch.ElapsedMilliseconds < Constants.IntermissionTimeMS)
             {
-                Update();
+                Main.Dispatcher.Enqueue(Update);
                 await Task.Delay(1000);
             }
             Stopwatch.Stop();
 
             UIManager.Debounce = false;
             Main.Dispatcher.Enqueue(UnsetPnlMenu);
+            Main.Dispatcher.Enqueue(StartBattle);
             Active = false;
         }
     }

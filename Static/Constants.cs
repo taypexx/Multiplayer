@@ -29,7 +29,7 @@ namespace Multiplayer.Static
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
 
         public const int ModUnlockLevel = 100;
-        public const int IntermissionTimeMS = 22000;
+        public const int IntermissionTimeMS = 20000;
         public const int PlayerSpeechBubbleDurationMS = 5000;
 
         public const int ChatMessageCharactersMax = 256;

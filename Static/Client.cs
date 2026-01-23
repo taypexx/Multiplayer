@@ -13,7 +13,6 @@ using MelonLoader.Utils;
 using System.Net;
 using System.Net.WebSockets;
 using Multiplayer.Data.Websocket;
-using HarmonyLib;
 using UnityEngine;
 
 namespace Multiplayer.Static

@@ -25,10 +25,13 @@ namespace Multiplayer.Data.Lobbies
         public List<string> Players { get; private set; }
         public ushort MaxPlayers { get; private set; }
 
+        public List<PlaylistEntry> Playlist { get; private set; }
         public ushort PlaylistSize { get; private set; }
         public bool IsPlaylistFull => Playlist.Count >= PlaylistSize;
-        public List<PlaylistEntry> Playlist { get; private set; }
-        public PlaylistEntry CurrentPlaylistEntry => Playlist?.First();
+
+        private ushort CurrentGlobalPlaylistEntryIndex { get; set; }
+        public ushort CurrentPlaylistEntryIndex { get; private set; }
+        public PlaylistEntry? CurrentPlaylistEntry => Playlist?[CurrentPlaylistEntryIndex] ?? null;
 
         internal DateTime LastUpdated { get; private set; }
 
@@ -49,6 +52,7 @@ namespace Multiplayer.Data.Lobbies
             MaxPlayers = 2;
 
             PlaylistSize = 5;
+            CurrentPlaylistEntryIndex = 0;
             Playlist = new();
         }
 
@@ -58,6 +62,14 @@ namespace Multiplayer.Data.Lobbies
         internal bool IsMember(Player player)
         {
             return Players.Contains(player.Uid);
+        }
+
+        /// <summary>
+        /// Syncs the current playlist index with the server one.
+        /// </summary>
+        internal void SyncPlaylistEntry()
+        {
+            CurrentPlaylistEntryIndex = CurrentGlobalPlaylistEntryIndex;
         }
 
         /// <summary>
@@ -96,6 +108,7 @@ namespace Multiplayer.Data.Lobbies
             MaxPlayers = updatedData["MaxPlayers"].GetUInt16();
             Host = await PlayerManager.GetPlayer(updatedData["HostUid"].GetString());
             PlaylistSize = updatedData["PlaylistSize"].GetUInt16();
+            CurrentGlobalPlaylistEntryIndex = updatedData["CurrentPlaylistEntry"].GetUInt16();
 
             PlayType = (LobbyPlayType)updatedData["PlayType"].GetByte();
             ChartSelection = (LobbyChartSelection)updatedData["ChartSelection"].GetByte();

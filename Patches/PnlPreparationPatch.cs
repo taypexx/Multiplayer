@@ -20,21 +20,14 @@ namespace Multiplayer.Patches
         }
 
         /// <summary>
-        /// Jumps to the current playlist entry of the chart and continues to battle start.
+        /// Prevents the local player from entering the chart if they are in lobby.
         /// </summary>
         [HarmonyPatch(typeof(PnlPreparation), nameof(PnlPreparation.OnBattleStart))]
         internal static class PnlPreparationOnBattleStart
         {
             private static bool Prefix()
             {
-                if (!LobbyManager.IsInLobby) return true;
-
-                bool startCondition = LobbyManager.IsInLobby && LobbyManager.LocalLobby.Locked;
-                if (!startCondition) return startCondition;
-
-                PnlPreparationExtension.PrepareBeforeBattle();
-
-                return startCondition;
+                return !LobbyManager.IsInLobby;
             }
         }
     }

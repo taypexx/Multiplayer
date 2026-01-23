@@ -19,7 +19,11 @@ namespace Multiplayer.Static
                 var player = PlayerManager.GetCachedPlayer(chatMessage.AuthorUid);
                 if (player is null) return;
 
-                Main.Dispatcher.Enqueue(() => PnlHomeExtension.PlayerSpeak(player, chatMessage.Message));
+                Main.Dispatcher.Enqueue(() => 
+                {
+                    SoundManager.PlayBack();
+                    PnlHomeExtension.PlayerSpeak(player, chatMessage.Message);
+                });
             }
         }
 

@@ -35,7 +35,7 @@ namespace Multiplayer.Patches
         }
 
         /// <summary>
-        /// Tricks the game to think that the current selected chart is the first chart from the playlist.
+        /// Tricks the game into thinking that the current selected chart is the first chart from the playlist.
         /// </summary>
         [HarmonyPatch(typeof(DBMusicTag), nameof(DBMusicTag.CurMusicInfo))]
         internal static class BattleStartMusicInfoPatch
