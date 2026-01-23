@@ -24,6 +24,7 @@ namespace Multiplayer.Data.Stats
             } 
         }
         public bool FC { get; internal set; }
+        public bool Alive { get; internal set; }
         public bool AP => Accuracy == 100f;
         public bool TrueAP => AP && Earlies == 0 && Lates == 0;
 
@@ -61,6 +62,7 @@ namespace Multiplayer.Data.Stats
             Score = 0;
             Accuracy = 100f;
             FC = true;
+            Alive = true;
             Perfects = 0;
             Greats = 0;
             Earlies = 0;
@@ -70,15 +72,17 @@ namespace Multiplayer.Data.Stats
 
         public bool PrevAP { get; private set; }
         public bool PrevFC { get; private set; }
+        public bool PrevAlive { get; private set; }
         public ushort PrevMisses { get; private set; }
 
         /// <summary>
-        /// Saves previous AP, FC and misses.
+        /// Saves previous AP, FC, Alive and misses.
         /// </summary>
         internal void UpdatePrevious()
         {
             PrevAP = AP;
             PrevFC = FC;
+            PrevAlive = Alive;
             PrevMisses = Misses;
         }
     }

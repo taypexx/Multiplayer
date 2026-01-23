@@ -27,14 +27,24 @@
     "LobbyLeave": "<color=#fff700ff>{0}</color> has left the lobby.",
     "PlaylistAdd": "<color=#fff700ff>{0}</color> added <color=#fff700ff>{1}</color> to the playlist.",
     "PlaylistRemove": "<color=#fff700ff>{0}</color> removed <color=#fff700ff>{1}</color> from the playlist.",
+    "PlayerMuted": "You have muted <b>{0}</b>.",
+    "PlayerUnmuted": "You have unmuted <b>{0}</b>.",
+    "PlayerAlreadyMuted": "<b>{0}</b> is already muted.",
+    "PlayerNotMuted": "<b>{0}</b> was not muted.",
+    "PlayerMuteSelf": "You cannot mute yourself =O",
+    "UnknownCommand": "Command <b>{0}</b> doesn't exist.",
+    "NoArguments": "This command requires arguments to be executed.",
+    "PlayerNotFound": "<b>{0}</b> is not in lobby.",
     "ChatPlaceholderText": "Press / or click here to start typing"
   },
   "CommandDescriptions": {
     "help": "Show all available commands",
     "clear": "Clear the entire chat",
-    "website": "Open Multiplayer home page",
-    "mdmc": "Open MDMC website",
-    "discord": "Join the MDMP discord server"
+    "mute": "Hide all messages from a player",
+    "unmute": "Unhide all messages from a player",
+    "website": "Open MDMP home page",
+    "discord": "Join the MDMP discord server",
+    "mdmc": "Open MDMC website"
   },
   "Warning": {
     "Title": "Warning",
@@ -108,7 +118,8 @@
   "BattleDisplay": {
     "LostAP": "Lost AP!",
     "LostFC": "Lost FC!",
-    "Missed": "Missed!"
+    "Missed": "Missed!",
+    "Died": "Down!"
   },
   "PnlPreparation": {
     "PlaylistAdd": "Add to playlist",

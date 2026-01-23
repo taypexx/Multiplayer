@@ -124,6 +124,7 @@ namespace Multiplayer.UI
             try
             {
                 await Task.Delay(Constants.PlayerSpeechBubbleDurationMS, BubbleCancelTokens[bubble].Token);
+                if (BubbleCancelTokens[bubble].Token.IsCancellationRequested) return;
                 Main.Dispatcher.Enqueue(bubble.EndTalk);
                 await Task.Delay(300);
                 Main.Dispatcher.Enqueue(() => bubble.gameObject.SetActive(false));

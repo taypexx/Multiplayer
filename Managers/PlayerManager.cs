@@ -1,16 +1,62 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
+using Multiplayer.Data.Stats;
 using Multiplayer.Static;
 
 namespace Multiplayer.Managers
 {
     internal static class PlayerManager
     {
-        internal static Dictionary<string,Player> CachedPlayers { get; private set; }
+        internal static Dictionary<string, Player> CachedPlayers { get; private set; }
 
         internal static Player LocalPlayer { get; private set; }
         internal static string LocalPlayerUid { get; private set; }
         internal static string LocalPlayerName { get; private set; }
+
+        internal static Comparison<object> AccuracyComparison = (p1, p2) => 
+        {
+            if (p1 is not Player || p2 is not Player) return p1 is not Player ? 1 : -1;
+            var battlestats1 = ((Player)p1).BattleStats;
+            var battlestats2 = ((Player)p2).BattleStats;
+
+            if (!battlestats1.Alive || !battlestats2.Alive)
+            {
+                return battlestats1.Alive ? 1 : -1;
+            }
+            else if (battlestats1.Accuracy == battlestats2.Accuracy)
+            {
+                return ((battlestats1.Earlies + battlestats1.Lates) * -1).CompareTo((battlestats2.Earlies + battlestats2.Lates) * -1);
+            }
+            else return battlestats1.Accuracy.CompareTo(battlestats2.Accuracy);
+        };
+
+        internal static Comparison<object> ScoreComparison = (p1, p2) =>
+        {
+            if (p1 is not Player || p2 is not Player) return p1 is not Player ? 1 : -1;
+
+            var battlestats1 = ((Player)p1).BattleStats;
+            var battlestats2 = ((Player)p2).BattleStats;
+
+            if (!battlestats1.Alive || !battlestats2.Alive)
+            {
+                return battlestats1.Alive ? 1 : -1;
+            }
+            else return battlestats1.Score.CompareTo(battlestats2.Score);
+        };
+
+        internal static Comparison<object> CustomComparison = (p1, p2) =>
+        {
+            if (p1 is not Player || p2 is not Player) return p1 is not Player ? 1 : -1;
+
+            var battlestats1 = ((Player)p1).BattleStats;
+            var battlestats2 = ((Player)p2).BattleStats;
+
+            if (!battlestats1.Alive || !battlestats2.Alive)
+            {
+                return battlestats1.Alive ? 1 : -1;
+            }
+            else return 0; // hmm, what could it be
+        };
 
         /// <summary>
         /// Synchronizes profile stats of the local <see cref="Player"/>.

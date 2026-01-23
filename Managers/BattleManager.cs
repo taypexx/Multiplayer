@@ -16,7 +16,7 @@ namespace Multiplayer.Managers
         private static byte[] ReceivedDatagram;
 
         private const int UidSize = 32;
-        private const int BattleStatsSize = 21;
+        private const int BattleStatsSize = 22;
         private const int TokenSize = 70;
         private const int DatagramSize = UidSize + BattleStatsSize + TokenSize;
 
@@ -31,6 +31,7 @@ namespace Multiplayer.Managers
         2B - ushort Lates
         2B - ushort Misses
         1B - bool FC
+        1B - bool Alive
         2B - ushort PingMS
         52-72B - string Token
 
@@ -58,11 +59,12 @@ namespace Multiplayer.Managers
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 14), BattleStats.Lates); 
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 16), BattleStats.Misses);
             span[UidSize + 18] = (byte)(BattleStats.FC ? 1 : 0);
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 19), BattleStats.Player.PingMS);
+            span[UidSize + 19] = (byte)(BattleStats.Alive ? 1 : 0);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 20), BattleStats.Player.PingMS);
 
             // Signed string because the length is not fixed
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 21), (ushort)Client.Token.Length);
-            Encoding.UTF8.GetBytes(Client.Token, span.Slice(UidSize + 23));
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 22), (ushort)Client.Token.Length);
+            Encoding.UTF8.GetBytes(Client.Token, span.Slice(UidSize + 24));
 
             return await Client.UdpSendAsync(Datagram);
         }
@@ -82,6 +84,7 @@ namespace Multiplayer.Managers
             BattleStats.Score = (uint)TaskStageTarget.m_Score;
             BattleStats.Accuracy = (float)((num1 + num2 / 2.0) / (num1 + num2 + num3) * 100.0);
             BattleStats.FC = TaskStageTarget.IsFullCombo();
+            BattleStats.Alive = !BattleRoleAttributeComponent.IsDead();
             BattleStats.Perfects = (ushort)TaskStageTarget.m_PerfectResult;
             BattleStats.Greats = (ushort)TaskStageTarget.m_GreatResult;
             BattleStats.Earlies = (ushort)BattleRoleAttributeComponent.early;
@@ -118,7 +121,8 @@ namespace Multiplayer.Managers
                 battleStats.Lates = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 14));
                 battleStats.Misses = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 16));
                 battleStats.FC = span[startAt + UidSize + 18] != 0;
-                player.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 19));
+                battleStats.Alive = span[startAt + UidSize + 19] != 0;
+                player.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 20));
             }
         }
 

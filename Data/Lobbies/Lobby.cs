@@ -172,8 +172,6 @@ namespace Multiplayer.Data.Lobbies
 
                         Playlist.Remove(playlistEntry);
                     }
-
-                    Main.Dispatcher.Enqueue(() => UIManager.LobbyPlaylistWindow.Update(this));
                 }
                 catch { }
             }

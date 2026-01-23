@@ -96,7 +96,7 @@ namespace Multiplayer.Static
                         _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true);
                         break;
                     case "Chat":
-                        Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"]));
+                        Main.Dispatcher.Enqueue(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));
                         break;
                 }
             }

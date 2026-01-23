@@ -56,6 +56,7 @@ namespace Multiplayer.Managers
                     await SyncLobby();
                     Main.Dispatcher.Enqueue(() => 
                     {
+                        UIManager.LobbyPlaylistWindow.Update(lobby);
                         UIManager.MainLobbyDisplay.Update();
                         PnlPreparationExtension.UpdatePnlPreparation();
                         PnlHomeExtension.UpdateAllPages();

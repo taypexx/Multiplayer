@@ -10,9 +10,10 @@ namespace Multiplayer.Data.Websocket
         public string AuthorName { get; set; }
         public string AuthorUid { get; set; }
         public string ExtraData { get; set; }
-        internal bool IsSystemMessage => AuthorName.ToLower() == "system";
-        internal bool IsCommand => Message != null && Message.StartsWith("/") && Chat.TotalCommands.ContainsKey(Message.Substring(1));
-        internal ChatCommand Command => IsCommand ? Chat.TotalCommands[Message.Substring(1)] : null;
+        internal bool IsSystemMessage => AuthorName != null && AuthorName.ToLower() == "system";
+        internal bool IsCommand => Message != null && Message.StartsWith("/");
+        internal ChatCommand? Command { get; private set; }
+        internal string[]? Arguments { get; private set; }
 
         public override string ToString()
         {
@@ -38,6 +39,15 @@ namespace Multiplayer.Data.Websocket
                 else return Message;
             }
             else return $"<b><color=#{(LobbyManager.LocalLobby.Host.Uid == AuthorUid ? Constants.Yellow : "ffffff")}>[{AuthorName}]:</color></b> <color=#e8e8e8>{Message}</color>";
+        }
+
+        internal void Init()
+        {
+            if (IsCommand)
+            {
+                Arguments = Message.Split(" ");
+                Command = IsCommand ? Chat.TotalCommands.TryGetValue(Arguments[0].Substring(1), out var cmd) ? cmd : Chat.TotalCommands["."] : null;
+            }
         }
     }
 }

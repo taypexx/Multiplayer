@@ -153,27 +153,13 @@ namespace Multiplayer.UI.Abstract
             switch (Lobby.Goal)
             {
                 case LobbyGoal.Accuracy:
-                    PositionList.Sort((t1,t2) => 
-                    {
-                        if (t1 is not Player || t2 is not Player) return 0;
-                        var battlestats1 = ((Player)t1).BattleStats;
-                        var battlestats2 = ((Player)t2).BattleStats;
-
-                        if (battlestats1.Accuracy == battlestats2.Accuracy) 
-                        {
-                            return ((battlestats1.Earlies + battlestats1.Lates)*-1).CompareTo(((battlestats2.Earlies + battlestats2.Lates)*-1));
-                        } 
-                        else return battlestats1.Accuracy.CompareTo(battlestats2.Accuracy);
-                    });
+                    PositionList.Sort(PlayerManager.AccuracyComparison);
                     break;
                 case LobbyGoal.Score:
-                    PositionList.Sort((t1, t2) =>
-                    {
-                        if (t1 is not Player || t2 is not Player) return 0;
-                        return ((Player)t1).BattleStats.Score.CompareTo(((Player)t2).BattleStats.Score);
-                    });
+                    PositionList.Sort(PlayerManager.ScoreComparison);
                     break;
                 case LobbyGoal.Custom:
+                    PositionList.Sort(PlayerManager.CustomComparison);
                     break;
             }
             SetTextPositions();

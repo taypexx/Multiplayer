@@ -34,16 +34,6 @@ namespace Multiplayer.Managers
             inputField.ActivateInputField();
         }
 
-        private static async Task DelayInputFieldReset(InputField inputField)
-        {
-            await Task.Delay(100);
-            Main.Dispatcher.Enqueue(() =>
-            {
-                inputField.text = string.Empty;
-                inputField.DeactivateInputField();
-            });
-        }
-
         internal static void Update()
         {
             if (!UIManager.Initialized) return;
@@ -79,7 +69,8 @@ namespace Multiplayer.Managers
                 var msg = inputField.text;
                 if (msg != string.Empty)
                 {
-                    _ = DelayInputFieldReset(inputField);
+                    inputField.text = string.Empty;
+                    inputField.DeactivateInputField();
                     Chat.Send(msg);
                 }
             }
