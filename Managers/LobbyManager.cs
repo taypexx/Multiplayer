@@ -1,7 +1,7 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using LocalizeLib;
 using Multiplayer.Data.Lobbies;
-using Multiplayer.Data.Websocket;
+using Multiplayer.Data.Chat;
 using Multiplayer.Static;
 using Multiplayer.UI;
 using PopupLib.UI;
@@ -48,7 +48,7 @@ namespace Multiplayer.Managers
             {
                 await Task.Delay(Settings.Config.LobbyUpdateIntervalMS);
 
-                // Websocket handles the lobby update (if local lobby), we just update the window
+                // Websocket handles the lobby update (if local lobby), we just update the window without lobby
                 await UIManager.LobbyWindow.Update(lobby, lobby != LocalLobby); 
 
                 if (lobby == LocalLobby)
@@ -310,7 +310,7 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if left successfully, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> LeaveLobby(bool leaveAnyway = false)
         {
-            if (!Client.Connected || !IsInLobby || LocalLobby.Locked) return false;
+            if ((!Client.Connected || !IsInLobby || LocalLobby.Locked) && !leaveAnyway) return false;
 
             var payload = new
             {
@@ -349,6 +349,7 @@ namespace Multiplayer.Managers
         /// </summary>
         private static void OnLeave()
         {
+            var prevLobby = LocalLobby;
             LocalLobby = null;
             IsAutoUpdating = false;
 
@@ -359,6 +360,7 @@ namespace Multiplayer.Managers
                 PnlPreparationExtension.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
                 PnlHomeExtension.Disable();
+                ClearLobbyFromCache(prevLobby);
             });
         }
 

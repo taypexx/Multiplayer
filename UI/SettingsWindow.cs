@@ -75,6 +75,7 @@ namespace Multiplayer.UI
                 {
                     CurrentPropertyInfo.SetValue(Settings.Config, PromptWindow.Result);
                     UpdateDescription();
+                    Settings.Save();
                 }
                 catch { return; }
                 CurrentPropertyInfo = null;
@@ -92,6 +93,7 @@ namespace Multiplayer.UI
                     object value = CurrentPropertyInfo.PropertyType == typeof(int) ? int.Parse(InputWindow.Result) : InputWindow.Result;
                     CurrentPropertyInfo.SetValue(Settings.Config, value);
                     UpdateDescription();
+                    Settings.Save();
                 }
                 catch { return; }
                 CurrentPropertyInfo = null;

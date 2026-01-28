@@ -74,21 +74,14 @@ namespace Multiplayer.UI
                 if (PlayerManager.LocalPlayer.MultiplayerStats.Banned)
                 {
                     UIManager.WarnNotification(Localization.Get("MainMenu", "LocalPlayerBanned"));
-                } else
+                }
+                else
                 {
                     if (windowToOpen is null) windowToOpen = this;
                     windowToOpen.Window.Show();
                 }
-            } else
-            {
-                if (Client.TriedConnecting)
-                {
-                    Client.Disconnect();
-                    return;
-                }
-
-                Client.Connect();
             }
+            else _ = Client.Connect();
         }
 
         /// <summary>

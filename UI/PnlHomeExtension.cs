@@ -117,15 +117,16 @@ namespace Multiplayer.UI
         private static Vector3 MiddleElfinScale = new(-1.5f, 1.5f, 1.5f);
         private static Vector3 SideElfinScale = new(-1.2f, 1.2f, 1.2f);
 
-        private static Dictionary<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble, CancellationTokenSource> BubbleCancelTokens;
+        private static Dictionary<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble, string> BubblesLastMessage = new();
 
-        internal static async Task PlayerEndSpeak(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble)
+        internal static async Task PlayerEndSpeak(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble, string lastMsg)
         {
             try
             {
-                await Task.Delay(Constants.PlayerSpeechBubbleDurationMS, BubbleCancelTokens[bubble].Token);
-                if (BubbleCancelTokens[bubble].Token.IsCancellationRequested) return;
+                await Task.Delay(Constants.PlayerSpeechBubbleDurationMS);
+                if (BubblesLastMessage[bubble] != lastMsg) return;
                 Main.Dispatcher.Enqueue(bubble.EndTalk);
+
                 await Task.Delay(300);
                 Main.Dispatcher.Enqueue(() => bubble.gameObject.SetActive(false));
             }
@@ -151,14 +152,8 @@ namespace Multiplayer.UI
             bubble.gameObject.SetActive(true);
             bubble.SetTalkTxt(msg);
 
-            ResetBubbleCancelToken(bubble);
-            _ = PlayerEndSpeak(bubble);
-        }
-
-        private static void ResetBubbleCancelToken(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble)
-        {
-            if (BubbleCancelTokens.TryGetValue(bubble, out var cancelToken)) cancelToken.Cancel();
-            BubbleCancelTokens[bubble] = new CancellationTokenSource();
+            BubblesLastMessage[bubble] = msg;
+            _ = PlayerEndSpeak(bubble, msg);
         }
 
         private static void ReplaceGirl(GameObject museShow, int girlIndex)
@@ -200,7 +195,7 @@ namespace Multiplayer.UI
                 GameObject.Destroy(elfinShow.transform.GetChild(i).gameObject);
             }
 
-            var orderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(elfinIndex).order;
+            var orderIndex = elfinIndex;//PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(elfinIndex).order;
             var scrollView = ElfinFancyPanel.m_FancyScrollView;
             scrollView.ScrollToDataIndex(orderIndex, 0, true);
 
@@ -411,6 +406,7 @@ namespace Multiplayer.UI
             GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(DataHelper.selectedRoleIndex, 0, true);
 
             OriginalMuseShow.transform.Find("BtnInteraction").gameObject.SetActive(false);
+            OriginalMuseShow.transform.Find("FirstTwnTalkBubble").gameObject.SetActive(false);
 
             OriginalMusePosition = OriginalMuseShow.transform.position;
             OriginalMuseScale = OriginalMuseShow.transform.localScale;
@@ -546,7 +542,7 @@ namespace Multiplayer.UI
             LeftElfinShow.transform.localScale = SideElfinScale;
             RightElfinShow.transform.localScale = SideElfinScale;
 
-            BubbleCancelTokens = new();
+            BubblesLastMessage = new();
 
             Enabled = true;
             UpdateAllPages();
@@ -590,8 +586,7 @@ namespace Multiplayer.UI
                 GameObject.Destroy(LeftButton);
                 GameObject.Destroy(RightButton);
 
-                BubbleCancelTokens = null;
-
+                BubblesLastMessage = null;
             }
             catch { }
         }

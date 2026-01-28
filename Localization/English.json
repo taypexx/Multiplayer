@@ -42,15 +42,14 @@
     "clear": "Clear the entire chat",
     "mute": "Hide all messages from a player",
     "unmute": "Unhide all messages from a player",
-    "website": "Open MDMP home page",
-    "discord": "Join the MDMP discord server",
-    "mdmc": "Open MDMC website"
+    "discord": "Join the MDMP discord server"
   },
   "Warning": {
     "Title": "Warning",
     "Unknown": "Unknown error occured!",
     "NoAccount": "You are not logged into your Muse Dash account! Please log in to play multiplayer.",
     "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?",
+    "LostConnection": "Connection with the multiplayer server was lost. Do you want to try to reconnect?",
     "Outdated": "Current mod version ({0}) is outdated. Would you like to update the mod? ({1})",
     "NoInvites": "Invites are not available at the moment. Please contact mod developers and let them know.",
     "LoginRequired": "Login is required to continue. Proceed to the authorization page?",

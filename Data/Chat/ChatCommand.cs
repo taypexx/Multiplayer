@@ -2,7 +2,7 @@
 using Multiplayer.Managers;
 using Multiplayer.Static;
 
-namespace Multiplayer.Data.Websocket
+namespace Multiplayer.Data.Chat
 {
     internal class ChatCommand
     {

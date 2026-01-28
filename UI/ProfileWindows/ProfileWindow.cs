@@ -123,7 +123,7 @@ namespace Multiplayer.UI.ProfileWindows
         /// </summary>
         private void OpenProfilePage()
         {
-            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/profile/{Player.Uid}");
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/player/{Player.Uid}");
         }
 
         /// <summary>

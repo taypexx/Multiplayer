@@ -11,23 +11,38 @@ namespace Multiplayer.UI.Abstract
 {
     internal abstract class BaseLobbyDisplay
     {
-        internal string ParentPath;
-        internal Transform Parent => GameObject.Find(ParentPath).transform;
+        internal string FrameParentPath { get; set; }
+        internal Transform FrameParent => GameObject.Find(FrameParentPath).transform;
+        internal GameObject Frame { get; private set; }
 
-        internal Vector3 EntrySize;
-        internal Vector3 AnchorPosition;
-        internal Vector3 Step;
-        internal Vector3 PopupOffset;
-        internal float PopupX;
- 
-        internal TextAnchor TextAnchor;
-        internal HorizontalWrapMode TextHorizontalWrapMode;
-        internal int FontSize;
+        internal TextAnchor TextAnchor { get; set; }
+        internal HorizontalWrapMode TextHorizontalWrapMode { get; set; }
+        internal VerticalWrapMode TextVerticalWrapMode { get; set; }
+        internal int? MaxLines { get; set; }
+        internal int FontSize { get; set; }
+        internal float EntryWidth { get; 
+            set {
+                EntrySize = new(value, FontSize + 8);
+                FrameSize = new(EntrySize.x, EntrySize.y * (MaxLines ?? 1));
+                field = value;
+            } 
+        }
+        internal Vector2 EntrySize { get; private set; }
+        internal int EntryDir { get; set; }
+
+        internal Vector2 FrameAnchorPosition { get; set; }
+        internal Vector2 FrameSize { get; private set; }
+        internal Vector2 Pivot { get; 
+            set {
+                PopupDir = Pivot.x * 2 - 1;
+                field = value;
+            } 
+        }
+        internal float PopupDir { get; private set; }
 
         internal Text Title;
         internal Dictionary<object, Text> TextList;
         internal List<object> PositionList;
-
 
         internal Lobby Lobby;
         internal bool DoesSort = false;
@@ -70,31 +85,34 @@ namespace Multiplayer.UI.Abstract
         /// <returns>A new <see cref="Text"/>.</returns>
         internal Text AddText(object key, Action clickAction = null)
         {
-            if (Parent is null)
-            {
-                Main.Logger.Error("Couldn't find the parent gameobject.");
-                return null;
-            }
+            if (Frame == null) return null;
 
-            GameObject newTextObj = Utilities.CreateText(Parent, "TextEntry");
-            newTextObj.transform.localPosition = AnchorPosition + Step * GetTotalLines();
-            newTextObj.transform.localScale = Vector3.one;
-            newTextObj.GetComponent<RectTransform>().sizeDelta = EntrySize;
+            GameObject newTextObj = Utilities.CreateText(Frame.transform, "Entry" + TextList.Count.ToString());
+            var rect = newTextObj.GetComponent<RectTransform>();
+            rect.anchorMin = Pivot;
+            rect.anchorMax = Pivot;
+            rect.pivot = Pivot;
+            rect.anchoredPosition3D = new();
+            rect.sizeDelta = EntrySize;
+            rect.localScale = Vector3.one;
 
             Text text = newTextObj.GetComponent<Text>();
             text.alignment = TextAnchor;
             text.fontSize = FontSize;
             text.horizontalOverflow = TextHorizontalWrapMode;
+            text.verticalOverflow = TextVerticalWrapMode;
             text.raycastTarget = clickAction != null;
 
             if (clickAction != null)
-            {/*
+            {
                 var button = newTextObj.AddComponent<Button>();
                 button.onClick.AddListener(clickAction);
-            */}
+            }
 
             TextList.Add(key, text);
             PositionList.Add(key);
+
+            SetTextPositions();
 
             return text;
         }
@@ -119,7 +137,7 @@ namespace Multiplayer.UI.Abstract
             {
                 if (PositionList.IndexOf(k) >= removeAt)
                 {
-                    t.gameObject.transform.localPosition -= Step * text.cachedTextGenerator.lineCount;
+                    t.gameObject.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0f, EntrySize.y * text.cachedTextGenerator.lineCount);
                 }
             }
 
@@ -170,7 +188,7 @@ namespace Multiplayer.UI.Abstract
             foreach (object key in PositionList)
             {
                 Text text = TextList[key];
-                text.transform.localPosition = AnchorPosition + Step * GetTotalLines(PositionList.IndexOf(key));
+                text.GetComponent<RectTransform>().anchoredPosition = new(0f, EntrySize.y * EntryDir * GetTotalLines(PositionList.IndexOf(key)));
             }
         }
 
@@ -235,13 +253,15 @@ namespace Multiplayer.UI.Abstract
         {
             if (!TextList.TryGetValue(key, out Text owner)) return;
 
-            GameObject popup = GameObject.Instantiate(owner.gameObject, Parent);
-            popup.name = "EntryPopup";
-            popup.transform.localPosition = owner.transform.localPosition + PopupOffset;
-            popup.transform.DOMoveX(PopupX, 1.5f).SetRelative().SetEase(Ease.InOutSine).OnComplete((Action)(() => GameObject.Destroy(popup)));
+            GameObject popup = GameObject.Instantiate(owner.gameObject, Frame.transform);
+            popup.name = text;
 
             Text popupText = popup.GetComponent<Text>();
             popupText.text = text;
+
+            var rect = popup.GetComponent<RectTransform>();
+            rect.anchoredPosition = new Vector2(owner.preferredWidth + 10f, 0f);
+            rect.DOMoveX(50f, 1.5f).SetRelative().SetEase(Ease.InOutSine).OnComplete((Action)(() => GameObject.Destroy(popup)));
 
             //DOTween.ToAlpha(new(Marshal.GetFunctionPointerForDelegate(() => popupText.color)), new(Marshal.GetFunctionPointerForDelegate(x => popupText.color = x)), 0f, 1.5f);
         }
@@ -255,6 +275,16 @@ namespace Multiplayer.UI.Abstract
             if (lobby is null || Lobby != null) return;
             Lobby = lobby;
 
+            Frame = new("LobbyDisplay");
+            var frameRect = Frame.AddComponent<RectTransform>();
+            frameRect.SetParent(FrameParent);
+            frameRect.anchorMin = Pivot;
+            frameRect.anchorMax = Pivot;
+            frameRect.pivot = Pivot;
+            frameRect.anchoredPosition3D = FrameAnchorPosition;
+            frameRect.sizeDelta = FrameSize;
+            frameRect.localScale = Vector3.one;
+
             if (addTitle) Title = AddText(lobby);
             Update();
         }
@@ -266,6 +296,7 @@ namespace Multiplayer.UI.Abstract
         {
             if (Lobby is null) return;
             ClearText();
+            GameObject.Destroy(Frame);
             Lobby = null;
         }
     }

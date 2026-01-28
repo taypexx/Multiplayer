@@ -1,5 +1,5 @@
 ﻿using Multiplayer.Data.Players;
-using Multiplayer.Data.Websocket;
+using Multiplayer.Data.Chat;
 using Multiplayer.Managers;
 using Multiplayer.UI;
 
@@ -8,6 +8,7 @@ namespace Multiplayer.Static
     internal static class Chat
     {
         internal static List<string> MutedPlayerUids;
+        internal static List<string> MessageHistory;
         internal static Dictionary<string, ChatCommand> TotalCommands;
 
         internal static void Recieve(ChatMessage chatMessage)
@@ -50,6 +51,12 @@ namespace Multiplayer.Static
                 message.Body.Command.Run(message.Body.Arguments);
             } 
             else _ = Client.WebsocketSend(message);
+
+            if (MessageHistory.Count == Constants.ChatMessageHistorySize)
+            {
+                MessageHistory.RemoveAt(0);
+            }
+            MessageHistory.Add(msg);
         }
 
         private static void MuteToggle(string[] args, bool mute)
@@ -115,6 +122,7 @@ namespace Multiplayer.Static
 
         internal static void Init()
         {
+            MessageHistory = new();
             MutedPlayerUids = new();
 
             Action<string[]> helpAction = new((_) =>
@@ -163,19 +171,9 @@ namespace Multiplayer.Static
                     MuteToggle(args, false);
                 })),
 
-                ["website"] = new("website", new((_) =>
-                {
-                    Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/home");
-                })),
-
                 ["discord"] = new("discord", new((_) =>
                 {
                     Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/discord");
-                })),
-
-                ["mdmc"] = new("mdmc", new((_) =>
-                {
-                    Utilities.OpenBrowserLink("https://mdmc.moe");
                 })),
             };
         }

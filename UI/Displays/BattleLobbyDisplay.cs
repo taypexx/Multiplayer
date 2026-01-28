@@ -13,15 +13,18 @@ namespace Multiplayer.UI.Displays
     {
         internal BattleLobbyDisplay()
         {
-            ParentPath = "Forward";
-            AnchorPosition = new(-825f, -425f, 0f);
-            EntrySize = new(200f, 200f);
-            Step = new(0f, 35f, 0f);
-            PopupOffset = new(330f, 0, 0);
-            PopupX = 50f;
+            FrameParentPath = "Forward";
+
             TextAnchor = TextAnchor.LowerLeft;
             TextHorizontalWrapMode = HorizontalWrapMode.Overflow;
-            FontSize = 28;
+            TextVerticalWrapMode = VerticalWrapMode.Overflow;
+            MaxLines = null;
+            FontSize = 26;
+            EntryWidth = 600f;
+            EntryDir = 1;
+
+            FrameAnchorPosition = new(25f, 90f);
+            Pivot = new(0f, 0f);
             DoesSort = true;
         }
 

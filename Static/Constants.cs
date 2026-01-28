@@ -33,6 +33,7 @@ namespace Multiplayer.Static
         public const int PlayerSpeechBubbleDurationMS = 5000;
 
         public const int ChatMessageCharactersMax = 256;
+        public const int ChatMessageHistorySize = 32;
         public const int BioCharactersMax = 48;
         public const int PlayersMin = 2;
         public const int PlayersMax = 8;

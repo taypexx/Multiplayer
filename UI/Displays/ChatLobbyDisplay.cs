@@ -1,5 +1,5 @@
 ﻿using Multiplayer.Data.Lobbies;
-using Multiplayer.Data.Websocket;
+using Multiplayer.Data.Chat;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -10,21 +10,42 @@ namespace Multiplayer.UI.Displays
 {
     internal sealed class ChatLobbyDisplay : BaseLobbyDisplay
     {
-        internal int MaxLines { get; private set; } = 10;
+        private int MessageHistoryIndex = 0;
+
         internal InputField InputField { get; private set; }
         private GameObject PlaceholderText;
 
         internal ChatLobbyDisplay() : base()
         {
-            ParentPath = "UI/Standerd/PnlNavigation";
-            AnchorPosition = new(-635f, 350f, 0f);
-            EntrySize = new(600f, 200f);
-            Step = new(0f, -30f, 0f);
-            PopupOffset = new(-135f, 0, 0);
-            PopupX = 50f;
+            FrameParentPath = "UI/Standerd/PnlNavigation";
+
             TextAnchor = TextAnchor.UpperLeft;
             TextHorizontalWrapMode = HorizontalWrapMode.Wrap;
+            TextVerticalWrapMode = VerticalWrapMode.Overflow;
+            MaxLines = 10;
             FontSize = 20;
+            EntryWidth = 400f;
+            EntryDir = -1;
+
+            FrameAnchorPosition = new(25f, -90f);
+            Pivot = new(0f, 1f);
+        }
+
+        internal void BrowseMessageHistory(bool up)
+        {
+            if (InputField == null) return;
+
+            MessageHistoryIndex += up ? 1 : -1;
+            if (MessageHistoryIndex < 0 || MessageHistoryIndex > Chat.MessageHistory.Count - 1)
+            {
+                MessageHistoryIndex = 0;
+            }
+            InputField.text = Chat.MessageHistory[Chat.MessageHistory.Count - 1 - MessageHistoryIndex] ?? InputField.text;
+        }
+
+        internal void ResetMessageHistoryIndex()
+        {
+            MessageHistoryIndex = 0;
         }
 
         internal override void Update()
@@ -58,7 +79,7 @@ namespace Multiplayer.UI.Displays
 
             InputField = Title.gameObject.AddComponent<InputField>();
             InputField.textComponent = Title;
-            InputField.lineType = UnityEngine.UI.InputField.LineType.MultiLineSubmit;
+            InputField.lineType = InputField.LineType.MultiLineNewline;
             InputField.characterLimit = Constants.ChatMessageCharactersMax;
 
             Title.raycastTarget = true;

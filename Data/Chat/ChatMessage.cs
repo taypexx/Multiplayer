@@ -2,7 +2,7 @@
 using Multiplayer.Managers;
 using Multiplayer.Static;
 
-namespace Multiplayer.Data.Websocket
+namespace Multiplayer.Data.Chat
 {
     public class ChatMessage
     {
@@ -46,7 +46,7 @@ namespace Multiplayer.Data.Websocket
             if (IsCommand)
             {
                 Arguments = Message.Split(" ");
-                Command = IsCommand ? Chat.TotalCommands.TryGetValue(Arguments[0].Substring(1), out var cmd) ? cmd : Chat.TotalCommands["."] : null;
+                Command = IsCommand ? Static.Chat.TotalCommands.TryGetValue(Arguments[0].Substring(1), out var cmd) ? cmd : Static.Chat.TotalCommands["."] : null;
             }
         }
     }

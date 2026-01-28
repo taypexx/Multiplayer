@@ -193,18 +193,7 @@ namespace Multiplayer.Data.Lobbies
             });
 
             // If the lobby was disbanded
-            if (response == null)
-            {
-                // Leave if the local player was in this lobby
-                if (IsMember(PlayerManager.LocalPlayer))
-                {
-                    UIManager.Debounce = true;
-                    await LobbyManager.LeaveLobby(true);
-                    UIManager.Debounce = false;
-                }
-                LobbyManager.ClearLobbyFromCache(this);
-                return;
-            }
+            if (response == null) return;
 
             await UpdateFields(await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>());
         }

@@ -28,6 +28,8 @@ namespace Multiplayer.Managers
         {
             if (UIManager.ChatLobbyDisplay == null) return;
 
+            UIManager.ChatLobbyDisplay.ResetMessageHistoryIndex();
+
             var inputField = UIManager.ChatLobbyDisplay.InputField;
             inputField.text = string.Empty;
             inputField.Select();
@@ -62,16 +64,31 @@ namespace Multiplayer.Managers
                 return;
             }
 
-            if (Input.GetKeyDown(Constants.ChatSendKeyCode) && UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
+            if (UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
             {
-                // Send a chat message
                 var inputField = UIManager.ChatLobbyDisplay.InputField;
-                var msg = inputField.text;
-                if (msg != string.Empty)
+                if (Input.GetKeyDown(Constants.ChatSendKeyCode))
                 {
-                    inputField.text = string.Empty;
-                    inputField.DeactivateInputField();
-                    Chat.Send(msg);
+                    // Send a chat message
+                    var msg = inputField.text.TrimStart().TrimEnd(['\r', '\n']);
+                    if (msg != string.Empty)
+                    {
+                        inputField.text = string.Empty;
+                        inputField.DeactivateInputField();
+                        UIManager.ChatLobbyDisplay.ResetMessageHistoryIndex();
+                        Chat.Send(msg);
+                    }
+                }
+                else if (UIManager.ChatLobbyDisplay.InputField.isFocused)
+                {
+                    if (Input.GetKeyDown(KeyCode.UpArrow))
+                    {
+                        UIManager.ChatLobbyDisplay.BrowseMessageHistory(true);
+                    }
+                    else if (Input.GetKeyDown(KeyCode.DownArrow))
+                    {
+                        UIManager.ChatLobbyDisplay.BrowseMessageHistory(false);
+                    }
                 }
             }
 

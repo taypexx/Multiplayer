@@ -11,15 +11,18 @@ namespace Multiplayer.UI.Displays
     {
         internal MainLobbyDisplay()
         {
-            ParentPath = "UI/Standerd/PnlNavigation";
-            AnchorPosition = new(830f, 350f, 0f);
-            EntrySize = new(200f, 200f);
-            Step = new(0f, -35f, 0f);
-            PopupOffset = new(-135f, 0, 0);
-            PopupX = 50f;
+            FrameParentPath = "UI/Standerd/PnlNavigation";
+
             TextAnchor = TextAnchor.UpperRight;
             TextHorizontalWrapMode = HorizontalWrapMode.Overflow;
+            TextVerticalWrapMode = VerticalWrapMode.Overflow;
+            MaxLines = null;
             FontSize = 26;
+            EntryWidth = 400f;
+            EntryDir = -1;
+
+            FrameAnchorPosition = new(-25f, -90f);
+            Pivot = new(1f, 1f);
         }
 
         internal override void UpdateTexts()

@@ -74,11 +74,13 @@ namespace Multiplayer
         /// </summary>
         internal static async Task InitConnect()
         {
-            AchievementManager.Init();
             await PlayerManager.Init();
             await LobbyManager.Init();
-            ChartManager.Init();
-            SoundManager.Init();
+            Dispatcher.Enqueue(() => {
+                AchievementManager.Init();
+                ChartManager.Init();
+                SoundManager.Init();
+            });
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
@@ -113,6 +115,7 @@ namespace Multiplayer
         public override void OnDeinitializeMelon()
         {
             Settings.Save();
+            Client.Disconnect();
             base.OnDeinitializeMelon();
         }
 
