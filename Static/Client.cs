@@ -281,7 +281,7 @@ namespace Multiplayer.Static
             string uid = DataHelper.PeroUid;
             if (uid == null) return;
 
-            UIManager.PnlCloudMessageStart();
+            Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
             Debounce = true;
             Main.Logger.Msg("Connecting to the server...");
 

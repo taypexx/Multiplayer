@@ -1,7 +1,4 @@
-﻿using Il2CppAssets.Scripts.Database;
-using Il2CppAssets.Scripts.UI.Panels;
-using Il2CppSirenix.Serialization.Utilities;
-using LocalizeLib;
+﻿using LocalizeLib;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -16,27 +13,16 @@ namespace Multiplayer.UI
     internal sealed class MainMenu : BaseMultiplayerWindow
     {
         private ForumObject MyProfileButton;
-        private ForumObject AvatarButton;
-        private ForumObject BioButton;
         private ForumObject LobbiesButton;
         private ForumObject CompetitiveButton;
         private ForumObject SettingsButton;
         private ForumObject CreditsButton;
-
-        private InputWindow BioWindow;
-        private static bool PnlHeadWasOpened = false;
 
         private static LocalString MainDescription;
         private static LocalString Credits;
 
         internal MainMenu() : base(Localization.Get("MainMenu", "Title"), null, "MainMenu.png")
         {
-            BioWindow = new(Localization.Get("MainMenu", "BioDescription"));
-            BioWindow.AutoReset = true;
-            BioWindow.OnCompletion += OnBioCompletion;
-
-            UIManager.PnlHead.onClose += (Action)OnPnlHeadClose;
-
             MainDescription = Localization.Get("MainMenu", "Description");
             Credits = new(string.Format("———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Mod & backend development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\n{0}",Constants.Testers));
         }
@@ -44,8 +30,6 @@ namespace Multiplayer.UI
         internal void CreateButtons()
         {
             MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), null, MainDescription);
-            AvatarButton = AddButton(Localization.Get("MainMenu", "Avatar"), UIManager.PnlHead, MainDescription);
-            BioButton = AddButton(Localization.Get("MainMenu", "Bio"), BioWindow, MainDescription);
             LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
             SettingsButton = AddButton(Localization.Get("MainMenu", "Settings"), null, MainDescription);
@@ -84,45 +68,6 @@ namespace Multiplayer.UI
             else _ = Client.Connect();
         }
 
-        /// <summary>
-        /// Calls every time the bio window gets closed.
-        /// </summary>
-        private void OnBioCompletion(BaseWindow window)
-        {
-            Window.Show();
-            if (BioWindow.Result.IsNullOrWhitespace()) return;
-
-            if (BioWindow.Result.Length > Constants.BioCharactersMax)
-            {
-                PopupUtils.ShowInfo(String.Format(Localization.Get("MainMenu", "BioTooLong").ToString(),Constants.BioCharactersMax));
-                return;
-            }
-
-            PlayerManager.LocalPlayer.MultiplayerStats.Bio = BioWindow.Result;
-            PlayerManager.SyncProfile();
-        }
-
-        /// <summary>
-        /// Calls every time <see cref="PnlHead"/> gets closed.
-        /// </summary>
-        private void OnPnlHeadClose()
-        {
-            if (PlayerManager.LocalPlayer is null) return;
-
-            string newAvatarName = "head_" + DataHelper.selectedHeadIndex.ToString();
-            if (PlayerManager.LocalPlayer.MultiplayerStats.AvatarName != newAvatarName)
-            {
-                PlayerManager.LocalPlayer.MultiplayerStats.AvatarName = newAvatarName;
-                PlayerManager.SyncProfile();
-            }
-
-            if (PnlHeadWasOpened)
-            {
-                PnlHeadWasOpened = false;
-                Window.Show();
-            }
-        }
-
         protected override void OnShow(BaseWindow window)
         {
             base.OnShow(window);
@@ -140,10 +85,6 @@ namespace Multiplayer.UI
             {
                 _ = UIManager.OpenProfileWindow(PlayerManager.LocalPlayer, false);
             }
-            else if (button == AvatarButton)
-            {
-                PnlHeadWasOpened = true;
-            } 
             else if (button == LobbiesButton)
             {
                 if (LobbyManager.IsInLobby) 

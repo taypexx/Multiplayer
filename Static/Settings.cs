@@ -8,15 +8,33 @@ namespace Multiplayer.Static
     {
         internal bool ShowNavigationButtons { 
             get;
-            set {
+            set 
+            {
                 UIManager.ToggleNavigationButtons(value);
                 field = value;
             } 
         } = true;
-        internal bool EnableShortcuts { get; set; } = false;
+        internal bool EnableChat
+        {
+            get;
+            set
+            {
+                if (UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Frame != null) UIManager.ChatLobbyDisplay.Frame.SetActive(value);
+                field = value;
+            }
+        } = true;
+        internal bool EnableShortcuts { 
+            get; 
+            set 
+            {
+                if (UIManager.ChatLobbyDisplay != null) UIManager.ChatLobbyDisplay.UpdatePlaceholder(value);
+                field = value;
+            }
+        } = false;
         internal bool FavGirlMode { 
             get; 
-            set {
+            set 
+            {
                 PnlHomeExtension.UpdateCurrentPage();
                 field = value;
             } 
@@ -26,13 +44,15 @@ namespace Multiplayer.Static
         internal bool ShowBattlePopups { get; set; } = true;
         internal int LobbyUpdateIntervalMS { 
             get; 
-            set {
+            set 
+            {
                 field = Math.Clamp(value, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS);
             } 
         } = 3000;
         internal int BattleUpdateIntervalMS { 
             get; 
-            set {
+            set 
+            {
                 field = Math.Clamp(value, Constants.BattleUpdateIntervalMinMS, Constants.BattleUpdateIntervalMaxMS);
             } 
         } = 300;
@@ -56,7 +76,7 @@ namespace Multiplayer.Static
 
                 Config = TomletMain.To<Config>(File.ReadAllText(ConfigFilePath));
 
-                Main.Logger.Msg("Successfully loaded the settings!");
+                Main.Logger.Msg(ConsoleColor.Green, "Successfully loaded the settings!");
             }
             catch (Exception ex)
             {
@@ -70,7 +90,7 @@ namespace Multiplayer.Static
             try
             {
                 File.WriteAllText(ConfigFilePath, TomletMain.TomlStringFrom(Config));
-                Main.Logger.Msg("Successfully saved the settings!");
+                Main.Logger.Msg(ConsoleColor.Green, "Successfully saved the settings!");
             }
             catch (Exception ex)
             {

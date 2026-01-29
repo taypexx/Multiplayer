@@ -24,6 +24,7 @@ namespace Multiplayer.UI.Abstract
         private static CustomImageAsset BaseAsset;
         private static readonly Vector3 IconOffset = new Vector3(-10f, 0f, 0f);
         private const float ButtonOffset = 132f;
+        private const float LeftOffset = 192f;
 
         internal BaseNavigationButton(string iconFileName, int position = 1, bool isRight = true, string buttonName = "BtnMultiplayer")
         {
@@ -51,18 +52,23 @@ namespace Multiplayer.UI.Abstract
             );
             Button.name = ButtonName;
 
-            Button.transform.localPosition = 
-                new Vector3(
-                    Button.transform.localPosition.x * (IsRight ? 1f : -1f), 
-                    Button.transform.localPosition.y, 
-                    Button.transform.localPosition.z
-                ) 
-                + new Vector3((ButtonOffset * (IsRight ? -1f : 1f) * Position) + (IsRight ? 0f : 9f), 0f,0f);
+            var rect = Button.GetComponent<RectTransform>();
+            rect.anchoredPosition = new
+            (
+                rect.anchoredPosition.x * (IsRight ? 1f : -1f) + (IsRight ? 0f : LeftOffset) + (ButtonOffset * (IsRight ? -1f : 1f) * Position),
+                rect.anchoredPosition.y
+            );
 
-            Button.transform.localScale = new(
-                IsRight ? Button.transform.localScale.x : -Button.transform.localScale.x, 
-                Button.transform.localScale.y, 
-                Button.transform.localScale.z
+            var pivotDir = IsRight ? 1 : 0;
+            rect.pivot = new(pivotDir, rect.pivot.y);
+            rect.anchorMin = new(pivotDir, rect.anchorMin.y);
+            rect.anchorMax = new(pivotDir, rect.anchorMax.y);
+
+            rect.localScale = new
+            (
+                IsRight ? rect.localScale.x : -rect.localScale.x, 
+                rect.localScale.y, 
+                rect.localScale.z
             );
 
             Button.GetComponent<Image>().sprite = BaseAsset.Sprite;

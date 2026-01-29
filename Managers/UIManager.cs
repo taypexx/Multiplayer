@@ -133,7 +133,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/>.
+        /// Opens the <see cref="ProfileWindow"/> and displays the information of the <see cref="Player"/>.
         /// </summary>
         /// <param name="player"><see cref="Player"/> whose profile will show.</param>
         internal static async Task OpenProfileWindow(Player player = null, bool updatePlayer = true)
@@ -167,6 +167,15 @@ namespace Multiplayer.Managers
                 Debounce = false;
                 LobbyWindow.Window.Show();
             });
+        }
+
+        /// <summary>
+        /// Opens <see cref="Data.Players.Player"/>'s profile in the browser.
+        /// </summary>
+        /// <param name="uid">UID of the <see cref="Data.Players.Player"/>.</param>
+        internal static void OpenProfilePage(string uid)
+        {
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/player/{uid}");
         }
 
         internal static void OnPlaylistButtonClick()
@@ -311,6 +320,7 @@ namespace Multiplayer.Managers
             PlaylistNavButton.Create();
 
             ProfileWindow.CreateAvatarBox();
+            PnlHead.onClose += (Action)(() => _ = ProfileWindow.OnPnlHeadClose());
 
             if (LobbyManager.IsInLobby && LobbyManager.LocalLobby.Playlist.Count == 0)
             {

@@ -13,7 +13,7 @@ namespace Multiplayer.UI.Displays
         private int MessageHistoryIndex = 0;
 
         internal InputField InputField { get; private set; }
-        private GameObject PlaceholderText;
+        private Text PlaceholderText;
 
         internal ChatLobbyDisplay() : base()
         {
@@ -31,6 +31,12 @@ namespace Multiplayer.UI.Displays
             Pivot = new(0f, 1f);
         }
 
+        internal void UpdatePlaceholder(bool keyEnabled)
+        {
+            if (PlaceholderText == null) return;
+            PlaceholderText.text = Localization.Get("SystemChatMessages", keyEnabled ? "ChatPlaceholderText" : "ChatPlaceholderTextNoKey").ToString();
+        }
+
         internal void BrowseMessageHistory(bool up)
         {
             if (InputField == null) return;
@@ -41,6 +47,7 @@ namespace Multiplayer.UI.Displays
                 MessageHistoryIndex = 0;
             }
             InputField.text = Chat.MessageHistory[Chat.MessageHistory.Count - 1 - MessageHistoryIndex] ?? InputField.text;
+            InputField.MoveTextEnd(false);
         }
 
         internal void ResetMessageHistoryIndex()
@@ -76,6 +83,7 @@ namespace Multiplayer.UI.Displays
         internal override void Create(Lobby lobby, bool addTitle = true)
         {
             base.Create(lobby, addTitle);
+            Frame.SetActive(Settings.Config.EnableChat);
 
             InputField = Title.gameObject.AddComponent<InputField>();
             InputField.textComponent = Title;
@@ -84,22 +92,22 @@ namespace Multiplayer.UI.Displays
 
             Title.raycastTarget = true;
 
-            PlaceholderText = GameObject.Instantiate(Title.gameObject, Title.transform.parent);
-            PlaceholderText.name = "PlaceholderEntry";
-            Component.Destroy(PlaceholderText.GetComponent<InputField>());
+            var placeholderText = GameObject.Instantiate(Title.gameObject, Title.transform.parent);
+            placeholderText.name = "PlaceholderEntry";
+            Component.Destroy(placeholderText.GetComponent<InputField>());
 
-            var placeholderText = PlaceholderText.GetComponent<Text>();
-            placeholderText.raycastTarget = false;
-            placeholderText.horizontalOverflow = HorizontalWrapMode.Overflow;
-            placeholderText.color = new(1f, 1f, 1f, 0.7f);
-            placeholderText.text = Localization.Get("SystemChatMessages", "ChatPlaceholderText").ToString();
-            InputField.placeholder = placeholderText;
+            PlaceholderText = placeholderText.GetComponent<Text>();
+            PlaceholderText.raycastTarget = false;
+            PlaceholderText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            PlaceholderText.color = new(1f, 1f, 1f, 0.7f);
+            UpdatePlaceholder(Settings.Config.EnableShortcuts);
+            InputField.placeholder = PlaceholderText;
         }
 
         internal override void Destroy()
         {
             base.Destroy();
-            GameObject.Destroy(PlaceholderText);
+            GameObject.Destroy(PlaceholderText.gameObject);
         }
     }
 }

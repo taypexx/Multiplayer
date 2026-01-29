@@ -24,18 +24,6 @@ namespace Multiplayer.Managers
             }
         } = true;
 
-        internal static void FocusOnChatField()
-        {
-            if (UIManager.ChatLobbyDisplay == null) return;
-
-            UIManager.ChatLobbyDisplay.ResetMessageHistoryIndex();
-
-            var inputField = UIManager.ChatLobbyDisplay.InputField;
-            inputField.text = string.Empty;
-            inputField.Select();
-            inputField.ActivateInputField();
-        }
-
         internal static void Update()
         {
             if (!UIManager.Initialized) return;
@@ -45,6 +33,7 @@ namespace Multiplayer.Managers
                 InputEnabled = !InputEnabled;
             }
 
+            // Ping switch
             bool pingModeToggled = Input.GetKey(Constants.BattleDisplayKeyCode);
             if (InputEnabled && PingMode != pingModeToggled)
             {
@@ -64,10 +53,19 @@ namespace Multiplayer.Managers
                 return;
             }
 
-            if (UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
+            // Chat controls
+            if (Settings.Config.EnableChat && UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
             {
                 var inputField = UIManager.ChatLobbyDisplay.InputField;
-                if (Input.GetKeyDown(Constants.ChatSendKeyCode))
+                if (Input.GetKeyDown(Constants.ChatOpenKeyCode) && Settings.Config.EnableShortcuts && InputEnabled)
+                {
+                    UIManager.ChatLobbyDisplay.ResetMessageHistoryIndex();
+
+                    inputField.text = string.Empty;
+                    inputField.Select();
+                    inputField.ActivateInputField();
+                }
+                else if (Input.GetKeyDown(Constants.ChatSendKeyCode))
                 {
                     // Send a chat message
                     var msg = inputField.text.TrimStart().TrimEnd(['\r', '\n']);
@@ -78,6 +76,7 @@ namespace Multiplayer.Managers
                         UIManager.ChatLobbyDisplay.ResetMessageHistoryIndex();
                         Chat.Send(msg);
                     }
+                    return;
                 }
                 else if (UIManager.ChatLobbyDisplay.InputField.isFocused)
                 {
@@ -92,26 +91,21 @@ namespace Multiplayer.Managers
                 }
             }
 
-            if (InputEnabled && Main.IsUIScene && Settings.Config.EnableShortcuts)
+            // General shortcuts
+            if (InputEnabled && Settings.Config.EnableShortcuts && UIManager.MainFrame != null && !UIManager.MainFrame.active)
             {
-                if (Input.GetKeyDown(Constants.ChatOpenKeyCode))
+
+                if (Input.GetKeyDown(Constants.MainMenuOpenKeyCode))
                 {
-                    FocusOnChatField();
+                    UIManager.MainNavButton.ButtonAction.Invoke();
                 }
-                else if (UIManager.MainFrame != null && !UIManager.MainFrame.active)
+                else if (Input.GetKeyDown(Constants.LobbyOpenKeyCode))
                 {
-                    if (Input.GetKeyDown(Constants.MainMenuOpenKeyCode))
-                    {
-                        UIManager.MainNavButton.ButtonAction.Invoke();
-                    }
-                    else if (Input.GetKeyDown(Constants.LobbyOpenKeyCode))
-                    {
-                        UIManager.LobbyNavButton.ButtonAction.Invoke();
-                    }
-                    else if (Input.GetKeyDown(Constants.PlaylistOpenKeyCode))
-                    {
-                        UIManager.PlaylistNavButton.ButtonAction.Invoke();
-                    }
+                    UIManager.LobbyNavButton.ButtonAction.Invoke();
+                }
+                else if (Input.GetKeyDown(Constants.PlaylistOpenKeyCode))
+                {
+                    UIManager.PlaylistNavButton.ButtonAction.Invoke();
                 }
             }
         }

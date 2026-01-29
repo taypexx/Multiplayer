@@ -1,5 +1,7 @@
 ﻿using Il2Cpp;
+using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.UI.Panels;
+using Il2CppSirenix.Serialization.Utilities;
 using LocalizeLib;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
@@ -17,6 +19,8 @@ namespace Multiplayer.UI.ProfileWindows
     internal sealed class ProfileWindow : BaseMultiplayerWindow
     {
         private ForumObject StatsButton;
+        private ForumObject AvatarButton;
+        private ForumObject BioButton;
         private ForumObject FriendsButton;
         private ForumObject FriendRequestsButton;
         private ForumObject AchievementsButton;
@@ -33,6 +37,9 @@ namespace Multiplayer.UI.ProfileWindows
 
         private GameObject AvatarBox;
         private HeadItem AvatarHeadItem;
+
+        private InputWindow BioWindow;
+        private static bool PnlHeadWasOpened = false;
 
         // The Player whose stats are displayed in this window.
         internal Player Player;
@@ -64,18 +71,24 @@ namespace Multiplayer.UI.ProfileWindows
             UnfriendPrompt = new(Localization.Get("ProfileWindow", "DecideUnfriendPrompt"));
             UnfriendPrompt.AutoReset = true;
             UnfriendPrompt.OnCompletion += (BaseWindow window) => _ = OnFriendActionDecided(window);
+
+            BioWindow = new(Localization.Get("ProfileWindow", "BioDescription"));
+            BioWindow.AutoReset = true;
+            BioWindow.OnCompletion += (BaseWindow window) => _ = OnBioCompletion();
         }
 
         internal void CreateButtons()
         {
             StatsButton = AddButton(Localization.Get("ProfileWindow", "Stats"));
-            FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"));
 
             if (Player == PlayerManager.LocalPlayer)
             {
+                AvatarButton = AddButton(Localization.Get("ProfileWindow", "Avatar"), UIManager.PnlHead);
+                BioButton = AddButton(Localization.Get("ProfileWindow", "Bio"), BioWindow);
                 FriendRequestsButton = AddButton(Localization.Get("ProfileWindow", "FriendRequests"), UIManager.FriendRequestsWindow);
             }
 
+            FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"));
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
             MDMoeButton = AddButton(Localization.Get("ProfileWindow", "MDMoe"));
@@ -118,12 +131,13 @@ namespace Multiplayer.UI.ProfileWindows
             });
         }
 
-        /// <summary>
-        /// Opens player's profile in the browser.
-        /// </summary>
-        private void OpenProfilePage()
+        private async Task OpenFriendsWindow()
         {
-            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/player/{Player.Uid}");
+            UIManager.Debounce = true;
+            await UIManager.FriendsWindow.Update(Player);
+            UIManager.Debounce = false;
+
+            Main.Dispatcher.Enqueue(() => UIManager.FriendsWindow.Window.Show());
         }
 
         /// <summary>
@@ -201,6 +215,49 @@ namespace Multiplayer.UI.ProfileWindows
             });
         }
 
+        /// <summary>
+        /// Calls every time the bio window gets closed.
+        /// </summary>
+        private async Task OnBioCompletion()
+        {
+            if (BioWindow.Result.IsNullOrWhitespace()) goto Show;
+
+            if (BioWindow.Result.Length > Constants.BioCharactersMax)
+            {
+                PopupUtils.ShowInfo(String.Format(Localization.Get("ProfileWindow", "BioTooLong").ToString(), Constants.BioCharactersMax));
+                goto Show;
+            }
+
+            PlayerManager.LocalPlayer.MultiplayerStats.Bio = BioWindow.Result;
+            PlayerManager.SyncProfile();
+            await Update(Player, false);
+
+            Show:
+            Main.Dispatcher.Enqueue(() => Window.Show());
+        }
+
+        /// <summary>
+        /// Calls every time <see cref="PnlHead"/> gets closed.
+        /// </summary>
+        internal async Task OnPnlHeadClose()
+        {
+            if (PlayerManager.LocalPlayer is null) return;
+
+            string newAvatarName = "head_" + DataHelper.selectedHeadIndex.ToString();
+            if (PlayerManager.LocalPlayer.MultiplayerStats.AvatarName != newAvatarName)
+            {
+                PlayerManager.LocalPlayer.MultiplayerStats.AvatarName = newAvatarName;
+                PlayerManager.SyncProfile();
+                await Update(Player, false);
+            }
+
+            if (PnlHeadWasOpened)
+            {
+                PnlHeadWasOpened = false;
+                Window.Show();
+            }
+        }
+
         private async Task OnFriendActionDecided(BaseWindow window = null)
         {
             if (window == null || window == FriendRequestPrompt && FriendRequestPrompt.Result == true || window == UnfriendPrompt && UnfriendPrompt.Result == true)
@@ -243,15 +300,6 @@ namespace Multiplayer.UI.ProfileWindows
             Window.Show();
         }
 
-        private async Task OpenFriendsWindow()
-        {
-            UIManager.Debounce = true;
-            await UIManager.FriendsWindow.Update(Player);
-            UIManager.Debounce = false;
-
-            Main.Dispatcher.Enqueue(() => UIManager.FriendsWindow.Window.Show());
-        }
-
         protected override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
             ForumObject button = Window.ForumObjects[objectIndex];
@@ -259,7 +307,7 @@ namespace Multiplayer.UI.ProfileWindows
             if (button == FriendActionButton && FriendButtonState == 4) return;
             else if (button == StatsButton)
             {
-                OpenProfilePage(); return;
+                UIManager.OpenProfilePage(Player.Uid); return;
             }
             else if (button == MDMoeButton)
             {
@@ -268,7 +316,11 @@ namespace Multiplayer.UI.ProfileWindows
 
             base.OnButtonClick(window, objectIndex);
 
-            if (button == FriendActionButton)
+            if (button == AvatarButton)
+            {
+                PnlHeadWasOpened = true;
+            }
+            else if (button == FriendActionButton)
             {
                 if (FriendButtonState == 0)
                 {
@@ -282,7 +334,8 @@ namespace Multiplayer.UI.ProfileWindows
                 {
                     _ = OnFriendActionDecided();
                 }
-            } else if (button == FriendsButton) _ = OpenFriendsWindow();
+            } 
+            else if (button == FriendsButton) _ = OpenFriendsWindow();
             else if (button == RefreshButton) _ = Refresh();
         }
 

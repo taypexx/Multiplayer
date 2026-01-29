@@ -478,6 +478,10 @@ namespace Multiplayer.UI
             LeftInfoLabel.transform.position = LeftInfoPosition;
             RightInfoLabel.transform.position = RightInfoPosition;
 
+            MiddleInfoLabel.AddComponent<Button>().onClick.AddListener((UnityAction)new Action(() => UIManager.OpenProfilePage(PlayerManager.LocalPlayerUid)));
+            LeftInfoLabel.AddComponent<Button>().onClick.AddListener((UnityAction)new Action(() => UIManager.OpenProfilePage(CurrentPage[0].Uid)));
+            RightInfoLabel.AddComponent<Button>().onClick.AddListener((UnityAction)new Action(() => UIManager.OpenProfilePage(CurrentPage[1].Uid)));
+
             MiddleInfo = MiddleInfoLabel.GetComponent<Text>();
             LeftInfo = LeftInfoLabel.GetComponent<Text>();
             RightInfo = RightInfoLabel.GetComponent<Text>();

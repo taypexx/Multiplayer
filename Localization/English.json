@@ -13,6 +13,7 @@
   },
   "SettingsWindow": {
     "Title": "Settings",
+    "EnableChat": "Enable the lobby chat (no text filtering)",
     "ShowNavigationButtons": "Show multiplayer buttons on the navigation panel",
     "EnableShortcuts": "Enable shortcuts to quickly open multiplayer tabs",
     "FavGirlMode": "Display fav girls instead of equipped combinations on the home page when enabled",
@@ -31,11 +32,12 @@
     "PlayerUnmuted": "You have unmuted <b>{0}</b>.",
     "PlayerAlreadyMuted": "<b>{0}</b> is already muted.",
     "PlayerNotMuted": "<b>{0}</b> was not muted.",
-    "PlayerMuteSelf": "You cannot mute yourself =O",
+    "PlayerMuteSelf": "You cannot mute yourself lol",
     "UnknownCommand": "Command <b>{0}</b> doesn't exist.",
     "NoArguments": "This command requires arguments to be executed.",
     "PlayerNotFound": "<b>{0}</b> is not in lobby.",
-    "ChatPlaceholderText": "Press / or click here to start typing"
+    "ChatPlaceholderText": "Press / or click here to start typing",
+    "ChatPlaceholderTextNoKey": "Click here to start typing"
   },
   "CommandDescriptions": {
     "help": "Show all available commands",
@@ -69,10 +71,6 @@
     "Connecting": "Connecting to the server...",
     "LocalPlayerBanned": "You have been banned from multiplayer servers. If you wish to appeal please contact @cvle. or @taypexx in discord.",
     "MyProfile": "My Profile",
-    "Avatar": "Set Avatar",
-    "Bio": "Set Bio",
-    "BioDescription": "Enter your bio",
-    "BioTooLong": "Your bio must not be longer than {0} characters!",
     "Lobbies": "Lobbies",
     "MyLobby": "My Lobby",
     "Competitive": "Competitive",
@@ -83,6 +81,10 @@
   "ProfileWindow": {
     "Title": "Profile",
     "Stats": "Stats",
+    "Avatar": "Set Avatar",
+    "Bio": "Set Bio",
+    "BioDescription": "Enter your bio",
+    "BioTooLong": "Your bio must not be longer than {0} characters!",
     "Friends": "Friends",
     "FriendRequests": "Friend Requests",
     "Achievements": "Achievements",

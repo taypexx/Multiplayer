@@ -13,7 +13,7 @@ namespace Multiplayer.Static
 
         internal static void Recieve(ChatMessage chatMessage)
         {
-            if (!LobbyManager.IsInLobby) return;
+            if (!LobbyManager.IsInLobby || !Settings.Config.EnableChat) return;
 
             chatMessage.Init();
 
@@ -59,33 +59,36 @@ namespace Multiplayer.Static
             MessageHistory.Add(msg);
         }
 
+        private static Player FindPlayer(string query)
+        {
+            foreach (var playerUid in LobbyManager.LocalLobby.Players)
+            {
+                var player = PlayerManager.GetCachedPlayer(playerUid);
+                if (player is null) continue;
+
+                if (
+                    (query.Length > 3 && player.MultiplayerStats.Name.Contains(query))
+                    || (query.Length <= 3 && player.MultiplayerStats.Name.StartsWith(query))
+                    || query == playerUid
+                )
+                {
+                    return player;
+                }
+            }
+            return null;
+        }
+
         private static void MuteToggle(string[] args, bool mute)
         {
             if (!LobbyManager.IsInLobby) return;
 
-            var input = args.Length == 0 ? null : args[1];
+            var query = args.Length == 0 ? null : args[1];
             Player target = null;
 
-            if (input != null)
-            {
-                foreach (var playerUid in LobbyManager.LocalLobby.Players)
-                {
-                    var player = PlayerManager.GetCachedPlayer(playerUid);
-                    if (player is null) continue;
-
-                    if (
-                        (input.Length > 3 && player.MultiplayerStats.Name.Contains(input))
-                        || (input.Length <= 3 && player.MultiplayerStats.Name.StartsWith(input))
-                        || input == playerUid
-                    ) {
-                        target = player;
-                        break;
-                    }
-                }
-            }
+            if (query != null) target = FindPlayer(query);
 
             string msg;
-            if (input != null)
+            if (query != null)
             {
                 if (target != null)
                 {
@@ -109,13 +112,13 @@ namespace Multiplayer.Static
                         msg = String.Format(Localization.Get("SystemChatMessages", $"Player{(mute ? "M" : "Unm")}uted").ToString(), target.MultiplayerStats.Name);
                     }
                 }
-                else msg = String.Format(Localization.Get("SystemChatMessages", "PlayerNotFound").ToString(), input);
+                else msg = String.Format(Localization.Get("SystemChatMessages", "PlayerNotFound").ToString(), query);
             }
             else msg = Localization.Get("SystemChatMessages", "NoArguments").ToString();
 
             UIManager.ChatLobbyDisplay.AddMessage(new()
             {
-                Message = msg,
+                Message = $"<i>{msg}</i>",
                 AuthorName = "system"
             });
         }
