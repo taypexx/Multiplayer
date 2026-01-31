@@ -7,6 +7,7 @@ using Multiplayer.Managers;
 using Multiplayer.Static;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Multiplayer.Patches
@@ -16,8 +17,6 @@ namespace Multiplayer.Patches
         private static bool AwaitingForOthers = false;
         private static bool CanExit = false;
         private static bool Started = false;
-
-        private static PnlVictory PnlVictory => GameObject.Find("UI_3D/PnlVictory").GetComponent<PnlVictory>();
 
         /// <summary>
         /// Runs a loop and waits until everyone loads.
@@ -40,25 +39,36 @@ namespace Multiplayer.Patches
         }
 
         /// <summary>
-        /// Resets everything before moving further.
-        /// </summary>
-        private static void FinishCurrentChart()
-        {
-            if (BattleManager.Synchronizing)
-            {
-                BattleManager.SyncStop();
-            }
-            UIManager.BattleLobbyDisplay.Destroy();
-            _ = LobbyManager.SetReady(false);
-        }
-
-        /// <summary>
         /// Runs when the GameMain scene loads.
         /// </summary>
         internal static void SceneLoaded()
         {
             CanExit = false;
             Started = false;
+
+            if (!LobbyManager.IsInLobby) return;
+
+            // Toggle the pause button
+            GameObject.Find("UI_2D/Standard/PnlBattle/PnlBattleUI/PnlBattleOthers/Up/BtnPause").SetActive(false);
+
+            // Fail screen adjustments
+            var failRestartButtonGo = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnRestart");
+            failRestartButtonGo.SetActive(false);
+
+            var returnButtonGo = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnReturn");
+            returnButtonGo.transform.localPosition = failRestartButtonGo.transform.localPosition;
+
+            // PnlVictory adjustments
+            var restartButton = UIManager.PnlVictory.m_CurControls.btnReset;
+            restartButton.transform.Find("TxtRestart").gameObject.GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
+            restartButton.onClick.RemoveAllListeners();
+            restartButton.onClick.AddListener((UnityAction)ShowPlayResults);
+
+            var continueButton = UIManager.PnlVictory.m_CurControls.btnContinue;
+            if (LobbyManager.LocalLobby.Playlist.Count > 1)
+            {
+                continueButton.transform.Find("TxtContinue").gameObject.GetComponent<Text>().text = Localization.Get("Battle", "Next").ToString();
+            }
         }
 
         /// <summary>
@@ -93,7 +103,6 @@ namespace Multiplayer.Patches
 
                 UIManager.PnlAwait.Destroy();
                 _ = BattleManager.SyncStart();
-                GameObject.Find("UI_2D/Standard/PnlBattle/PnlBattleUI/PnlBattleOthers/Up/BtnPause").SetActive(false);
 
                 var infoPlusLabel = GameObject.Find("InfoPlus_TextLowerLeft");
                 if (infoPlusLabel != null)
@@ -103,8 +112,26 @@ namespace Multiplayer.Patches
             }
         }
 
+        private static void ShowPlayResults()
+        {
+            // make sure to not show the results unless everyone got to the end
+        }
+
         /// <summary>
-        /// Patches the end screen to display winners and move forward to the next chart.
+        /// Resets everything before moving further.
+        /// </summary>
+        private static void FinishCurrentChart()
+        {
+            if (BattleManager.Synchronizing)
+            {
+                BattleManager.SyncStop();
+            }
+            UIManager.BattleLobbyDisplay.Destroy();
+            _ = LobbyManager.SetReady(false);
+        }
+
+        /// <summary>
+        /// ummm i forgor
         /// </summary>
         [HarmonyPatch]
         internal static class BattleVictoryPatch
@@ -141,14 +168,6 @@ namespace Multiplayer.Patches
                 // Display the fake achievements as the winners (await for thr retrieval)
 
                 _ = Continue();
-
-                PnlVictory.m_CurControls.btnReset.gameObject.SetActive(false);
-                
-                if (LobbyManager.LocalLobby.Playlist.Count > 1)
-                {
-                    PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").gameObject.GetComponent<Text>().text =
-                    Localization.Get("Global", "Next").ToString();
-                }
             }
         }
 
@@ -163,18 +182,12 @@ namespace Multiplayer.Patches
                 if (!LobbyManager.IsInLobby) return;
 
                 FinishCurrentChart();
-
-                var restartButton = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnRestart");
-                restartButton.SetActive(false);
-
-                var returnButton = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnReturn");
-                returnButton.transform.localPosition = restartButton.transform.localPosition;
                 CanExit = true;
             }
         }
 
         /// <summary>
-        /// Disables the pause method. TODO: fix :sob:
+        /// Disables the pause method.
         /// </summary>
         [HarmonyPatch(typeof(PnlBattle), nameof(PnlBattle.Pause))]
         [HarmonyPriority(Priority.First)]
@@ -186,6 +199,9 @@ namespace Multiplayer.Patches
             }
         }
 
+        /// <summary>
+        /// Keeps the application focused if local player is in the lobby.
+        /// </summary>
         [HarmonyPatch(typeof(Il2CppAssets.Scripts.PeroTools.Managers.UnityGameManager), "OnApplicationFocus")]
         [HarmonyPriority(Priority.First)]
         internal static class OnApplicationFocusPatch

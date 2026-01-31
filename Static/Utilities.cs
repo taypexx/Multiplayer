@@ -32,13 +32,16 @@ namespace Multiplayer.Static
 
         public static GameObject CreateText(Transform parent, string name = "Text")
         {
-            GameObject gameObject = new GameObject(name);
+            var gameObject = new GameObject(name);
             gameObject.transform.SetParent(parent, true);
             gameObject.transform.localScale = Vector3.one;
 
-            Text text = gameObject.GetComponent<Text>() ?? gameObject.AddComponent<Text>();
+            var text = gameObject.GetComponent<Text>() ?? gameObject.AddComponent<Text>();
             text.text = name;
             text.font = NormalFont;
+
+            var rect = gameObject.GetComponent<RectTransform>();
+            rect.anchoredPosition3D = Vector3.zero;
 
             return gameObject;
         }

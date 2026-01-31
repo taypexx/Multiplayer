@@ -13,6 +13,8 @@ using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using System.Net.Http.Json;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Multiplayer.UI.ProfileWindows
 {
@@ -35,11 +37,11 @@ namespace Multiplayer.UI.ProfileWindows
         private Dictionary<int, LocalString> FriendButtonTitles;
         private Dictionary<int, LocalString> FriendButtonResponses;
 
+        private static bool PnlHeadWasOpened = false;
         private GameObject AvatarBox;
         private HeadItem AvatarHeadItem;
 
         private InputWindow BioWindow;
-        private static bool PnlHeadWasOpened = false;
 
         // The Player whose stats are displayed in this window.
         internal Player Player;
@@ -83,7 +85,7 @@ namespace Multiplayer.UI.ProfileWindows
 
             if (Player == PlayerManager.LocalPlayer)
             {
-                AvatarButton = AddButton(Localization.Get("ProfileWindow", "Avatar"), UIManager.PnlHead);
+                AvatarButton = AddButton(Localization.Get("ProfileWindow", "Avatar"));
                 BioButton = AddButton(Localization.Get("ProfileWindow", "Bio"), BioWindow);
                 FriendRequestsButton = AddButton(Localization.Get("ProfileWindow", "FriendRequests"), UIManager.FriendRequestsWindow);
             }
@@ -106,11 +108,21 @@ namespace Multiplayer.UI.ProfileWindows
         {
             if (AvatarBox != null) return;
             AvatarBox = UnityEngine.Object.Instantiate(
-                GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>().headGridView.templateHeadItem.m_Button.gameObject,
-                UIManager.WindowTitle.transform
+                UIManager.PnlHead.headGridView.templateHeadItem.m_Button.gameObject,
+                UIManager.MainFrame.transform.Find("ImgBase")
             );
-            AvatarBox.transform.localScale = new(0.8f, 0.8f, 0.8f);
-            AvatarBox.transform.localPosition = new(333f, -166f, 0f);
+            AvatarBox.name = "AvatarBox";
+
+            var rect = AvatarBox.GetComponent<RectTransform>();
+            rect.pivot = new(1f, 1f);
+            rect.anchorMin = rect.pivot;
+            rect.anchorMax = rect.pivot;
+            rect.anchoredPosition = new(-600f, -95f);
+
+            var button = AvatarBox.GetComponent<Button>();
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener((UnityAction) new Action(OpenPnlHead));
+
             AvatarHeadItem = AvatarBox.GetComponent<HeadItem>();
             AvatarHeadItem.m_ImgLock.gameObject.SetActive(false);
         }
@@ -146,6 +158,15 @@ namespace Multiplayer.UI.ProfileWindows
         private void OpenMDMoe()
         {
             Utilities.OpenBrowserLink("https://musedash.moe/player/" + Player.Uid);
+        }
+
+        private void OpenPnlHead()
+        {
+            if (UIManager.PnlHead == null) return;
+            if (Window.Activated) Window.ForceClose();
+
+            PnlHeadWasOpened = true;
+            UIManager.PnlAchvOther.OnHeadClick();
         }
 
         /// <summary>
@@ -318,7 +339,7 @@ namespace Multiplayer.UI.ProfileWindows
 
             if (button == AvatarButton)
             {
-                PnlHeadWasOpened = true;
+                OpenPnlHead();
             }
             else if (button == FriendActionButton)
             {

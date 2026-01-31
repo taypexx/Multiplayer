@@ -2,7 +2,6 @@
   "Global": {
     "Yes": "Yes",
     "No": "No",
-    "Next": "Next",
     "Easy": "Easy",
     "Hard": "Hard",
     "Master": "Master",
@@ -63,6 +62,10 @@
     "ReturnButton": "— Back —",
     "ExitButton": "— Exit —",
     "Empty": "—"
+  },
+  "Battle": {
+    "Next": "NEXT",
+    "Results": "RESULTS"
   },
   "MainMenu": {
     "Title": "Multiplayer",

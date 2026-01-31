@@ -116,6 +116,9 @@
     <Reference Include="Unity.ResourceManager">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Il2CppAssemblies\Unity.ResourceManager.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Il2CppAssemblies\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>$(MD_NET6_DIRECTORY)\MelonLoader\Il2CppAssemblies\UnityEngine.CoreModule.dll</HintPath>
     </Reference>

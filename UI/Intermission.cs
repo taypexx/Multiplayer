@@ -111,6 +111,8 @@ namespace Multiplayer.UI
                     toggle.gameObject.SetActive(false);
                 }
             }
+
+            SoundManager.PlayAndLockTroveBGM();
         }
 
         private static void UnsetPnlMenu()
@@ -119,6 +121,7 @@ namespace Multiplayer.UI
             UIManager.MainLobbyDisplay.Destroy();
             UIManager.ChatLobbyDisplay.Destroy();
             PnlHomeExtension.Disable();
+            SoundManager.UnlockBGM();
         }
 
         private static void StartBattle()

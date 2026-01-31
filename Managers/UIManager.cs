@@ -5,11 +5,9 @@ using Multiplayer.UI.ProfileWindows;
 using Multiplayer.Static;
 using UnityEngine;
 using UnityEngine.UI;
-using Il2CppAssets.Scripts.Database;
 using Il2Cpp;
 using Il2CppAssets.Scripts.UI;
 using Il2CppAssets.Scripts.UI.Panels;
-using Il2CppAssets.Scripts.PeroTools.UI;
 using Il2CppArcadeController.UI.Panel.PnlHome;
 using PopupLib.UI;
 using PopupLib.UI.Windows;
@@ -21,7 +19,6 @@ using Multiplayer.UI.NavigationButtons;
 using UnityEngine.Events;
 using Il2CppAssets.Scripts.UI.Panels.PnlRole;
 using UnityEngine.EventSystems;
-using Il2CppAssets.Scripts.PeroTools.Commons;
 
 namespace Multiplayer.Managers
 {
@@ -32,19 +29,26 @@ namespace Multiplayer.Managers
         internal static bool Initialized { get; private set; } = false;
         internal static bool Debounce = false;
         internal static Text WindowTitle { get; private set; }
-        internal static TimeSpan ShowMsgDuration = TimeSpan.FromSeconds(1);
+        internal static Button WindowBackButton { get; private set; }
+        internal static Button WindowExitButton { get; private set; }
+        internal static Button WindowRefreshButton { get; private set; }
+
 
         internal static GameObject MainFrame;
+        internal static PnlMessage PnlMessage;
         internal static PageHome PageHome;
         internal static PnlMenu PnlMenu;
         internal static PnlNavigation PnlNavigation;
         internal static PnlPreparation PnlPreparation;
         internal static PnlStage PnlStage;
         internal static PnlHead PnlHead;
+        internal static AchvSelect PnlAchvOther;
         internal static PnlRole PnlRole;
         internal static PnlElfin PnlElfin;
         internal static PnlRank PnlRank;
         internal static GameObject PnlCloudMessage;
+
+        internal static PnlVictory PnlVictory;
 
         internal static PromptWindow PlayConfirmPrompt;
         internal static bool LobbyWindowQueued = false;
@@ -287,11 +291,13 @@ namespace Multiplayer.Managers
         internal static void UpdateVanillaPanels()
         {
             MainFrame = GameObject.Find("UI/Forward/Tips/PnlBulletinNew");
+            PnlMessage = GameObject.Find("CommonManagers/MessagesManager/UI/PnlMessage").GetComponent<PnlMessage>();
             PageHome = GameObject.Find("UI/Standerd/PnlHome").GetComponent<PageHome>();
             PnlMenu = GameObject.Find("UI/Standerd/PnlMenu").GetComponent<PnlMenu>();
             PnlNavigation = GameObject.Find("UI/Standerd/PnlNavigation").GetComponent<PnlNavigation>();
             PnlPreparation = GameObject.Find("UI/Standerd/PnlPreparation").GetComponent<PnlPreparation>();
             PnlStage = GameObject.Find("UI/Standerd/PnlStage").GetComponent<PnlStage>();
+            PnlAchvOther = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlAchvLocalization/PnlAchv_other").GetComponent<AchvSelect>();
             PnlHead = GameObject.Find("UI/Forward/Tips/PnlHead").GetComponent<PnlHead>();
             PnlRole = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole").GetComponent<PnlRole>();
             PnlElfin = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlElfin").GetComponent<PnlElfin>();
@@ -306,21 +312,42 @@ namespace Multiplayer.Managers
         {
             EventSystem = GameObject.Find("UI/EventSystem").GetComponent<EventSystem>();
 
-            var windowTitleGo = GameObject.Instantiate(
-                GameObject.Find("UI/Forward/Tips/PnlAchievementsTips/TxtTittle"),
-                MainFrame.transform
-            );
-            windowTitleGo.transform.localPosition = new(0f, 330f, 0f);
+            // Upgrading bulletin
+
+            var windowTitleGo = MainFrame.transform.Find("TxtTittle").gameObject;
+            windowTitleGo.name = "WindowTitle";
             windowTitleGo.SetActive(false);
+
+            var titleRect = windowTitleGo.GetComponent<RectTransform>();
+            titleRect.pivot = new(0.5f, 1f);
+            titleRect.anchorMin = titleRect.pivot;
+            titleRect.anchorMax = titleRect.pivot;
+            titleRect.anchoredPosition = new(0f, -170f);
+
             WindowTitle = windowTitleGo.GetComponent<Text>();
+
+            var backBtnGo = Utilities.CreateText(MainFrame.transform.Find("ImgBase"), "BackBtn");
+            var backBtnText = backBtnGo.GetComponent<Text>();
+            backBtnText.text = "➜";
+            backBtnText.fontSize = 60;
+
+            var backBtnRect = backBtnGo.GetComponent<RectTransform>();
+            backBtnRect.localScale = new(-1f, 1f, 1f);
+            backBtnRect.pivot = new(0f, 1f);
+            backBtnRect.anchorMin = backBtnRect.pivot;
+            backBtnRect.anchorMax = backBtnRect.pivot;
+            backBtnRect.anchoredPosition = new(125f, 35f);
+
+            WindowBackButton = backBtnGo.AddComponent<Button>();
+
+            // Navigation
 
             MainNavButton.Create();
             LobbyNavButton.Create();
             PlayNavButton.Create();
             PlaylistNavButton.Create();
 
-            ProfileWindow.CreateAvatarBox();
-            PnlHead.onClose += (Action)(() => _ = ProfileWindow.OnPnlHeadClose());
+            // Displays and extensions
 
             if (LobbyManager.IsInLobby && LobbyManager.LocalLobby.Playlist.Count == 0)
             {
@@ -336,6 +363,10 @@ namespace Multiplayer.Managers
             navBackButton.onClick.AddListener(updateLobbyDisplayAction);
             homeStartButton.onClick.AddListener(updateLobbyDisplayAction);
 
+            // Other
+
+            ProfileWindow.CreateAvatarBox();
+            PnlHead.onClose += (Action)(() => _ = ProfileWindow.OnPnlHeadClose());
             PnlPreparationExtension.BindCustomPnlPreparationClick(PnlPreparation);
         }
 
@@ -344,6 +375,8 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void InitGameMain()
         {
+            PnlVictory = GameObject.Find("UI_3D/PnlVictory").GetComponent<PnlVictory>();
+
             if (LobbyManager.IsInLobby)
             {
                 BattleLobbyDisplay.Create(LobbyManager.LocalLobby, false);

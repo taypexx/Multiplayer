@@ -6,6 +6,24 @@ namespace Multiplayer.Managers
     internal static class SoundManager
     {
         private static AudioManager AudioManager;
+        internal static bool BGMLocked { get; private set; } = false;
+
+        internal static void PlayAndLockTroveBGM()
+        {
+            BGMLocked = true;
+            AudioManager.PlayBGM("TroveBgm-InARomanticMood-Lukyanov");
+        }
+
+        internal static void PlayAndLockAchievementsBGM()
+        {
+            BGMLocked = true;
+            AudioManager.PlayBGM("AchievementBgm-SweetVermouth-MusMus");
+        }
+
+        internal static void UnlockBGM()
+        {
+            BGMLocked = false;
+        }
 
         internal static void PlayClick()
         {

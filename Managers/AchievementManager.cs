@@ -1,5 +1,4 @@
 ﻿using Il2CppAssets.Scripts.PeroTools.Commons;
-using Il2CppAssets.Scripts.UI.Panels;
 using Multiplayer.Data.Players;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +10,6 @@ namespace Multiplayer.Managers
         internal static Dictionary<int,Achievement> Achievements { get; private set; }
         private static List<Achievement> QueuedAchievements;
 
-        private static PnlMessage PnlMessage => GameObject.Find("CommonManagers/MessagesManager/UI/PnlMessage").GetComponent<PnlMessage>();
         private static Il2CppAssets.Scripts.GameCore.Managers.AchievementManager PeroAchievementManager => Singleton<Il2CppAssets.Scripts.GameCore.Managers.AchievementManager>.instance;
 
         /// <summary>
@@ -37,12 +35,12 @@ namespace Multiplayer.Managers
                 PeroAchievementManager.Reward("1-1");
             }
 
-            PnlMessage.FinishMessage();
+            UIManager.PnlMessage.FinishMessage();
 
-            for (int i = 0; i < PnlMessage.layout.transform.childCount; i++)
+            for (int i = 0; i < UIManager.PnlMessage.layout.transform.childCount; i++)
             {
                 Achievement achievement = QueuedAchievements[i];
-                PnlMessage.layout.transform.GetChild(i).Find("TxtDescription").GetComponent<Text>().text =
+                UIManager.PnlMessage.layout.transform.GetChild(i).Find("TxtDescription").GetComponent<Text>().text =
                     $"<color=#ffca5fff>{achievement.Name}</color>    {achievement.Description}";
             }
 
