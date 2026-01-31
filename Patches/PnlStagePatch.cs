@@ -14,7 +14,7 @@ namespace Multiplayer.Patches
             {
                 _ = Intermission.Start();
             } 
-            else AchievementManager.PlayAchievementAnimation();
+            else if (UIManager.Initialized) AchievementManager.PlayAchievementAnimation();
         }
     }
 }

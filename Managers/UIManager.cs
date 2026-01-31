@@ -33,7 +33,6 @@ namespace Multiplayer.Managers
         internal static Button WindowExitButton { get; private set; }
         internal static Button WindowRefreshButton { get; private set; }
 
-
         internal static GameObject MainFrame;
         internal static PnlMessage PnlMessage;
         internal static PageHome PageHome;
@@ -49,6 +48,8 @@ namespace Multiplayer.Managers
         internal static GameObject PnlCloudMessage;
 
         internal static PnlVictory PnlVictory;
+
+        internal static GameObject ImgPnlRoleLocked;
 
         internal static PromptWindow PlayConfirmPrompt;
         internal static bool LobbyWindowQueued = false;
@@ -225,7 +226,7 @@ namespace Multiplayer.Managers
                 var player = PlayerManager.GetCachedPlayer(playerUid);
                 if (player is null) continue;
 
-                if (player.MultiplayerStats.GirlIndex == 2)
+                if (player.MultiplayerStats.GirlIndex == Constants.SleepwalkerRoleIndex)
                 {
                     PopupUtils.ShowInfo((LocalString)String.Format(Localization.Get("Lobby", "SleepwalkerUsed").ToString(), player.MultiplayerStats.Name));
                     return;
@@ -286,6 +287,22 @@ namespace Multiplayer.Managers
 
             PnlCloudMessage.transform.Find("ImgBase/Synchronizing").gameObject.SetActive(false);
             PnlCloudMessage.transform.Find("ImgBase/Synchronizing" + (success ? "Completed" : "Fail")).gameObject.SetActive(true);
+        }
+
+        internal static void ToggleSleepwalkerSelection(bool state)
+        {
+            var parent = ImgPnlRoleLocked.transform.parent;
+            if (!state)
+            {
+                for (int i = 0; i < parent.childCount; i++)
+                {
+                    parent.GetChild(i).gameObject.SetActive(false);
+                }
+            }
+
+            parent.parent.gameObject.SetActive(!state);
+            parent.gameObject.SetActive(!state);
+            ImgPnlRoleLocked.SetActive(!state);
         }
 
         internal static void UpdateVanillaPanels()
@@ -362,6 +379,25 @@ namespace Multiplayer.Managers
 
             navBackButton.onClick.AddListener(updateLobbyDisplayAction);
             homeStartButton.onClick.AddListener(updateLobbyDisplayAction);
+
+            // PnlRole character lock
+
+            var pnlRoleLockedRef = PnlRole.transform.Find("Properties/BtnApply/Locked/ImgLocked/ImgSkinPurchase").gameObject;
+            ImgPnlRoleLocked = GameObject.Instantiate(
+                pnlRoleLockedRef,
+                pnlRoleLockedRef.transform.parent
+            );
+            ImgPnlRoleLocked.name = "ImgUnavailable";
+            ImgPnlRoleLocked.SetActive(false);
+            Component.Destroy(ImgPnlRoleLocked.GetComponent<Image>());
+
+            var pnlRoleLockedText = ImgPnlRoleLocked.transform.Find("TxtPurchase").GetComponent<Text>();
+            pnlRoleLockedText.gameObject.name = "TxtUnavailable";
+            Component.Destroy(pnlRoleLockedText.GetComponent<Il2CppAssets.Scripts.PeroTools.GeneralLocalization.Localization>());
+            pnlRoleLockedText.font = Utilities.NormalFont;
+            pnlRoleLockedText.text = Localization.Get("Global", "Unavailable").ToString().ToUpper();
+            pnlRoleLockedText.resizeTextMaxSize = 34;
+            pnlRoleLockedText.color = new(0.9176f, 0.9137f, 1f, 1f);
 
             // Other
 

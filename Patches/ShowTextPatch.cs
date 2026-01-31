@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using LocalizeLib;
 using Il2CppAssets.Scripts.UI.Controls;
+using Multiplayer.Managers;
 
 namespace Multiplayer.Patches
 {
@@ -22,7 +23,7 @@ namespace Multiplayer.Patches
 
         private static bool Prefix(string info)
         {
-            return info != NotFoundMessage.ToString();
+            return info != NotFoundMessage.ToString() || !UIManager.Initialized;
         }
     }
 }

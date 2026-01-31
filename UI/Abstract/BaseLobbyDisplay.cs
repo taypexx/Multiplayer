@@ -187,7 +187,7 @@ namespace Multiplayer.UI.Abstract
         {
             foreach (object key in PositionList)
             {
-                Text text = TextList[key];
+                if (!TextList.TryGetValue(key, out var text)) continue;
                 text.GetComponent<RectTransform>().anchoredPosition = new(0f, EntrySize.y * EntryDir * GetTotalLines(PositionList.IndexOf(key)));
             }
         }

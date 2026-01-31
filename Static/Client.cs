@@ -121,19 +121,19 @@ namespace Multiplayer.Static
         /// Performs an <see langword="async"/> SEND request and awaits for the response from the server.
         /// </summary>
         /// <param name="data">Datagram to send.</param>
-        /// <returns></returns>
+        /// <returns>Received buffer.</returns>
         internal static async Task<byte[]> UdpSendAsync(byte[] data)
         {
             try
             {
-                await Udp.SendAsync(data, data.Length, Constants.ServerAddress, Constants.PortUDP);
+                await Udp.SendAsync(data, data.Length, "udp." + Constants.ServerAddress, Constants.PortUDP);
                 var result = await Udp.ReceiveAsync();
 
                 return result.Buffer;
             }
             catch (Exception ex)
             {
-                Main.Logger.Error(ex.ToString());
+                Main.Logger.Error(ex);
                 return null;
             }
         }
@@ -373,6 +373,7 @@ namespace Multiplayer.Static
             Http.DefaultRequestHeaders.ConnectionClose = false;
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Udp = new();
+            Udp.Client.ReceiveTimeout = Constants.BattleUpdateTimeoutMS;
             WebSocket = new();
 
             if (File.Exists(TokenPath)) Token = File.ReadAllText(TokenPath);

@@ -88,6 +88,13 @@ namespace Multiplayer.UI.LobbyWindows
                 Window.Show();
                 return;
             };
+            // If the local player is using sleepwalker
+            if (PlayerManager.LocalPlayer.MultiplayerStats.GirlIndex == Constants.SleepwalkerRoleIndex)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "SleepwalkerUsedLocal"));
+                Window.Show();
+                return;
+            }
 
             Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
             UIManager.Debounce = true;

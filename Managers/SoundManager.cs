@@ -5,19 +5,18 @@ namespace Multiplayer.Managers
 {
     internal static class SoundManager
     {
-        private static AudioManager AudioManager;
         internal static bool BGMLocked { get; private set; } = false;
 
         internal static void PlayAndLockTroveBGM()
         {
             BGMLocked = true;
-            AudioManager.PlayBGM("TroveBgm-InARomanticMood-Lukyanov");
+            Singleton<AudioManager>.instance.PlayBGM("TroveBgm-InARomanticMood-Lukyanov");
         }
 
         internal static void PlayAndLockAchievementsBGM()
         {
             BGMLocked = true;
-            AudioManager.PlayBGM("AchievementBgm-SweetVermouth-MusMus");
+            Singleton<AudioManager>.instance.PlayBGM("AchievementBgm-SweetVermouth-MusMus");
         }
 
         internal static void UnlockBGM()
@@ -27,31 +26,22 @@ namespace Multiplayer.Managers
 
         internal static void PlayClick()
         {
-            if (AudioManager == null) return;
-            AudioManager.PlayButtonClickedSfx(ClickSfxType.Click);
+            Singleton<AudioManager>.instance.PlayButtonClickedSfx(ClickSfxType.Click);
         }
 
         internal static void PlaySwitch()
         {
-            if (AudioManager == null) return;
-            AudioManager.PlayButtonClickedSfx(ClickSfxType.Switch);
+            Singleton<AudioManager>.instance.PlayButtonClickedSfx(ClickSfxType.Switch);
         }
 
         internal static void PlayBack()
         {
-            if (AudioManager == null) return;
-            AudioManager.PlayButtonClickedSfx(ClickSfxType.Back);
+            Singleton<AudioManager>.instance.PlayButtonClickedSfx(ClickSfxType.Back);
         }
 
         internal static void PlayConfirm()
         {
-            if (AudioManager == null) return;
-            AudioManager.PlayButtonClickedSfx(ClickSfxType.Confirm);
-        }
-
-        internal static void Init()
-        {
-            AudioManager = Singleton<AudioManager>.instance;
+            Singleton<AudioManager>.instance.PlayButtonClickedSfx(ClickSfxType.Confirm);
         }
     }
 }

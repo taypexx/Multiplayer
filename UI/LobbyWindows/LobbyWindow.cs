@@ -243,6 +243,13 @@ namespace Multiplayer.UI.LobbyWindows
                 Window.Show();
                 return;
             }
+            // If the local player is using sleepwalker
+            if (ActionButtonIsJoin && PlayerManager.LocalPlayer.MultiplayerStats.GirlIndex == Constants.SleepwalkerRoleIndex)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "SleepwalkerUsedLocal"));
+                Window.Show();
+                return;
+            }
 
             if (ActionButtonIsJoin && Lobby.Players.Count < Lobby.MaxPlayers)
             {

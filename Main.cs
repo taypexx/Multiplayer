@@ -65,7 +65,6 @@ namespace Multiplayer
             AssetManager.Init();
             Localization.Init();
             Chat.Init();
-            BattleManager.Init();
             Client.Init();
         }
 
@@ -79,7 +78,6 @@ namespace Multiplayer
             Dispatcher.Enqueue(() => {
                 AchievementManager.Init();
                 ChartManager.Init();
-                SoundManager.Init();
             });
         }
 

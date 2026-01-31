@@ -119,11 +119,11 @@ namespace Multiplayer.UI
 
         private static Dictionary<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble, string> BubblesLastMessage = new();
 
-        internal static async Task PlayerEndSpeak(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble, string lastMsg)
+        internal static async Task PlayerEndSpeak(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble, int msDelay, string lastMsg)
         {
             try
             {
-                await Task.Delay(Constants.PlayerSpeechBubbleDurationMS);
+                await Task.Delay(msDelay);
                 if (BubblesLastMessage[bubble] != lastMsg) return;
                 Main.Dispatcher.Enqueue(bubble.EndTalk);
 
@@ -146,14 +146,27 @@ namespace Multiplayer.UI
             };
             if (museShow == null) return;
 
+            var charExpress = museShow.transform.Find("BtnInteraction").GetComponent<Il2CppAssets.Scripts.UI.Controls.CharacterExpression>();
+            var express = ExpressionDeterminer.Determine(charExpress.expressionContainer, msg);
+            charExpress.m_CharacterApply.PlayCharacterApply(express.animName, null);
+
             var bubble = museShow.transform.Find("FirstTwnTalkBubble").gameObject.GetComponent<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble>();
             if (bubble == null) return;
+
+            var msgDurationMs = Math.Clamp(
+                msg.Split(" ").Length * 500 + 800
+                + (msg.Count(c => c == ',') * 200)
+                + (msg.Count(c => c == '.') * 400)
+                + (msg.Count(c => c == '!') * 200)
+                + (msg.Count(c => c == '?') * 300),
+                1200,10000
+            );
 
             bubble.gameObject.SetActive(true);
             bubble.SetTalkTxt(msg);
 
             BubblesLastMessage[bubble] = msg;
-            _ = PlayerEndSpeak(bubble, msg);
+            _ = PlayerEndSpeak(bubble, msgDurationMs, msg);
         }
 
         private static void ReplaceGirl(GameObject museShow, int girlIndex)
@@ -163,7 +176,7 @@ namespace Multiplayer.UI
             var prefab = museShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject;
             var museShowComponent = prefab.GetComponent<MuseShow>();
 
-            var orderIndex = PnlRole.m_ConfigCharacter.GetCharacterInfoByIndex(girlIndex).order;
+            var orderIndex = PnlRole.m_ConfigCharacter.GetCharacterInfoByIndex(girlIndex).order - 1;
             var subControl = GirlFancyPanel.GetCellComponent<PnlRoleSubControl>(orderIndex);
             if (subControl is null) return;
 
@@ -195,7 +208,7 @@ namespace Multiplayer.UI
                 GameObject.Destroy(elfinShow.transform.GetChild(i).gameObject);
             }
 
-            var orderIndex = elfinIndex;//PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(elfinIndex).order;
+            var orderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(elfinIndex).order - 1;
             var scrollView = ElfinFancyPanel.m_FancyScrollView;
             scrollView.ScrollToDataIndex(orderIndex, 0, true);
 
@@ -403,7 +416,7 @@ namespace Multiplayer.UI
             {
                 GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(i, 0, true);
             }
-            GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(DataHelper.selectedRoleIndex, 0, true);
+            GirlFancyPanel.m_FancyScrollView.ScrollToDataIndex(PnlRole.m_ConfigCharacter.GetCharacterInfoByIndex(DataHelper.selectedRoleIndex).order - 1, 0, true);
 
             OriginalMuseShow.transform.Find("BtnInteraction").gameObject.SetActive(false);
             OriginalMuseShow.transform.Find("FirstTwnTalkBubble").gameObject.SetActive(false);
@@ -420,6 +433,9 @@ namespace Multiplayer.UI
             MiddleMuseShow = OriginalMuseShow;
             LeftMuseShow = GameObject.Instantiate(OriginalMuseShow, OriginalMuseShow.transform.parent);
             RightMuseShow = GameObject.Instantiate(OriginalMuseShow, OriginalMuseShow.transform.parent);
+
+            LeftMuseShow.SetActive(true);
+            RightMuseShow.SetActive(true);
 
             var leftComp = LeftMuseShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject.GetComponent<MuseShow>();
             var rightComp = RightMuseShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject.GetComponent<MuseShow>();

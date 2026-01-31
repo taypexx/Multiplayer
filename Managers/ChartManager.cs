@@ -44,7 +44,7 @@ namespace Multiplayer.Managers
 
         internal static string GetNiceChartName(MusicInfo musicInfo, int diff) => String.Format(
             "{0} {1}★",
-            musicInfo.name,
+            musicInfo.GetLocal(Localization.LanguageIndex).name,
             musicInfo.GetMusicLevelStringByDiff(diff)
         );
 

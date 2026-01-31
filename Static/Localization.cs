@@ -8,14 +8,8 @@ namespace Multiplayer.Static
     {
         private static Dictionary<string, Dictionary<string, LocalString>> Strings = new();
         private static LocalString Empty = new();
-        private static Dictionary<int, string> Languages = new()
-        {
-            [0] = "English",
-            [1] = "Japanese",
-            [2] = "Korean",
-            [3] = "ChineseSimplified",
-            [4] = "ChineseTraditional",
-        };
+        private static List<string> Languages = new() { "English", "ChineseS", "ChineseT", "Japanese", "Korean" };
+        internal static int LanguageIndex => Languages.IndexOf(Utils.GetLangString()) + 1;
 
         /// <summary>
         /// Returns a <see cref="LocalString"/> of the given <paramref name="category"/> and <paramref name="key"/> or an empty <see cref="LocalString"/> if not found.
@@ -30,7 +24,7 @@ namespace Multiplayer.Static
 
         internal static void Init()
         {
-            foreach ((int i, string language) in Languages)
+            foreach (string language in Languages)
             {
                 string localizationJson = AssetManager.GetStringAsset($"Localization.{language}.json");
                 if (localizationJson is null)
@@ -45,22 +39,22 @@ namespace Multiplayer.Static
 
                     foreach ((string key, string text) in dic)
                     {
-                        switch (i)
+                        switch (Languages.IndexOf(language))
                         {
                             case 0:
                                 Strings[category][key] = new(text);
                                 break;
                             case 1:
-                                Strings[category][key].Japanese = text;
-                                break;
-                            case 2:
-                                Strings[category][key].Korean = text;
-                                break;
-                            case 3:
                                 Strings[category][key].ChineseSimplified = text;
                                 break;
-                            case 4:
+                            case 2:
                                 Strings[category][key].ChineseTraditional = text;
+                                break;
+                            case 3:
+                                Strings[category][key].Japanese = text;
+                                break;
+                            case 4:
+                                Strings[category][key].Korean = text;
                                 break;
                         }
                     }

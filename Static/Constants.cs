@@ -29,8 +29,8 @@ namespace Multiplayer.Static
         public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
 
         public const int ModUnlockLevel = 100;
+        public const int SleepwalkerRoleIndex = 2;
         public const int IntermissionTimeMS = 20000;
-        public const int PlayerSpeechBubbleDurationMS = 5000;
 
         public const int ChatMessageCharactersMax = 256;
         public const int ChatMessageHistorySize = 32;
@@ -49,6 +49,7 @@ namespace Multiplayer.Static
 
         public const int BattleUpdateIntervalMinMS = 200;
         public const int BattleUpdateIntervalMaxMS = 2000;
+        public const int BattleUpdateTimeoutMS = 2000;
 
         public static readonly TimeSpan AwaitBattleInterval = TimeSpan.FromSeconds(1);
         public static readonly TimeSpan CacheCheckInterval = TimeSpan.FromSeconds(5);

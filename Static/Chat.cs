@@ -25,7 +25,7 @@ namespace Multiplayer.Static
                 var isMuted = MutedPlayerUids.Contains(chatMessage.AuthorUid);
                 PnlHomeExtension.PlayerSpeak(player, isMuted ? string.Empty.PadRight(chatMessage.Message.Length, '*') : chatMessage.Message);
                 if (isMuted) return;
-                SoundManager.PlayBack();
+                if (UIManager.PageHome.gameObject.active) SoundManager.PlayBack();
             } 
             UIManager.ChatLobbyDisplay.AddMessage(chatMessage);
         }

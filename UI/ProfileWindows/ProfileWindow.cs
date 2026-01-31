@@ -214,6 +214,16 @@ namespace Multiplayer.UI.ProfileWindows
                 RefreshButton.Contents = StatsButton.Contents;
                 ReturnButton.Contents = StatsButton.Contents;
 
+                if (AvatarButton != null)
+                {
+                    AvatarButton.Contents = StatsButton.Contents;
+                }
+
+                if (BioButton != null)
+                {
+                    BioButton.Contents = StatsButton.Contents;
+                }
+
                 if (FriendActionButton != null)
                 {
                     FriendActionButton.Contents = StatsButton.Contents;
@@ -343,17 +353,19 @@ namespace Multiplayer.UI.ProfileWindows
             }
             else if (button == FriendActionButton)
             {
-                if (FriendButtonState == 0)
+                switch (FriendButtonState)
                 {
-                    FriendRequestPrompt.Show();
-                }
-                else if (FriendButtonState == 2)
-                {
-                    UnfriendPrompt.Show();
-                }
-                else if (FriendButtonState != 4)
-                {
-                    _ = OnFriendActionDecided();
+                    case 0:
+                        FriendRequestPrompt.Show();
+                        break;
+                    case 2:
+                        UnfriendPrompt.Show();
+                        break;
+                    case 4:
+                        break;
+                    default:
+                        _ = OnFriendActionDecided();
+                        break;
                 }
             } 
             else if (button == FriendsButton) _ = OpenFriendsWindow();

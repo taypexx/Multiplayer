@@ -85,8 +85,11 @@ namespace Multiplayer.UI
             BtnBack.SetActive(false);
 
             var timerLabel = Utilities.CreateText(pnlMenu.transform.Find("MenuNavigation"), "TimerLabel");
-            timerLabel.GetComponent<RectTransform>().pivot = Vector2.one;
-            timerLabel.transform.position = BtnBack.transform.position + BtnLabelOffset;
+            var timerRect = timerLabel.GetComponent<RectTransform>();
+            timerRect.pivot = new(0f, 1f);
+            timerRect.anchorMin = timerRect.pivot;
+            timerRect.anchorMax = timerRect.pivot;
+            timerRect.anchoredPosition = new(32f, -16f);
 
             TimerText = timerLabel.GetComponent<Text>();
             TimerText.text = string.Empty;
@@ -111,8 +114,6 @@ namespace Multiplayer.UI
                     toggle.gameObject.SetActive(false);
                 }
             }
-
-            SoundManager.PlayAndLockTroveBGM();
         }
 
         private static void UnsetPnlMenu()
@@ -121,7 +122,6 @@ namespace Multiplayer.UI
             UIManager.MainLobbyDisplay.Destroy();
             UIManager.ChatLobbyDisplay.Destroy();
             PnlHomeExtension.Disable();
-            SoundManager.UnlockBGM();
         }
 
         private static void StartBattle()

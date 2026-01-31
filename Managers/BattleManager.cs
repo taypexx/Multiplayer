@@ -17,8 +17,6 @@ namespace Multiplayer.Managers
 
         private const int UidSize = 32;
         private const int BattleStatsSize = 22;
-        private const int TokenSize = 70;
-        private const int DatagramSize = UidSize + BattleStatsSize + TokenSize;
 
         /* Datagram structure:
         
@@ -33,7 +31,7 @@ namespace Multiplayer.Managers
         1B - bool FC
         1B - bool Alive
         2B - ushort PingMS
-        52-72B - string Token
+        50-70B - string Token
 
         */
 
@@ -47,6 +45,7 @@ namespace Multiplayer.Managers
         /// </summary>
         private static async Task<byte[]> ServerSync()
         {
+            Datagram = new byte[UidSize + BattleStatsSize + 2 + Client.Token.Length];
             Span<byte> span = Datagram;
 
             Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(0, UidSize));
@@ -98,7 +97,9 @@ namespace Multiplayer.Managers
         /// </summary>
         private static void UpdateOthersBattleStats()
         {
+            // Validating the datagram length
             if (ReceivedDatagram is null) return;
+            if (ReceivedDatagram.Length % (UidSize + BattleStatsSize) != 0) return;
 
             Span<byte> span = ReceivedDatagram;
 
@@ -106,7 +107,7 @@ namespace Multiplayer.Managers
             for (int i = 0; i < ReceivedDatagram.Length/(UidSize + BattleStatsSize); i++)
             {
                 int startAt = i * (UidSize + BattleStatsSize);
-                string uid = Encoding.UTF8.GetString(span.Slice(startAt, UidSize));
+                string uid = Encoding.UTF8.GetString(span.Slice(startAt, UidSize)).TrimEnd('\0'); // Trimming because of lua null padding (not necessary)
 
                 Player player = PlayerManager.GetCachedPlayer(uid);
                 if (player is null) continue;
@@ -138,20 +139,27 @@ namespace Multiplayer.Managers
             StageBattleComponent = StageBattleComponent.instance;
 
             Main.Logger.Msg("Battle synchronization started!");
-
             Synchronizing = true;
-            while (Synchronizing && Client.Connected)
+
+            try
             {
-                Main.Dispatcher.Enqueue(() =>
+                while (Synchronizing && Client.Connected)
                 {
-                    UpdateLocalBattleStats();
-                    UpdateOthersBattleStats();
+                    Main.Dispatcher.Enqueue(() =>
+                    {
+                        UpdateLocalBattleStats();
+                        UpdateOthersBattleStats();
 
-                    UIManager.BattleLobbyDisplay.Update();
-                });
+                        UIManager.BattleLobbyDisplay.Update();
+                    });
 
-                ReceivedDatagram = await ServerSync();
-                await Task.Delay(Settings.Config.BattleUpdateIntervalMS);
+                    ReceivedDatagram = await ServerSync();
+                    await Task.Delay(Settings.Config.BattleUpdateIntervalMS);
+                }
+            }
+            catch (Exception ex)
+            {
+                Main.Logger.Error(ex);
             }
         }
 
@@ -170,11 +178,6 @@ namespace Multiplayer.Managers
             }
 
             Main.Logger.Msg("Battle synchronization ended!");
-        }
-
-        internal static void Init()
-        {
-            Datagram = new byte[DatagramSize];
         }
     }
 }

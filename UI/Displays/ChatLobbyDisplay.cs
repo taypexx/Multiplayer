@@ -15,6 +15,8 @@ namespace Multiplayer.UI.Displays
         internal InputField InputField { get; private set; }
         private Text PlaceholderText;
 
+        private static GameObject TxtStageDesigner => GameObject.Find("UI/Standerd/PnlPreparation/TxtStageDesigner");
+
         internal ChatLobbyDisplay() : base()
         {
             FrameParentPath = "UI/Standerd/PnlNavigation";
@@ -41,7 +43,7 @@ namespace Multiplayer.UI.Displays
         {
             if (InputField == null) return;
 
-            MessageHistoryIndex += up ? 1 : -1;
+            if (InputField.text != string.Empty) MessageHistoryIndex += up ? 1 : -1;
             if (MessageHistoryIndex < 0 || MessageHistoryIndex > Chat.MessageHistory.Count - 1)
             {
                 MessageHistoryIndex = 0;
@@ -70,7 +72,17 @@ namespace Multiplayer.UI.Displays
                 RemoveText(PositionList.First());
             }
 
-            Text text = AddText(chatMessage, chatMessage.Message != "PlaylistAdd" ? null : new(() => UIManager.JumpToChart(chatMessage.ExtraData)));
+            Action clickAction = null;
+            if (chatMessage.Message == "PlaylistAdd")
+            {
+                clickAction = new(() => UIManager.JumpToChart(chatMessage.ExtraData));
+            }
+            else if (!chatMessage.IsSystemMessage && chatMessage.AuthorUid != null)
+            {
+                clickAction = new(() => _ = UIManager.OpenProfileWindow(chatMessage.AuthorUid));
+            }
+
+            Text text = AddText(chatMessage, clickAction);
             text.text = chatMessage.ToString();
 
             PositionList.Remove(Lobby);
@@ -102,12 +114,15 @@ namespace Multiplayer.UI.Displays
             PlaceholderText.color = new(1f, 1f, 1f, 0.7f);
             UpdatePlaceholder(Settings.Config.EnableShortcuts);
             InputField.placeholder = PlaceholderText;
+
+            // Disable text designer because it overlaps and looks fucking ugly
+            TxtStageDesigner.SetActive(false);
         }
 
         internal override void Destroy()
         {
             base.Destroy();
-            GameObject.Destroy(PlaceholderText.gameObject);
+            TxtStageDesigner.SetActive(true);
         }
     }
 }

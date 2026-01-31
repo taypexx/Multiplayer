@@ -23,7 +23,7 @@ namespace Multiplayer.UI.Displays
             EntryWidth = 600f;
             EntryDir = 1;
 
-            FrameAnchorPosition = new(25f, 90f);
+            FrameAnchorPosition = new(20f, 20f);
             Pivot = new(0f, 0f);
             DoesSort = true;
         }

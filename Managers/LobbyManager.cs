@@ -144,7 +144,7 @@ namespace Multiplayer.Managers
                     UIManager.LobbyPlaylistWindow.Update(LocalLobby);
                     PnlPreparationExtension.UpdatePnlPreparation();
                 });
-            } else PopupUtils.ShowInfo(Localization.Get("Lobby", "ChartHidden"));
+            } else Main.Dispatcher.Enqueue(() => PopupUtils.ShowInfo(Localization.Get("Lobby", "ChartHidden")));
 
             return success;
         }

@@ -15,6 +15,7 @@ namespace Multiplayer.Patches
         {
             private static void Postfix()
             {
+                if (!UIManager.Initialized) return;
                 PnlPreparationExtension.UpdatePnlPreparation();
             }
         }

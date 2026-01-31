@@ -50,25 +50,6 @@ namespace Multiplayer.Patches
 
             // Toggle the pause button
             GameObject.Find("UI_2D/Standard/PnlBattle/PnlBattleUI/PnlBattleOthers/Up/BtnPause").SetActive(false);
-
-            // Fail screen adjustments
-            var failRestartButtonGo = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnRestart");
-            failRestartButtonGo.SetActive(false);
-
-            var returnButtonGo = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnReturn");
-            returnButtonGo.transform.localPosition = failRestartButtonGo.transform.localPosition;
-
-            // PnlVictory adjustments
-            var restartButton = UIManager.PnlVictory.m_CurControls.btnReset;
-            restartButton.transform.Find("TxtRestart").gameObject.GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
-            restartButton.onClick.RemoveAllListeners();
-            restartButton.onClick.AddListener((UnityAction)ShowPlayResults);
-
-            var continueButton = UIManager.PnlVictory.m_CurControls.btnContinue;
-            if (LobbyManager.LocalLobby.Playlist.Count > 1)
-            {
-                continueButton.transform.Find("TxtContinue").gameObject.GetComponent<Text>().text = Localization.Get("Battle", "Next").ToString();
-            }
         }
 
         /// <summary>
@@ -104,6 +85,26 @@ namespace Multiplayer.Patches
                 UIManager.PnlAwait.Destroy();
                 _ = BattleManager.SyncStart();
 
+                // Fail screen adjustments
+                var failRestartButtonGo = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnRestart");
+                failRestartButtonGo.SetActive(false);
+
+                var returnButtonGo = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnReturn");
+                returnButtonGo.transform.localPosition = failRestartButtonGo.transform.localPosition;
+
+                // PnlVictory adjustments
+                var restartButton = UIManager.PnlVictory.m_CurControls.btnReset;
+                restartButton.transform.Find("TxtRestart").GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
+                restartButton.onClick.RemoveAllListeners();
+                restartButton.onClick.AddListener((UnityAction)new Action(ShowPlayResults));
+
+                var continueButton = UIManager.PnlVictory.m_CurControls.btnContinue;
+                if (LobbyManager.LocalLobby.Playlist.Count > 1)
+                {
+                    continueButton.transform.Find("TxtContinue").GetComponent<Text>().text = Localization.Get("Battle", "Next").ToString();
+                }
+
+                // Toggle info+ label
                 var infoPlusLabel = GameObject.Find("InfoPlus_TextLowerLeft");
                 if (infoPlusLabel != null)
                 {

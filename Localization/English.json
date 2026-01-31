@@ -8,7 +8,8 @@
     "Hidden": "Hidden",
     "Touhou": "Touhou",
     "ComingSoon": "Coming soon!",
-    "Loading": "Loading..."
+    "Loading": "Loading...",
+    "Unavailable": "Unavailable"
   },
   "SettingsWindow": {
     "Title": "Settings",
@@ -31,7 +32,7 @@
     "PlayerUnmuted": "You have unmuted <b>{0}</b>.",
     "PlayerAlreadyMuted": "<b>{0}</b> is already muted.",
     "PlayerNotMuted": "<b>{0}</b> was not muted.",
-    "PlayerMuteSelf": "You cannot mute yourself lol",
+    "PlayerMuteSelf": "You cannot mute yourself lol.",
     "UnknownCommand": "Command <b>{0}</b> doesn't exist.",
     "NoArguments": "This command requires arguments to be executed.",
     "PlayerNotFound": "<b>{0}</b> is not in lobby.",
@@ -213,6 +214,7 @@
     "PlayConfirm": "Start the game?",
     "NoLobby": "You are not in lobby",
     "SleepwalkerUsed": "Cannot start - {0} is using sleepwalker",
+    "SleepwalkerUsedLocal": "You must unequip sleepwalker to proceed",
     "NotHost": "Only host can start the game",
     "IntermissionLabel": "Coming up: <color=#{0}>{1}</color>   Top combo: <color=#{2}>{3} / {4}</color>   Time left: <color=#{5}>{6}s</color>"
   }
