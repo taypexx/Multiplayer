@@ -183,6 +183,9 @@ namespace Multiplayer.UI.Abstract
             SetTextPositions();
         }
 
+        /// <summary>
+        /// Sets the position of every text entry according to the previous lines and its own placement.
+        /// </summary>
         internal void SetTextPositions()
         {
             foreach (object key in PositionList)
@@ -233,6 +236,9 @@ namespace Multiplayer.UI.Abstract
             UpdateTexts();
         }
 
+        /// <summary>
+        /// Updates the text contents of every entry.
+        /// </summary>
         internal virtual void UpdateTexts()
         {
             foreach ((object key, Text text) in TextList)

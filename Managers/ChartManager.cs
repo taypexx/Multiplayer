@@ -24,34 +24,38 @@ namespace Multiplayer.Managers
         internal static async Task<bool> IsCustomOnWebsite(string uid)
         {
             bool onWebsite = false;
-            if (!CustomCharts.TryGetValue(uid, out CustomChartData data)) return onWebsite;
+
+            var md5 = GetMD5(uid);
+            if (md5 == null) return onWebsite;
+            if (!CustomCharts.TryGetValue(md5, out CustomChartData data)) return onWebsite;
 
             if (data.IsOnWebsite is null)
             {
-                var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + GetMD5(uid), true, false, true);
+                var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + md5, true, false, true);
 
-                // We want the 404 specifically, because the server might be down or anything.
+                // We check for the 404 specifically, because the server might be down or anything.
                 if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    onWebsite = response.IsSuccessStatusCode;
-                    data.IsOnWebsite = onWebsite;
+                    data.IsOnWebsite = response.IsSuccessStatusCode;
                 }
             }
-            else onWebsite = (bool)data.IsOnWebsite;
+            onWebsite = data.IsOnWebsite ?? false;
 
             return onWebsite;
         }
 
+        /// <returns>A nice formatted <see cref="string"/> of the given <paramref name="musicInfo"/> and <paramref name="diff"/>.</returns>
         internal static string GetNiceChartName(MusicInfo musicInfo, int diff) => String.Format(
             "{0} {1}★",
             musicInfo.GetLocal(Localization.LanguageIndex).name,
             musicInfo.GetMusicLevelStringByDiff(diff)
         );
 
+        /// <returns>A <see cref="string"/> representation of the future playlist entry.</returns>
         internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
 
         /// <summary>
-        /// Gets the MD5 hash of a custom chart from its <see cref="MusicInfo"/>.
+        /// Gets the MD5 hash of a custom chart by its <see cref="MusicInfo"/>.
         /// </summary>
         internal static string GetMD5(MusicInfo musicInfo)
         {
@@ -106,12 +110,10 @@ namespace Multiplayer.Managers
         {
             if (str.Length >= 16)
             {
-                return CustomCharts[str].MusicInfo;
+                if (!CustomCharts.TryGetValue(str, out var data)) return null;
+                return data.MusicInfo;
             } 
-            else
-            {
-                return GlobalDataBase.dbMusicTag.GetMusicInfoFromAll(str);
-            }
+            else return GlobalDataBase.dbMusicTag.GetMusicInfoFromAll(str);
         }
 
         internal static void Init()

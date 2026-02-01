@@ -2,7 +2,6 @@
 using Multiplayer.Static;
 using Multiplayer.UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Multiplayer.Managers
 {
@@ -24,6 +23,9 @@ namespace Multiplayer.Managers
             }
         } = true;
 
+        /// <summary>
+        /// Performs an input check each times it gets called.
+        /// </summary>
         internal static void Update()
         {
             if (!UIManager.Initialized) return;
@@ -57,7 +59,9 @@ namespace Multiplayer.Managers
             if (Settings.Config.EnableChat && UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
             {
                 var inputField = UIManager.ChatLobbyDisplay.InputField;
-                if (Input.GetKeyDown(Constants.ChatOpenKeyCode) && Settings.Config.EnableShortcuts && InputEnabled)
+
+                // Focusing on chat
+                if (Input.GetKeyDown(Constants.ChatFocusKeyCode) && Settings.Config.EnableShortcuts && InputEnabled)
                 {
                     UIManager.ChatLobbyDisplay.ResetMessageHistoryIndex();
 
@@ -65,9 +69,9 @@ namespace Multiplayer.Managers
                     inputField.Select();
                     inputField.ActivateInputField();
                 }
+                // Sending a chat message
                 else if (Input.GetKeyDown(Constants.ChatSendKeyCode))
                 {
-                    // Send a chat message
                     var msg = inputField.text.TrimStart().TrimEnd(['\r', '\n']);
                     if (msg != string.Empty)
                     {
@@ -78,6 +82,7 @@ namespace Multiplayer.Managers
                     }
                     return;
                 }
+                // Message history browsing
                 else if (UIManager.ChatLobbyDisplay.InputField.isFocused)
                 {
                     if (Input.GetKeyDown(KeyCode.UpArrow))
@@ -94,7 +99,6 @@ namespace Multiplayer.Managers
             // General shortcuts
             if (InputEnabled && Settings.Config.EnableShortcuts && UIManager.MainFrame != null && !UIManager.MainFrame.active)
             {
-
                 if (Input.GetKeyDown(Constants.MainMenuOpenKeyCode))
                 {
                     UIManager.MainNavButton.ButtonAction.Invoke();

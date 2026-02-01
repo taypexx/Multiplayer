@@ -5,6 +5,9 @@ using Multiplayer.UI;
 
 namespace Multiplayer.Patches
 {
+    /// <summary>
+    /// Starts the next intermission when PnlStage awakes or plays the achievement animation.
+    /// </summary>
     [HarmonyPatch(typeof(PnlStage),nameof(PnlStage.Awake))]
     internal static class PnlStagePatch
     {

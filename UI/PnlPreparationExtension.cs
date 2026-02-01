@@ -24,7 +24,7 @@ namespace Multiplayer.UI
         }
 
         /// <summary>
-        /// Replaces the functionality of the vanilla PnlPreparation button.
+        /// Replaces the functionality of the vanilla <see cref="PnlPreparation"/> button.
         /// </summary>
         internal static async Task OnPnlPreparationClick()
         {
@@ -74,7 +74,7 @@ namespace Multiplayer.UI
         }
 
         /// <summary>
-        /// Locks/unlocks PnlPreparation depending on the local lobby.
+        /// Locks/unlocks <see cref="PnlPreparation"/> depending on the local <see cref="Lobby"/>.
         /// </summary>
         internal static void UpdatePnlPreparation()
         {

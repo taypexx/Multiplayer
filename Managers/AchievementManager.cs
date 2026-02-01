@@ -1,6 +1,5 @@
 ﻿using Il2CppAssets.Scripts.PeroTools.Commons;
 using Multiplayer.Data.Players;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace Multiplayer.Managers
@@ -13,7 +12,7 @@ namespace Multiplayer.Managers
         private static Il2CppAssets.Scripts.GameCore.Managers.AchievementManager PeroAchievementManager => Singleton<Il2CppAssets.Scripts.GameCore.Managers.AchievementManager>.instance;
 
         /// <summary>
-        /// Performs an achievements check and rewards the local <see cref="Player"/> if the conditions are met.
+        /// Performs an achievement check and rewards the local <see cref="Player"/> if the conditions are met.
         /// </summary>
         internal static void Check()
         {
@@ -37,21 +36,28 @@ namespace Multiplayer.Managers
 
             UIManager.PnlMessage.FinishMessage();
 
-            for (int i = 0; i < UIManager.PnlMessage.layout.transform.childCount; i++)
+            var layout = UIManager.PnlMessage.layout.transform;
+            Task.Run(async () => 
             {
-                Achievement achievement = QueuedAchievements[i];
-                UIManager.PnlMessage.layout.transform.GetChild(i).Find("TxtDescription").GetComponent<Text>().text =
-                    $"<color=#ffca5fff>{achievement.Name}</color>    {achievement.Description}";
-            }
-
-            QueuedAchievements.Clear();
+                await Task.Delay(500);
+                Main.Dispatcher.Enqueue(() =>
+                {
+                    for (int i = 0; i < layout.childCount; i++)
+                    {
+                        Achievement achievement = QueuedAchievements[i];
+                        layout.GetChild(i).Find("TxtDescription").GetComponent<Text>().text =
+                            $"<color=#ffca5fff>{achievement.Name}</color>    {achievement.Description}";
+                    }
+                    QueuedAchievements.Clear();
+                });
+            });
         }
 
         /// <summary>
         /// Adds an <see cref="Achievement"/> to the local <see cref="Player"/>'s profile and synchronizes with the server.
         /// </summary>
         /// <param name="achievementId">ID of an <see cref="Achievement"/>.</param>
-        /// <param name="instantAnim">Whether to play it instantly after getting or queue to play later.</param>
+        /// <param name="instantAnim">(Optional) Whether to play it instantly after getting or queue to play later.</param>
         /// <returns><see langword="true"/> if it was added successfully, otherwise <see langword="false"/>.</returns>
         internal static bool Achieve(int achievementId, bool instantAnim = false)
         {

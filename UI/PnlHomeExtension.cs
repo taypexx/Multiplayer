@@ -119,6 +119,9 @@ namespace Multiplayer.UI
 
         private static Dictionary<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble, string> BubblesLastMessage = new();
 
+        /// <summary>
+        /// Turns off the speech bubble.
+        /// </summary>
         internal static async Task PlayerEndSpeak(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble, int msDelay, string lastMsg)
         {
             try
@@ -133,6 +136,11 @@ namespace Multiplayer.UI
             catch (OperationCanceledException) { }
         }
 
+        /// <summary>
+        /// Displays a nice bubble next to the character with the <paramref name="msg"/> and plays an <see cref="Expression"/> according to the said text.
+        /// </summary>
+        /// <param name="player">A <see cref="Player"/> who said the <paramref name="msg"/>.</param>
+        /// <param name="msg">Yapping.</param>
         internal static void PlayerSpeak(Player player, string msg)
         {
             if (!Enabled) return;
@@ -169,6 +177,9 @@ namespace Multiplayer.UI
             _ = PlayerEndSpeak(bubble, msgDurationMs, msg);
         }
 
+        /// <summary>
+        /// Replaces the girl model.
+        /// </summary>
         private static void ReplaceGirl(GameObject museShow, int girlIndex)
         {
             if (GirlFancyPanel is null || museShow == OriginalMuseShow) return;
@@ -195,6 +206,9 @@ namespace Multiplayer.UI
             museShowComponent.m_MuseShow = newShow;
         }
 
+        /// <summary>
+        /// Replaces the elfin model.
+        /// </summary>
         private static void ReplaceElfin(GameObject elfinShow, int elfinIndex)
         {
             if (ElfinFancyPanel is null || elfinShow == OriginalElfinShow) return;
@@ -251,6 +265,10 @@ namespace Multiplayer.UI
             return InputManager.PingMode ? String.Format(PingInfoFormat, Utilities.GetPingColor(player.PingMS), player.PingMS) : String.Format(InfoFormat, player.MoeStats.RL);
         }
 
+        /// <summary>
+        /// Updates characters and elfins on the current page.
+        /// </summary>
+        /// <param name="infoOnly">Whether to only update the info on top of the character.</param>
         internal static void UpdateCurrentPage(bool infoOnly = false)
         {
             if (!Enabled || !Main.IsUIScene || !LobbyManager.IsInLobby) return;
@@ -334,6 +352,9 @@ namespace Multiplayer.UI
             }
         }
 
+        /// <summary>
+        /// Recalculates players in the pages and updates the current page.
+        /// </summary>
         internal static void UpdateAllPages()
         {
             if (!Enabled || !Main.IsUIScene || !LobbyManager.IsInLobby) return;
@@ -371,6 +392,9 @@ namespace Multiplayer.UI
             UpdateCurrentPage();
         }
 
+        /// <summary>
+        /// Toggles the left character and elfin.
+        /// </summary>
         private static void ToggleLeft(bool enabled)
         {
             if (!Enabled) return;
@@ -382,6 +406,9 @@ namespace Multiplayer.UI
             LeftElfinShow.SetActive(enabled && Settings.Config.ShowOtherElfins);
         }
 
+        /// <summary>
+        /// Toggles the right character and elfin.
+        /// </summary>
         private static void ToggleRight(bool enabled)
         {
             if (!Enabled) return;
@@ -393,6 +420,9 @@ namespace Multiplayer.UI
             RightElfinShow.SetActive(enabled && Settings.Config.ShowOtherElfins);
         }
 
+        /// <summary>
+        /// Enables the extension.
+        /// </summary>
         internal static void Enable()
         {
             if (!Main.IsUIScene) return;
@@ -568,6 +598,9 @@ namespace Multiplayer.UI
             UpdateAllPages();
         }
 
+        /// <summary>
+        /// Disables the extension.
+        /// </summary>
         internal static void Disable()
         {
             Enabled = false;

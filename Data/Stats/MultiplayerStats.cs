@@ -75,7 +75,7 @@ namespace Multiplayer.Data.Stats
             ElfinIndex = -1;
 
             FavGirlIndex = -1;
-            ElfinIndex = -2;
+            FavElfinIndex = -2;
 
             FriendsCached = false;
             Friends = new();
@@ -152,7 +152,7 @@ namespace Multiplayer.Data.Stats
         }
 
         /// <summary>
-        /// Caches every <see cref="Player"/> from friends.
+        /// Caches every <see cref="Data.Players.Player"/> from friends.
         /// </summary>
         internal async Task CacheFriends()
         {

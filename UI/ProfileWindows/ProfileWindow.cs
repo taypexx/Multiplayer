@@ -104,6 +104,9 @@ namespace Multiplayer.UI.ProfileWindows
             AddReturnButton();
         }
 
+        /// <summary>
+        /// Creates the avatar box that shows the current avatar of a <see cref="Data.Players.Player"/>.
+        /// </summary>
         internal void CreateAvatarBox()
         {
             if (AvatarBox != null) return;
@@ -143,6 +146,9 @@ namespace Multiplayer.UI.ProfileWindows
             });
         }
 
+        /// <summary>
+        /// Updates the <see cref="FriendsWindow"/> and opens it.
+        /// </summary>
         private async Task OpenFriendsWindow()
         {
             UIManager.Debounce = true;
@@ -160,6 +166,9 @@ namespace Multiplayer.UI.ProfileWindows
             Utilities.OpenBrowserLink("https://musedash.moe/player/" + Player.Uid);
         }
 
+        /// <summary>
+        /// Opens <see cref="PnlHead"/> the right way (otherwise it breaks).
+        /// </summary>
         private void OpenPnlHead()
         {
             if (UIManager.PnlHead == null) return;

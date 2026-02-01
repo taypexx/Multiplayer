@@ -12,6 +12,7 @@ namespace Multiplayer.Patches
     [HarmonyPriority(Priority.First)]
     internal static class ShowTextPatch
     {
+        // TODO: get the local string the right way
         private static LocalString NotFoundMessage = new()
         {
             English = "Redeem Code doesn't exist（T^T）",

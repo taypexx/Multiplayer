@@ -33,12 +33,20 @@ namespace Multiplayer.UI.Displays
             Pivot = new(0f, 1f);
         }
 
+        /// <summary>
+        /// Updates the contents of the placeholder text.
+        /// </summary>
+        /// <param name="keyEnabled">Whether the chat open key is available.</param>
         internal void UpdatePlaceholder(bool keyEnabled)
         {
             if (PlaceholderText == null) return;
             PlaceholderText.text = Localization.Get("SystemChatMessages", keyEnabled ? "ChatPlaceholderText" : "ChatPlaceholderTextNoKey").ToString();
         }
 
+        /// <summary>
+        /// Sets the text of the <see cref="InputField"/> to the message found in history.
+        /// </summary>
+        /// <param name="up">Whether to check the previous or next message in history.</param>
         internal void BrowseMessageHistory(bool up)
         {
             if (InputField == null) return;
@@ -65,6 +73,9 @@ namespace Multiplayer.UI.Displays
             PlaceholderText.transform.position = Title.transform.position;
         }
 
+        /// <summary>
+        /// Adds the <see cref="ChatMessage"/> to the display.
+        /// </summary>
         internal void AddMessage(ChatMessage chatMessage)
         {
             while (GetTotalLines() >= MaxLines)

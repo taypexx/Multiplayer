@@ -14,6 +14,7 @@ namespace Multiplayer.Static
                 field = value;
             } 
         } = true;
+
         internal bool EnableChat
         {
             get;
@@ -23,6 +24,7 @@ namespace Multiplayer.Static
                 field = value;
             }
         } = true;
+
         internal bool EnableShortcuts { 
             get; 
             set 
@@ -31,6 +33,7 @@ namespace Multiplayer.Static
                 field = value;
             }
         } = false;
+
         internal bool FavGirlMode { 
             get; 
             set 
@@ -39,9 +42,13 @@ namespace Multiplayer.Static
                 field = value;
             } 
         } = false;
+
         internal bool ShowOtherElfins { get; set; } = true;
+
         internal bool DisplayLobbyStatus { get; set; } = true;
+
         internal bool ShowBattlePopups { get; set; } = true;
+
         internal int LobbyUpdateIntervalMS { 
             get; 
             set 
@@ -49,6 +56,7 @@ namespace Multiplayer.Static
                 field = Math.Clamp(value, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS);
             } 
         } = 3000;
+
         internal int BattleUpdateIntervalMS { 
             get; 
             set 

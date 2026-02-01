@@ -54,6 +54,9 @@ namespace Multiplayer.Static
         }
         internal static readonly string TokenPath = Path.Combine(MelonEnvironment.GameRootDirectory, "mdmp.token");
 
+        /// <summary>
+        /// Connects to the server websocket and starts listening for incoming messages/lobby updates.
+        /// </summary>
         internal static async Task WebsocketListen()
         {
             if (!LobbyManager.IsInLobby || WebSocket.State == WebSocketState.Open) return;
@@ -108,6 +111,11 @@ namespace Multiplayer.Static
             Main.Logger.Msg("Websocket connection ended.");
         }
 
+        /// <summary>
+        /// Sends a websocket message to the server.
+        /// </summary>
+        /// <param name="payload">Body to send.</param>
+        /// <param name="recordPing">(Optional) Whether to record ping when sending (Stopwatch will be stopped upon receiving).</param>
         internal static async Task WebsocketSend(object payload, bool recordPing = false)
         {
             if (WebSocket.State != WebSocketState.Open) return;
@@ -121,7 +129,7 @@ namespace Multiplayer.Static
         /// Performs an <see langword="async"/> SEND request and awaits for the response from the server.
         /// </summary>
         /// <param name="data">Datagram to send.</param>
-        /// <returns>Received buffer.</returns>
+        /// <returns>Received <see langword="byte"/>[] buffer.</returns>
         internal static async Task<byte[]> UdpSendAsync(byte[] data)
         {
             try
@@ -143,8 +151,8 @@ namespace Multiplayer.Static
         /// </summary>
         /// <param name="path">Path of the request relative to the API endpoint.</param>
         /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
-        /// <param name="getAnyway">Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
-        /// <param name="doAuth">Whether to include the Authorization header.</param>
+        /// <param name="getAnyway">(Optional) Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
+        /// <param name="doAuth">(Optional) Whether to include the Authorization header.</param>
         /// <returns><see cref="HttpContent"/> if the request was successful, otherwise <see langword="null"/>.</returns>
         internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false, bool doAuth = true, bool getAnyway = false)
         {
@@ -188,8 +196,8 @@ namespace Multiplayer.Static
         /// <param name="path">Path of the request relative to the API endpoint.</param>
         /// <param name="data">Data to be serialized as JSON and sent.</param>
         /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
-        /// <param name="getAnyway">Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
-        /// <param name="doAuth">Whether to include the Authorization header.</param>
+        /// <param name="getAnyway">(Optional) Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
+        /// <param name="doAuth">(Optional) Whether to include the Authorization header.</param>
         /// <returns><see langword="true"/> if the request was successful, otherwise <see langword="false"/>.</returns>
         internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false, bool doAuth = true, bool getAnyway = false)
         {
@@ -229,6 +237,9 @@ namespace Multiplayer.Static
             }
         }
 
+        /// <summary>
+        /// Awaits for the POST on the localhost with the exchange code, then tries to <see cref="Connect(string)"/>
+        /// </summary>
         internal static async Task AwaitAndConnect()
         {
             var listener = new HttpListener();
@@ -252,6 +263,9 @@ namespace Multiplayer.Static
             _ = Connect(code);
         }
 
+        /// <summary>
+        /// Attempts to log in the multiplayer server using the local token/code.
+        /// </summary>
         internal static async Task Connect(string code = null)
         {
             if (Connected || Debounce) return;
@@ -302,7 +316,7 @@ namespace Multiplayer.Static
                     if (newToken != null)
                     {
                         Token = newToken;
-                        File.WriteAllText(TokenPath, Token);
+                        File.WriteAllText(TokenPath, Cipher.Encrypt(Token, Constants.TokenCipherShift));
                     }
 
                     Connected = true;
@@ -331,6 +345,9 @@ namespace Multiplayer.Static
             Debounce = false;
         }
 
+        /// <summary>
+        /// Resets the connection.
+        /// </summary>
         internal static void Disconnect(bool lost = false)
         {
             if (!Connected) return;
@@ -347,12 +364,18 @@ namespace Multiplayer.Static
             }
         }
 
+        /// <summary>
+        /// Opens the mod download page.
+        /// </summary>
         private static void UpdateModOption(bool doUpdate)
         {
             if (!doUpdate) return;
             Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}:{Constants.PortHTTP}/home");
         }
 
+        /// <summary>
+        /// Opens the discord login page.
+        /// </summary>
         private static void LoginOption(bool doLogin)
         {
             if (!doLogin) return;
@@ -360,12 +383,18 @@ namespace Multiplayer.Static
             _ = AwaitAndConnect();
         }
 
+        /// <summary>
+        /// Tries to reconnect.
+        /// </summary>
         private static void ReconnectOption(bool doReconnect)
         {
             if (!doReconnect) return;
             _ = Connect();
         }
 
+        /// <summary>
+        /// Initializes web and reads the token
+        /// </summary>
         internal static void Init()
         {
             HttpHandler = new HttpClientHandler();
@@ -376,7 +405,7 @@ namespace Multiplayer.Static
             Udp.Client.ReceiveTimeout = Constants.BattleUpdateTimeoutMS;
             WebSocket = new();
 
-            if (File.Exists(TokenPath)) Token = File.ReadAllText(TokenPath);
+            if (File.Exists(TokenPath)) Token = Cipher.Decrypt(File.ReadAllText(TokenPath), Constants.TokenCipherShift);
         }
     }
 }

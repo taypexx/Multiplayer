@@ -11,6 +11,9 @@ namespace Multiplayer.Static
         internal static List<string> MessageHistory;
         internal static Dictionary<string, ChatCommand> TotalCommands;
 
+        /// <summary>
+        /// Registers a new <see cref="ChatMessage"/> and adds it to the chat.
+        /// </summary>
         internal static void Recieve(ChatMessage chatMessage)
         {
             if (!LobbyManager.IsInLobby || !Settings.Config.EnableChat) return;
@@ -30,6 +33,11 @@ namespace Multiplayer.Static
             UIManager.ChatLobbyDisplay.AddMessage(chatMessage);
         }
 
+        /// <summary>
+        /// Wraps the <paramref name="msg"/> into a <see cref="ChatMessage"/> and either runs a <see cref="ChatCommand"/> or sends to the server.
+        /// Also saves the message to the history.
+        /// </summary>
+        /// <param name="msg">Any junk you could possibly type in the chat.</param>
         internal static void Send(string msg) 
         {
             if (!LobbyManager.IsInLobby) return;
@@ -59,6 +67,9 @@ namespace Multiplayer.Static
             MessageHistory.Add(msg);
         }
 
+        /// <summary>
+        /// Looks for a cached <see cref="Player"/> whose name matches the <paramref name="query"/> the most.
+        /// </summary>
         private static Player FindPlayer(string query)
         {
             foreach (var playerUid in LobbyManager.LocalLobby.Players)
@@ -78,7 +89,12 @@ namespace Multiplayer.Static
             return null;
         }
 
-        private static void MuteToggle(string[] args, bool mute)
+        /// <summary>
+        /// Mutes/unmutes a <see cref="Player"/> on the client.
+        /// </summary>
+        /// <param name="args"><see cref="ChatCommand"/> arguments.</param>
+        /// <param name="mute">Whether to mute or unmute.</param>
+        private static void MuteToggle(string[] args, bool doMute)
         {
             if (!LobbyManager.IsInLobby) return;
 
@@ -93,11 +109,11 @@ namespace Multiplayer.Static
                 if (target != null)
                 {
                     var wasMuted = MutedPlayerUids.Contains(target.Uid);
-                    if (mute && wasMuted)
+                    if (doMute && wasMuted)
                     {
                         msg = String.Format(Localization.Get("SystemChatMessages", "PlayerAlreadyMuted").ToString(), target.MultiplayerStats.Name);
                     }
-                    else if (!mute && !wasMuted)
+                    else if (!doMute && !wasMuted)
                     {
                         msg = String.Format(Localization.Get("SystemChatMessages", "PlayerNotMuted").ToString(), target.MultiplayerStats.Name);
                     }
@@ -107,9 +123,9 @@ namespace Multiplayer.Static
                     } 
                     else
                     {
-                        if (mute) MutedPlayerUids.Add(target.Uid);
+                        if (doMute) MutedPlayerUids.Add(target.Uid);
                         else MutedPlayerUids.Remove(target.Uid);
-                        msg = String.Format(Localization.Get("SystemChatMessages", $"Player{(mute ? "M" : "Unm")}uted").ToString(), target.MultiplayerStats.Name);
+                        msg = String.Format(Localization.Get("SystemChatMessages", $"Player{(doMute ? "M" : "Unm")}uted").ToString(), target.MultiplayerStats.Name);
                     }
                 }
                 else msg = String.Format(Localization.Get("SystemChatMessages", "PlayerNotFound").ToString(), query);
@@ -123,6 +139,9 @@ namespace Multiplayer.Static
             });
         }
 
+        /// <summary>
+        /// Initializes every <see cref="ChatCommand"/>.
+        /// </summary>
         internal static void Init()
         {
             MessageHistory = new();

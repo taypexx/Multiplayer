@@ -1,7 +1,6 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using LocalizeLib;
 using Multiplayer.Data.Lobbies;
-using Multiplayer.Data.Chat;
 using Multiplayer.Static;
 using Multiplayer.UI;
 using PopupLib.UI;
@@ -37,9 +36,8 @@ namespace Multiplayer.Managers
         internal static bool IsAutoUpdating = false;
 
         /// <summary>
-        /// Starts the auto update loop and updates the lobby every <see cref="AutoUpdateInterval"/>.
+        /// Starts the auto update loop and updates the <see cref="Lobby"/> every <see cref="AutoUpdateInterval"/>.
         /// </summary>
-        /// <returns></returns>
         internal static async Task AutoUpdateStart(Lobby lobby)
         {
             IsAutoUpdating = true;
@@ -72,7 +70,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Synchronizes the local lobby via websocket.
+        /// Synchronizes the local <see cref="Lobby"/> via websocket.
         /// </summary>
         internal static async Task SyncLobby()
         {
@@ -91,7 +89,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Sends a request to the server to continue and remove the first playlist entry.
+        /// Sends a request to the server to continue and remove the first <see cref="PlaylistEntry"/>.
         /// </summary>
         internal static async Task<bool> PlaylistContinue()
         {
@@ -119,7 +117,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Sends a request to the server to add a new entry to the playlist.
+        /// Sends a request to the server to add a new <see cref="PlaylistEntry"/> to the playlist.
         /// </summary>
         internal static async Task<bool> PlaylistAdd(MusicInfo musicInfo, int difficulty)
         {
@@ -150,7 +148,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Sends a request to the server to remove the entry from the playlist.
+        /// Sends a request to the server to remove the <see cref="PlaylistEntry"/> from the playlist.
         /// </summary>
         internal static async Task<bool> PlaylistRemove(MusicInfo musicInfo, int difficulty)
         {
@@ -200,7 +198,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Sends a lock request to the server to lock the current lobby.
+        /// Sends a lock request to the server to lock the current <see cref="Lobby"/>.
         /// </summary>
         /// <returns><see langword="true"/> if the state was changed, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> LockLobby(bool isLocked)
@@ -220,9 +218,9 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Tries to restore the lobby of the player.
+        /// Tries to restore the <see cref="Lobby"/> of the local player.
         /// </summary>
-        /// <param name="lobbyId">Id of the lobby current local player is in.</param>
+        /// <param name="lobbyId">Id of the <see cref="Lobby"/> current local player is in.</param>
         private static async Task<bool> RestoreLobby()
         {
             if (!Client.Connected || IsInLobby) return false;
@@ -246,7 +244,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Sends a create request to the server
+        /// Sends a request to create a new <see cref="Lobby"/> to the server.
         /// </summary>
         /// <returns><see langword="true"/> if it was created successfully, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> CreateLobby(int maxPlayers, LobbyGoal goal, LobbyPlayType playType, LobbyChartSelection chartSelection, string name, int playlistSize, string password = null)
@@ -345,7 +343,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Removes LocalLobby and updates everything.
+        /// Sets LocalLobby to <see langword="null"/> and updates everything.
         /// </summary>
         private static void OnLeave()
         {
@@ -424,6 +422,9 @@ namespace Multiplayer.Managers
             CachedLobbies.Remove(lobby.Id);
         }
 
+        /// <summary>
+        /// Starts cleaning lobbies from cache over time.
+        /// </summary>
         private static async Task CacheCleaner()
         {
             DateTime current;

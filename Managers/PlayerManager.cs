@@ -111,9 +111,9 @@ namespace Multiplayer.Managers
             if (!Client.Connected) return;
 
             LocalPlayer.MultiplayerStats.Hiddens.Clear();
-            foreach (string entry in GlobalDataBase.dbMusicTag.Hide)
+            foreach (string hiddenUid in GlobalDataBase.dbMusicTag.Hide)
             {
-                LocalPlayer.MultiplayerStats.Hiddens.Add(ChartManager.GetEntryKey(entry));
+                LocalPlayer.MultiplayerStats.Hiddens.Add(ChartManager.GetEntryKey(hiddenUid));
             }
 
             var payload = new
@@ -167,6 +167,9 @@ namespace Multiplayer.Managers
             CachedPlayers.Remove(player.Uid);
         }
 
+        /// <summary>
+        /// Starts cleaning players from cache over time.
+        /// </summary>
         private static async Task CacheCleaner()
         {
             DateTime current;
@@ -189,6 +192,9 @@ namespace Multiplayer.Managers
             }
         }
 
+        /// <summary>
+        /// Initializes the local player.
+        /// </summary>
         private static async Task InitLocalPlayer()
         {
             LocalPlayer = await GetPlayer(LocalPlayerUid);

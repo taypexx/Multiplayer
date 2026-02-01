@@ -111,7 +111,10 @@ namespace Multiplayer.Managers
             WarningChoose.Show();
         }
 
-        private static void WarningChooseCompletion(BaseWindow window)
+        /// <summary>
+        /// Invokes the current WarningChooseAction.
+        /// </summary>
+        private static void WarningChooseCompletion(BaseWindow _)
         {
             if (WarningChooseAction is null) return;
 
@@ -122,7 +125,7 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Opens the <see cref="ProfileWindow"/> and displays information of the <see cref="Player"/> of the given <paramref name="uid"/>.
         /// </summary>
-        /// <param name="uid">Uid of a <see cref="Player"/>.</param>
+        /// <param name="uid">UID of a <see cref="Player"/>.</param>
         internal static async Task OpenProfileWindow(string uid)
         {
             Debounce = true;
@@ -140,7 +143,8 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Opens the <see cref="ProfileWindow"/> and displays the information of the <see cref="Player"/>.
         /// </summary>
-        /// <param name="player"><see cref="Player"/> whose profile will show.</param>
+        /// <param name="player">(Optional) <see cref="Player"/> whose profile will be shown.</param>
+        /// <param name="updatePlayer">(Optional) Whether to update the <see cref="Player"/> before opening.</param>
         internal static async Task OpenProfileWindow(Player player = null, bool updatePlayer = true)
         {
             if (player is null) player = PlayerManager.LocalPlayer;
@@ -158,7 +162,7 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Opens the <see cref="LobbyWindow"/> and displays information and members of the <see cref="Lobby"/>.
         /// </summary>
-        /// <param name="lobby"><see cref="Lobby"/> which will be displayed.</param>
+        /// <param name="lobby">(Optional) <see cref="Lobby"/> which will be displayed.</param>
         internal static async Task OpenLobbyWindow(Lobby lobby = null)
         {
             if (Intermission.Active) return;
@@ -175,14 +179,17 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Opens <see cref="Data.Players.Player"/>'s profile in the browser.
+        /// Opens <see cref="Player"/>'s profile in the browser.
         /// </summary>
-        /// <param name="uid">UID of the <see cref="Data.Players.Player"/>.</param>
+        /// <param name="uid">UID of the <see cref="Player"/>.</param>
         internal static void OpenProfilePage(string uid)
         {
             Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/player/{uid}");
         }
 
+        /// <summary>
+        /// Opens the <see cref="LobbyPlaylistWindow"/>.
+        /// </summary>
         internal static void OnPlaylistButtonClick()
         {
             if (!LobbyManager.IsInLobby)
@@ -195,6 +202,9 @@ namespace Multiplayer.Managers
             LobbyPlaylistWindow.Window.Show();
         }
 
+        /// <summary>
+        /// Performs required checks, locks the <see cref="Lobby"/> and proceeds to the <see cref="Intermission"/>.
+        /// </summary>
         private static async Task OnPlayConfirm()
         {
             if (!LobbyManager.IsInLobby)
@@ -211,6 +221,7 @@ namespace Multiplayer.Managers
             }
             else LobbyWindowQueued = false;
 
+            // Host and playlist checks
             var localLobby = LobbyManager.LocalLobby;
             if (localLobby.Host != PlayerManager.LocalPlayer) return;
             if (localLobby.Playlist.Count == 0)
@@ -241,7 +252,7 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Opens PnlStage by exiting any other panels and jumps to a chart.
+        /// Opens <see cref="PnlStage"/> by exiting any other panels and jumps to a chart.
         /// </summary>
         /// <param name="uid">UID of a chart.</param>
         internal static void JumpToChart(string uid)
@@ -261,6 +272,10 @@ namespace Multiplayer.Managers
             PnlStage.SelectAllTagAndJumpToAssginIndex(uid);
         }
 
+        /// <summary>
+        /// Enables/disables navigation buttons.
+        /// </summary>
+        /// <param name="state">Whether to enable or disable the buttons.</param>
         internal static void ToggleNavigationButtons(bool state)
         {
             if (!Initialized) return;
@@ -270,6 +285,9 @@ namespace Multiplayer.Managers
             PlaylistNavButton.Toggle(state);
         }
 
+        /// <summary>
+        /// Enables the <see cref="PnlCloudMessage"/> so it sits there with the "Synchronizing" label.
+        /// </summary>
         internal static void PnlCloudMessageStart()
         {
             if (!Main.IsUIScene || !Initialized || PnlCloudMessage.active) return;
@@ -281,6 +299,10 @@ namespace Multiplayer.Managers
             PnlCloudMessage.SetActive(true);
         }
 
+        /// <summary>
+        /// Finishes the <see cref="PnlCloudMessage"/> animation.
+        /// </summary>
+        /// <param name="success">Will display completed or failed.</param>
         internal static void PnlCloudMessageEnd(bool success)
         {
             if (!Main.IsUIScene || !Initialized || !PnlCloudMessage.active) return;
@@ -289,6 +311,10 @@ namespace Multiplayer.Managers
             PnlCloudMessage.transform.Find("ImgBase/Synchronizing" + (success ? "Completed" : "Fail")).gameObject.SetActive(true);
         }
 
+        /// <summary>
+        /// Locks/unlocks sleepwalker selection on the <see cref="PnlRole"/>.
+        /// </summary>
+        /// <param name="state">Whether to lock or unlock the select button.</param>
         internal static void ToggleSleepwalkerSelection(bool state)
         {
             var parent = ImgPnlRoleLocked.transform.parent;
@@ -305,6 +331,9 @@ namespace Multiplayer.Managers
             ImgPnlRoleLocked.SetActive(!state);
         }
 
+        /// <summary>
+        /// Finds the <see cref="GameObject"/> for each vanilla panel and sets the fields.
+        /// </summary>
         internal static void UpdateVanillaPanels()
         {
             MainFrame = GameObject.Find("UI/Forward/Tips/PnlBulletinNew");

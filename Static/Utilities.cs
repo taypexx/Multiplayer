@@ -10,26 +10,38 @@ namespace Multiplayer.Static
     {
         public static Font NormalFont = Addressables.LoadAssetAsync<Font>("Normal").WaitForCompletion();
 
+        /// <summary>
+        /// Rounds the <paramref name="value"/> to 2 decimal places.
+        /// </summary>
         public static float RoundFloat(float value)
         {
             if (float.IsNaN(value)) return 0f;
             return (float)Math.Round((decimal)(value * 100)) / 100;
         }
 
+        /// <summary>
+        /// Checks if the <paramref name="str"/> is within the given bounds.
+        /// </summary>
         public static bool IsValidString(string str, int minLength, int maxLength)
         {
             if (str.IsNullOrWhitespace()) return false;
             return str.Length <= maxLength && str.Length >= minLength;
         }
 
-        public static int? GetValidNumber(string num_, int? min = null, int? max = null)
+        /// <summary>
+        /// Checks if the <paramref name="num"/> is within the given bounds.
+        /// </summary>
+        public static int? GetValidNumber(string num, int? min = null, int? max = null)
         {
-            if (num_.IsNullOrWhitespace()) return null;
-            if (!Int32.TryParse(num_, out int num)) return null;
-            if (min != null && max != null && (num < min || num > max)) return null;
-            return num;
+            if (num.IsNullOrWhitespace()) return null;
+            if (!Int32.TryParse(num, out int num_)) return null;
+            if (min != null && max != null && (num_ < min || num_ > max)) return null;
+            return num_;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="GameObject"/> with the <see cref="Text"/> component.
+        /// </summary>
         public static GameObject CreateText(Transform parent, string name = "Text")
         {
             var gameObject = new GameObject(name);
@@ -46,15 +58,16 @@ namespace Multiplayer.Static
             return gameObject;
         }
 
+        /// <summary>
+        /// Opens a <paramref name="url"/> in the default browser.
+        /// </summary>
         public static void OpenBrowserLink(string url)
         {
-            try
-            {
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
+            try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
             catch { }
         }
 
+        /// <returns>The hex color code of the given <paramref name="pingMS"/>.</returns>
         public static string GetPingColor(ushort pingMS)
         {
             foreach ((var level, var color) in Constants.PingColors)

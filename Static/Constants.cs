@@ -1,5 +1,4 @@
-﻿using MelonLoader.Utils;
-using Multiplayer.Data.Lobbies;
+﻿using Multiplayer.Data.Lobbies;
 using Multiplayer.Data.Players;
 using UnityEngine;
 
@@ -23,10 +22,10 @@ namespace Multiplayer.Static
         public const KeyCode MainMenuOpenKeyCode = KeyCode.M;
         public const KeyCode LobbyOpenKeyCode = KeyCode.L;
         public const KeyCode PlaylistOpenKeyCode = KeyCode.P;
-        public const KeyCode ChatOpenKeyCode = KeyCode.Slash;
+        public const KeyCode ChatFocusKeyCode = KeyCode.Slash;
         public const KeyCode ChatSendKeyCode = KeyCode.Return;
 
-        public static readonly string TempPath = Path.Combine(MelonEnvironment.UserDataDirectory, "Multiplayer");
+        public static readonly int TokenCipherShift = 17;
 
         public const int ModUnlockLevel = 100;
         public const int SleepwalkerRoleIndex = 2;

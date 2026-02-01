@@ -23,6 +23,9 @@ namespace Multiplayer.UI
         private static GameObject BtnBack;
         private static Vector3 BtnLabelOffset = new Vector3(1.4f, -0.2f, 0f);
 
+        /// <summary>
+        /// Gets the name of a girl with the given <paramref name="girlId"/>.
+        /// </summary>
         internal static string GetGirl(int girlId)
         {
             if (girlId < 0) return string.Empty;
@@ -39,6 +42,9 @@ namespace Multiplayer.UI
                 : character["cosName"].ToString();
         }
 
+        /// <summary>
+        /// Gets the name of a elfin with the given <paramref name="elfinId"/>.
+        /// </summary>
         internal static string GetElfin(int elfinId)
         {
             if (elfinId < 0) return string.Empty;
@@ -46,6 +52,9 @@ namespace Multiplayer.UI
             return Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance.GetJson("elfin", true)[elfinId]["name"].ToString();
         }
 
+        /// <summary>
+        /// Updates the top label.
+        /// </summary>
         private static void Update()
         {
             if (!Active || TimerText == null || !LobbyManager.IsInLobby) return;
@@ -64,6 +73,9 @@ namespace Multiplayer.UI
             );
         }
 
+        /// <summary>
+        /// Gets the top rank of a <paramref name="entry"/> from <see href="https://api.musedash.moe"/>.
+        /// </summary>
         private static async Task UpdateTopRank(PlaylistEntry entry)
         {
             var response = await Client.GetAsync($"https://api.musedash.moe/rank/{entry.MusicInfo.uid}/{entry.Difficulty-1}/all", true, false);
@@ -75,6 +87,9 @@ namespace Multiplayer.UI
             CurrentTopElfinID = int.Parse(topScore[7].GetString());
         }
 
+        /// <summary>
+        /// Transforms the PnlMenu for the intermission.
+        /// </summary>
         private static void SetPnlMenu()
         {
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
@@ -116,6 +131,9 @@ namespace Multiplayer.UI
             }
         }
 
+        /// <summary>
+        /// Resets everything before entering the chart.
+        /// </summary>
         private static void UnsetPnlMenu()
         {
             GameObject.Destroy(TimerText.gameObject);
@@ -124,6 +142,9 @@ namespace Multiplayer.UI
             PnlHomeExtension.Disable();
         }
 
+        /// <summary>
+        /// Launches the current chart.
+        /// </summary>
         private static void StartBattle()
         {
             if (!LobbyManager.IsPlaylistChartComingUp) return;
@@ -151,6 +172,9 @@ namespace Multiplayer.UI
             BattleHelper.GameBattleStart(new Il2CppSystem.Object());
         }
 
+        /// <summary>
+        /// Starts the intermission.
+        /// </summary>
         internal static async Task Start()
         {
             if (Active || !UIManager.Initialized || !LobbyManager.IsInLobby) return;

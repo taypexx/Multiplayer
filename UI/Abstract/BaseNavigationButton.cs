@@ -36,12 +36,18 @@ namespace Multiplayer.UI.Abstract
             IconAsset = AssetManager.GetImageAsset("UI.Navigation." + iconFileName);
         }
 
+        /// <summary>
+        /// Enables/disables the button.
+        /// </summary>
         internal void Toggle(bool state)
         {
             if (Button is null) return;
             Button.SetActive(state || AlwaysVisible);
         }
 
+        /// <summary>
+        /// Creates the body of the button.
+        /// </summary>
         internal void Create()
         {
             if (Button != null || ButtonAction is null) return;
