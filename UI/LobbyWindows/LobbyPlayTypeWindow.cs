@@ -11,7 +11,7 @@ namespace Multiplayer.UI.LobbyWindows
 {
     internal sealed class LobbyPlayTypeWindow : BaseMultiplayerWindow
     {
-        internal LobbyPlayType Value { get; private set; } = LobbyPlayType.VanillaOnly;
+        internal LobbyPlayType Value { get; private set; } = LobbyPlayType.All;
 
         private ForumObject AllButton;
         private ForumObject VanillaOnlyButton;
@@ -41,14 +41,6 @@ namespace Multiplayer.UI.LobbyWindows
 
             ForumObject button = Window.ForumObjects[objectIndex];
             if (button == ReturnButton) return;
-
-            // REMOVE LATER
-            if (button != VanillaOnlyButton)
-            {
-                PopupUtils.ShowInfo(Localization.Get("Global", "ComingSoon"));
-                Window.Show();
-                return;
-            }
 
             Value = PlayTypeValues[button];
 

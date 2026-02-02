@@ -10,7 +10,8 @@ namespace Multiplayer.Managers
 {
     internal static class ChartManager
     {
-        private static Dictionary<string, CustomChartData> CustomCharts;
+        // [MD5] = data
+        internal static Dictionary<string, CustomChartData> CustomCharts;
 
         internal static int CurrentDifficulty => 
             GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 
@@ -19,36 +20,21 @@ namespace Multiplayer.Managers
             : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
 
         /// <summary>
-        /// Checks whether the custom chart is on the website.
+        /// Gets the <see cref="CustomChartData"/> by the <paramref name="uid"/>.
         /// </summary>
-        internal static async Task<bool> IsCustomOnWebsite(string uid)
+        internal static CustomChartData GetCustomChartData(string uid)
         {
-            bool onWebsite = false;
-
             var md5 = GetMD5(uid);
-            if (md5 == null) return onWebsite;
-            if (!CustomCharts.TryGetValue(md5, out CustomChartData data)) return onWebsite;
-
-            if (data.IsOnWebsite is null)
-            {
-                var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + md5, true, false, true);
-
-                // We check for the 404 specifically, because the server might be down or anything.
-                if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    data.IsOnWebsite = response.IsSuccessStatusCode;
-                }
-            }
-            onWebsite = data.IsOnWebsite ?? false;
-
-            return onWebsite;
+            if (md5 == null) return null;
+            if (!CustomCharts.TryGetValue(md5, out CustomChartData data)) return null;
+            return data;
         }
 
-        /// <returns>A nice formatted <see cref="string"/> of the given <paramref name="musicInfo"/> and <paramref name="diff"/>.</returns>
-        internal static string GetNiceChartName(MusicInfo musicInfo, int diff) => String.Format(
+        /// <returns>A nice formatted <see cref="string"/> of the given <paramref name="musicInfo"/> and <paramref name="difficulty"/>.</returns>
+        internal static string GetNiceChartName(MusicInfo musicInfo, int difficulty) => String.Format(
             "{0} {1}★",
             musicInfo.GetLocal(Localization.LanguageIndex).name,
-            musicInfo.GetMusicLevelStringByDiff(diff)
+            musicInfo.GetMusicLevelStringByDiff(difficulty)
         );
 
         /// <returns>A <see cref="string"/> representation of the future playlist entry.</returns>

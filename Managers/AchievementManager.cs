@@ -7,7 +7,7 @@ namespace Multiplayer.Managers
     internal static class AchievementManager
     {
         internal static Dictionary<int,Achievement> Achievements { get; private set; }
-        private static List<Achievement> QueuedAchievements;
+        private static Queue<Achievement> QueuedAchievements;
 
         private static Il2CppAssets.Scripts.GameCore.Managers.AchievementManager PeroAchievementManager => Singleton<Il2CppAssets.Scripts.GameCore.Managers.AchievementManager>.instance;
 
@@ -44,7 +44,7 @@ namespace Multiplayer.Managers
                 {
                     for (int i = 0; i < layout.childCount; i++)
                     {
-                        Achievement achievement = QueuedAchievements[i];
+                        Achievement achievement = QueuedAchievements.Dequeue();
                         layout.GetChild(i).Find("TxtDescription").GetComponent<Text>().text =
                             $"<color=#ffca5fff>{achievement.Name}</color>    {achievement.Description}";
                     }
@@ -72,7 +72,7 @@ namespace Multiplayer.Managers
             localPlayer.MultiplayerStats.Achievements.Add(DateTime.UtcNow,achievement);
             PlayerManager.SyncAchievements();
 
-            QueuedAchievements.Add(achievement);
+            QueuedAchievements.Enqueue(achievement);
             if (instantAnim) PlayAchievementAnimation();
 
             return true;

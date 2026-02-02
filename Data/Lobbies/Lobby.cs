@@ -18,11 +18,11 @@ namespace Multiplayer.Data.Lobbies
 
         public bool IsPrivate { get; private set; }
         public bool Locked { get; internal set; }
-        public List<string> ReadyPlayers { get; private set; }
+        public HashSet<string> ReadyPlayers { get; private set; }
         public bool EveryoneReady => ReadyPlayers.Count == Players.Count;
 
         public Player Host { get; private set; }
-        public List<string> Players { get; private set; }
+        public HashSet<string> Players { get; private set; }
         public ushort MaxPlayers { get; private set; }
 
         public List<PlaylistEntry> Playlist { get; private set; }
@@ -31,7 +31,12 @@ namespace Multiplayer.Data.Lobbies
 
         private ushort CurrentGlobalPlaylistEntryIndex { get; set; }
         public ushort CurrentPlaylistEntryIndex { get; private set; }
-        public PlaylistEntry? CurrentPlaylistEntry => Playlist?[CurrentPlaylistEntryIndex] ?? null;
+        public PlaylistEntry? CurrentPlaylistEntry => 
+            Playlist is null 
+            ? null 
+            : Playlist.Count > 0
+                ? Playlist.First()
+                : null;
 
         internal DateTime LastUpdated { get; private set; }
 
@@ -119,13 +124,13 @@ namespace Multiplayer.Data.Lobbies
                 if (playersUpdated)
                 {
                     var newPlayers = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, JsonElement>>>(updatedData["Players"]);
-                    Players = newPlayers.Keys.ToList();
+                    Players = newPlayers.Keys.ToHashSet();
                     foreach ((var playerUid, var playerStats) in newPlayers)
                     {
                         (await PlayerManager.GetPlayer(playerUid)).MultiplayerStats.UpdateFields(playerStats);
                     }
                 } 
-                else Players = JsonSerializer.Deserialize<List<string>>(updatedData["Players"]);
+                else Players = JsonSerializer.Deserialize<HashSet<string>>(updatedData["Players"]);
             }
             catch { }
 
@@ -144,7 +149,7 @@ namespace Multiplayer.Data.Lobbies
             {
                 try
                 {
-                    ReadyPlayers = JsonSerializer.Deserialize<List<string>>(updatedData["ReadyPlayers"]);
+                    ReadyPlayers = JsonSerializer.Deserialize<HashSet<string>>(updatedData["ReadyPlayers"]);
                 }
                 catch { }
                 try

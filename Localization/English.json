@@ -135,7 +135,8 @@
     "CustomOnly": "Only custom charts are allowed!",
     "WebsiteOnly": "Only website custom charts are allowed!",
     "Waiting": "Waiting for host...",
-    "PlaylistFull": "Playlist is full"
+    "PlaylistFull": "Playlist is full",
+    "RetrievingInfo": "Retrieving info..."
   },
   "Lobbies": {
     "Title": "Lobbies",
@@ -211,6 +212,7 @@
     "Starting": "Starting the game...",
     "HiddensLocked": "Cannot hide/unhide charts in lobby!",
     "ChartHidden": "This chart was hidden by someone",
+    "ChartNotSynced": "Someone doesn't have this chart",
     "PlayConfirm": "Start the game?",
     "NoLobby": "You are not in lobby",
     "SleepwalkerUsed": "Cannot start - {0} is using sleepwalker",

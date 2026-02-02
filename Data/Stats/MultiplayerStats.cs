@@ -54,10 +54,9 @@ namespace Multiplayer.Data.Stats
         }
 
         public bool FriendsCached { get; private set; }
-        public List<string> Friends { get; private set; }
+        public HashSet<string> Friends { get; private set; }
         public Dictionary<string, string> FriendRequests { get; private set; }
         public Dictionary<DateTime, Achievement> Achievements { get; internal set; }
-        public List<string> Hiddens { get; internal set; }
 
         public ushort ELO { get; private set; }
         public bool Banned { get; private set; }
@@ -81,7 +80,6 @@ namespace Multiplayer.Data.Stats
             Friends = new();
             FriendRequests = new();
             Achievements = new();
-            Hiddens = new();
 
             ELO = 1500;
             Banned = false;
@@ -100,7 +98,7 @@ namespace Multiplayer.Data.Stats
 
             try
             {
-                Friends = JsonSerializer.Deserialize<List<string>>(updatedData["Friends"]);
+                Friends = JsonSerializer.Deserialize<HashSet<string>>(updatedData["Friends"]);
             }
             catch { }
 

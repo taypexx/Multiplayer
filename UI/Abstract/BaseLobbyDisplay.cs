@@ -67,9 +67,9 @@ namespace Multiplayer.UI.Abstract
                 }
             } else
             {
-                foreach (object key in PositionList)
+                for (int i = 0; i < PositionList.Count; i++)
                 {
-                    if (PositionList.IndexOf(key) == untilIndex) break;
+                    var key = PositionList[i];
                     Text text = TextList[key];
                     count += text.cachedTextGenerator.lineCount;
                 }
@@ -188,10 +188,16 @@ namespace Multiplayer.UI.Abstract
         /// </summary>
         internal void SetTextPositions()
         {
-            foreach (object key in PositionList)
+            var y = 0f;
+            for (int i = 0; i < PositionList.Count; i++)
             {
+                var key = PositionList[i];
                 if (!TextList.TryGetValue(key, out var text)) continue;
-                text.GetComponent<RectTransform>().anchoredPosition = new(0f, EntrySize.y * EntryDir * GetTotalLines(PositionList.IndexOf(key)));
+
+                text.GetComponent<RectTransform>().anchoredPosition = new(0f, y);
+
+                Canvas.ForceUpdateCanvases();
+                y += EntrySize.y * text.cachedTextGenerator.lineCount * EntryDir;
             }
         }
 

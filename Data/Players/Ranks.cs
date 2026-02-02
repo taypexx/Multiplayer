@@ -21,12 +21,12 @@ namespace Multiplayer.Data.Players
     {
         public const ushort SubdivisionGap = 150;
 
-        public static readonly List<string> SubdivisionSuffixes = new()
+        public static readonly string[] SubdivisionSuffixes =
         {
             "I","II","III"
         };
 
-        public static readonly List<Rank> List = new()
+        public static readonly List<Rank> AllRanks = new()
         {
             new(3000, Localization.Get("Ranks","1"), 0),
             new(2500, Localization.Get("Ranks","2")),
@@ -42,7 +42,7 @@ namespace Multiplayer.Data.Players
             get
             {
                 ushort top = 0;
-                foreach (var rank in List)
+                foreach (var rank in AllRanks)
                 {
                     if (rank.ELO > top) top = rank.ELO;
                 }
@@ -53,15 +53,14 @@ namespace Multiplayer.Data.Players
         /// <returns>Rank string of the player according to the provided <paramref name="ELO"/>.</returns>
         public static string GetRank(ushort ELO)
         {
-            for (int i = 0; i < List.Count; i++)
+            foreach (var rank in AllRanks)
             {
-                Rank rank = List[i];
                 if (ELO >= rank.ELO)
                 {
                     return $"{rank.Name} {SubdivisionSuffixes[(int)Math.Floor((decimal)((ELO - rank.ELO) / SubdivisionGap))]}";
                 }
             }
-            return List.Last().Name.ToString();
+            return AllRanks.Last().Name.ToString();
         }
     }
 }

@@ -77,12 +77,12 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Type = "Sync",
-                Body = new Dictionary<string, object>
+                Body = new
                 {
-                    ["Uid"] = PlayerManager.LocalPlayerUid,
-                    ["Id"] = LocalLobby.Id,
-                    ["GetPlayers"] = true,
-                    ["PingMS"] = Client.PingMS
+                    Uid = PlayerManager.LocalPlayerUid,
+                    Id = LocalLobby.Id,
+                    GetPlayers = true,
+                    PingMS = Client.PingMS
                 }
             };
             await Client.WebsocketSend(payload, true);
@@ -130,19 +130,48 @@ namespace Multiplayer.Managers
                 Entry = entry
             };
 
-            var response = await Client.PostAsync("lobbyPlaylistAdd", payload);
-            bool success = response != null;
+            var response = await Client.PostAsync("lobbyPlaylistAdd", payload, false, true, true);
+            int result = 4;
+            if (response.IsSuccessStatusCode)
+            {
+                try
+                {
+                    result = await response.Content.ReadFromJsonAsync<int>();
+                }
+                catch { }
+            }
 
+            bool success = result == 0;
             if (success)
             {
-                LocalLobby.Playlist.Add(new(musicInfo,difficulty,entry));
+                LocalLobby.Playlist.Add(new(musicInfo, difficulty, entry));
                 Main.Dispatcher.Enqueue(() => 
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistAdded"));
                     UIManager.LobbyPlaylistWindow.Update(LocalLobby);
                     PnlPreparationExtension.UpdatePnlPreparation();
                 });
-            } else Main.Dispatcher.Enqueue(() => PopupUtils.ShowInfo(Localization.Get("Lobby", "ChartHidden")));
+            } 
+            else Main.Dispatcher.Enqueue(() =>
+            {
+                LocalString reason;
+                switch (result)
+                {
+                    case 1:
+                        reason = Localization.Get("Warning", "Unknown");
+                        break;
+                    case 2:
+                        reason = Localization.Get("Lobby", "ChartHidden");
+                        break;
+                    case 3:
+                        reason = Localization.Get("Lobby", "ChartNotSynced");
+                        break;
+                    default:
+                        reason = Localization.Get("Warning", "Unknown");
+                        break;
+                }
+                PopupUtils.ShowInfo(reason);
+            });
 
             return success;
         }
@@ -304,7 +333,6 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Sends a request to the server to leave the <see cref="Lobby"/>.
         /// </summary>
-        /// <param name="lobby"></param>
         /// <returns><see langword="true"/> if left successfully, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> LeaveLobby(bool leaveAnyway = false)
         {
@@ -448,8 +476,8 @@ namespace Multiplayer.Managers
         {
             CachedLobbies = new();
             PublicLobbies = new();
-            _ = CacheCleaner();
             await RestoreLobby();
+            _ = CacheCleaner();
         }
     }
 }

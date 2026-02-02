@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
 using Il2Cpp;
+using Il2CppAssets.Scripts.Database;
+using Multiplayer.Data;
 using Multiplayer.Managers;
 using Multiplayer.UI;
 
@@ -13,9 +15,23 @@ namespace Multiplayer.Patches
         [HarmonyPatch(typeof(PnlPreparation), nameof(PnlPreparation.OnDiffTglChanged))]
         internal static class PnlPreparationDiffChanged
         {
+            private static async Task SetPnlRetrieving(CustomChartData customData)
+            {
+                await customData.Update();
+                PnlPreparationExtension.IsRetrieving = false;
+                Main.Dispatcher.Enqueue(PnlPreparationExtension.UpdatePnlPreparation);
+            }
+
             private static void Postfix()
             {
-                if (!UIManager.Initialized) return;
+                if (!LobbyManager.IsInLobby) return;
+
+                var customData = ChartManager.GetCustomChartData(GlobalDataBase.dbMusicTag.CurMusicInfo().uid);
+                if (customData != null && customData.IsOnWebsite is null) 
+                {
+                    PnlPreparationExtension.IsRetrieving = true;
+                    _ = SetPnlRetrieving(customData);
+                }
                 PnlPreparationExtension.UpdatePnlPreparation();
             }
         }

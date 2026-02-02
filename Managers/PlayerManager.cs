@@ -7,11 +7,13 @@ namespace Multiplayer.Managers
 {
     internal static class PlayerManager
     {
-        internal static Dictionary<string, Player> CachedPlayers { get; private set; }
+        private static Dictionary<string, Player> CachedPlayers;
 
         internal static Player LocalPlayer { get; private set; }
         internal static string LocalPlayerUid { get; private set; }
         internal static string LocalPlayerName { get; private set; }
+
+        internal static HashSet<string> LocalPlayerHiddens;
 
         internal static Comparison<object> AccuracyComparison = (p1, p2) => 
         {
@@ -75,8 +77,7 @@ namespace Multiplayer.Managers
                 GirlIndex = LocalPlayer.MultiplayerStats.GirlIndex,
                 ElfinIndex = LocalPlayer.MultiplayerStats.ElfinIndex,
                 FavGirlIndex = LocalPlayer.MultiplayerStats.FavGirlIndex,
-                FavElfinIndex = LocalPlayer.MultiplayerStats.FavElfinIndex,
-                PingMS = LocalPlayer.PingMS,
+                FavElfinIndex = LocalPlayer.MultiplayerStats.FavElfinIndex
             };
             _ = Client.PostAsync("updatePlayer", payload);
         }
@@ -97,8 +98,7 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = LocalPlayerUid,
-                Achievements = achievementsConverted,
-                PingMS = LocalPlayer.PingMS,
+                Achievements = achievementsConverted
             };
             _ = Client.PostAsync("updatePlayer", payload);
         }
@@ -110,17 +110,31 @@ namespace Multiplayer.Managers
         {
             if (!Client.Connected) return;
 
-            LocalPlayer.MultiplayerStats.Hiddens.Clear();
+            LocalPlayerHiddens.Clear();
             foreach (string hiddenUid in GlobalDataBase.dbMusicTag.Hide)
             {
-                LocalPlayer.MultiplayerStats.Hiddens.Add(ChartManager.GetEntryKey(hiddenUid));
+                LocalPlayerHiddens.Add(ChartManager.GetEntryKey(hiddenUid));
             }
 
             var payload = new
             {
                 Uid = LocalPlayerUid,
-                Hiddens = LocalPlayer.MultiplayerStats.Hiddens,
-                PingMS = LocalPlayer.PingMS,
+                Hiddens = LocalPlayerHiddens
+            };
+            _ = Client.PostAsync("updatePlayer", payload);
+        }
+
+        /// <summary>
+        /// Syncs the current list of loaded custom charts of the local <see cref="Player"/>.
+        /// </summary>
+        internal static void SyncCustoms()
+        {
+            if (!Client.Connected) return;
+
+            var payload = new
+            {
+                Uid = LocalPlayerUid,
+                Customs = ChartManager.CustomCharts.Keys
             };
             _ = Client.PostAsync("updatePlayer", payload);
         }
@@ -192,26 +206,17 @@ namespace Multiplayer.Managers
             }
         }
 
-        /// <summary>
-        /// Initializes the local player.
-        /// </summary>
-        private static async Task InitLocalPlayer()
-        {
-            LocalPlayer = await GetPlayer(LocalPlayerUid);
-            Main.Dispatcher.Enqueue(() =>
-            {
-                SyncHiddens();
-                UIManager.MainMenu.Open();
-            });
-        }
-
         internal static async Task Init()
         {
             CachedPlayers = new();
             LocalPlayerName = DataHelper.nickname;
             LocalPlayerUid = DataHelper.PeroUid;
+            LocalPlayerHiddens = new();
+            LocalPlayer = await GetPlayer(LocalPlayerUid);
+
+            SyncHiddens();
+            SyncCustoms();
             _ = CacheCleaner();
-            await InitLocalPlayer();
         }
     }
 }

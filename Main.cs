@@ -66,6 +66,7 @@ namespace Multiplayer
             Localization.Init();
             Chat.Init();
             Client.Init();
+            ChartManager.Init();
         }
 
         /// <summary>
@@ -75,9 +76,10 @@ namespace Multiplayer
         {
             await PlayerManager.Init();
             await LobbyManager.Init();
-            Dispatcher.Enqueue(() => {
+            Dispatcher.Enqueue(() => 
+            {
                 AchievementManager.Init();
-                ChartManager.Init();
+                UIManager.MainMenu.Open();
             });
         }
 

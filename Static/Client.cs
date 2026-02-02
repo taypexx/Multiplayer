@@ -13,7 +13,6 @@ using System.Net;
 using System.Net.WebSockets;
 using Multiplayer.Data.Chat;
 using UnityEngine;
-using System.Linq.Expressions;
 
 namespace Multiplayer.Static
 {
@@ -26,7 +25,7 @@ namespace Multiplayer.Static
         internal static ushort PingMS { get; private set; }
 
         internal static readonly string APIAddress = $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/";
-        internal static readonly Uri WebsocketAddress = new($"wss://{Constants.ServerAddress}/ws");
+        internal static readonly Uri WebsocketAddress = new($"wss://{Constants.ServerAddress}:{Constants.PortWebsocket}/ws");
 
         internal static string ServerVersion { get; private set; }
         internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;

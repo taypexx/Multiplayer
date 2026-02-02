@@ -7,7 +7,7 @@ namespace Multiplayer.Static
 {
     internal static class Chat
     {
-        internal static List<string> MutedPlayerUids;
+        internal static HashSet<string> MutedPlayerUids;
         internal static List<string> MessageHistory;
         internal static Dictionary<string, ChatCommand> TotalCommands;
 
@@ -27,6 +27,7 @@ namespace Multiplayer.Static
 
                 var isMuted = MutedPlayerUids.Contains(chatMessage.AuthorUid);
                 PnlHomeExtension.PlayerSpeak(player, isMuted ? string.Empty.PadRight(chatMessage.Message.Length, '*') : chatMessage.Message);
+
                 if (isMuted) return;
                 if (UIManager.PageHome.gameObject.active) SoundManager.PlayBack();
             } 

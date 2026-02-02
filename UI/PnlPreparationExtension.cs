@@ -14,11 +14,13 @@ namespace Multiplayer.UI
 {
     internal static class PnlPreparationExtension
     {
+        internal static bool IsRetrieving = false;
+
         internal static void BindCustomPnlPreparationClick(PnlPreparation pnlPreparation)
         {
             var pnlPreparationButton = pnlPreparation.transform.Find("Start/BtnStart").GetComponent<Button>();
             pnlPreparationButton.onClick.RemoveAllListeners();
-            pnlPreparationButton.onClick.AddListener((UnityAction)new Action(() => _ = OnPnlPreparationClick()));
+            pnlPreparationButton.onClick.AddListener((UnityAction)new Action(OnPnlPreparationClick));
 
             UpdatePnlPreparation();
         }
@@ -26,9 +28,10 @@ namespace Multiplayer.UI
         /// <summary>
         /// Replaces the functionality of the vanilla <see cref="PnlPreparation"/> button.
         /// </summary>
-        internal static async Task OnPnlPreparationClick()
+        internal static void OnPnlPreparationClick()
         {
-            if (!LobbyManager.IsInLobby)
+            if (IsRetrieving) return;
+            else if (!LobbyManager.IsInLobby)
             {
                 UIManager.PnlPreparation.OnBattleStart();
             }
@@ -46,7 +49,7 @@ namespace Multiplayer.UI
                         PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "VanillaOnly"));
                         return;
                     }
-                    else if (!await ChartManager.IsCustomOnWebsite(musicInfo.uid))
+                    else if (ChartManager.GetCustomChartData(musicInfo.uid).IsOnWebsite != true)
                     {
                         PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "WebsiteOnly"));
                         return;
@@ -92,7 +95,7 @@ namespace Multiplayer.UI
             bool isRemoving = LobbyManager.IsInLobby && LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(curMusicInfo, ChartManager.CurrentDifficulty));
             bool isFull = LobbyManager.IsInLobby && LobbyManager.LocalLobby.IsPlaylistFull;
 
-            playButton.enabled = (!LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist) && (isRemoving || !isFull);
+            playButton.enabled = (!LobbyManager.IsInLobby || LobbyManager.CanChangePlaylist) && (isRemoving || !isFull) && !IsRetrieving;
             keyBinding.enabled = playButton.enabled;
             imgObject.SetActive(playButton.enabled);
 
@@ -100,7 +103,15 @@ namespace Multiplayer.UI
             {
                 playText.text = "PLAY!";
             }
-            else if (LobbyManager.CanChangePlaylist)
+            else if (!LobbyManager.CanChangePlaylist)
+            {
+                playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
+            }
+            else if (IsRetrieving)
+            {
+                playText.text = Localization.Get("PnlPreparation", "RetrievingInfo").ToString();
+            }
+            else 
             {
                 playText.text = Localization.Get("PnlPreparation",
                     isRemoving
@@ -108,7 +119,6 @@ namespace Multiplayer.UI
                     : isFull ? "PlaylistFull" : "PlaylistAdd"
                 ).ToString();
             }
-            else playText.text = Localization.Get("PnlPreparation", "Waiting").ToString();
         }
     }
 }

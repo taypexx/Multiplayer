@@ -16,6 +16,7 @@ namespace Multiplayer.Static
         internal const string ServerAddress = "mdmp.online";
         internal const int PortHTTP = 9095;
         internal const int PortUDP = 9096;
+        internal const int PortWebsocket = 443;
         internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A{PortHTTP}&scope=identify";
 
         public const KeyCode BattleDisplayKeyCode = KeyCode.LeftShift;
@@ -32,7 +33,7 @@ namespace Multiplayer.Static
         public const int IntermissionTimeMS = 20000;
 
         public const int ChatMessageCharactersMax = 256;
-        public const int ChatMessageHistorySize = 32;
+        public const int ChatMessageHistorySize = 48;
         public const int BioCharactersMax = 48;
         public const int PlayersMin = 2;
         public const int PlayersMax = 8;
@@ -89,7 +90,7 @@ namespace Multiplayer.Static
             [AchievementDifficulty.Secret] = Pink,
         };
 
-        public static Dictionary<ushort, string> PingColors = new()
+        public static SortedDictionary<ushort, string> PingColors = new()
         {
             [100] = Green,
             [250] = Yellow,
