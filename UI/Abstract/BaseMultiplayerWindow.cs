@@ -19,12 +19,8 @@ namespace Multiplayer.UI.Abstract
         internal static Image BannerImageComponent => GameObject.Find("UI/Forward/Tips/PnlBulletinNew/ImgBase/ScrollView/Viewport/Content/Image").GetComponent<Image>();
         internal CustomImageAsset Banner { get; private set; }
 
-        internal ForumObject ReturnButton { get; private set; }
-        internal bool HasReturnButton => ReturnButton != null;
         internal BaseMultiplayerWindow ReturnWindow { get; set; }
         internal bool HasReturnWindow => ReturnWindow != null;
-        internal ForumObject RefreshButton { get; private set; }
-        internal bool HasRefreshButton => RefreshButton != null;
 
         internal Dictionary<ForumObject, object> ButtonsWindows { get; private set; }
 
@@ -68,22 +64,22 @@ namespace Multiplayer.UI.Abstract
         }
 
         /// <summary>
-        /// Removes the button with the specified <paramref name="objectIndex"/>.
+        /// Adds an empty button saying there is nothing to view.
         /// </summary>
-        /// <param name="objectIndex">Index of the button.</param>
+        /// <param name="description">(Optional) Description of the <see cref="ForumObject"/> button.</param>
+        /// <returns>A new button.</returns>
+        internal ForumObject AddEmptyButton(LocalString description = null)
+        {
+            return AddButton(Localization.Get("Window", "Empty"), ReturnWindow ?? this, description ?? Localization.Get("Window", "EmptyDescription"));
+        }
+
+        /// <summary>
+        /// Removes the <see cref="ForumObject"/> <paramref name="button"/>.
+        /// </summary>
         /// <returns><see langword="true"/> if it was removed, otherwise <see langword="false"/>.</returns>
         protected bool RemoveButton(ForumObject button)
         {
             if (button is null) return false;
-
-            if (button == ReturnButton)
-            {
-                ReturnButton = null;
-            }
-            else if (button == RefreshButton)
-            {
-                RefreshButton = null;
-            }
 
             return ButtonsWindows.Remove(button) && Window.ForumObjects.Remove(button);
         }
@@ -91,17 +87,15 @@ namespace Multiplayer.UI.Abstract
         /// <summary>
         /// Removes all buttons of the window.
         /// </summary>
-        /// <param name="keepCoreButtons">Whether to keep the ReturnButton and the RefreshButton and not remove it.</param>
-        /// <param name="keepButtons">An array of buttons which need to be kept.</param>
+        /// <param name="keepButtons">An array of buttons which will be kept.</param>
         /// <returns><see langword="true"/> if all buttons were successfully removed, otherwise <see langword="false"/>.</returns>
-        protected bool RemoveAllButtons(bool keepCoreButtons = false, ForumObject[] keepButtons = null)
+        protected bool RemoveAllButtons(ForumObject[] keepButtons = null)
         {
             bool success = true;
             List<ForumObject> toRemove = new();
             foreach (ForumObject button in Window.ForumObjects)
             {
                 if (keepButtons != null && button != null && keepButtons.Contains(button)) continue;
-                if (keepCoreButtons && (button == ReturnButton || button == RefreshButton)) continue;
                 toRemove.Add(button);
             }
             foreach (ForumObject button in toRemove)
@@ -113,80 +107,65 @@ namespace Multiplayer.UI.Abstract
         }
 
         /// <summary>
-        /// Adds the refresh button which updates the current window (Refreshing logic must be implemented separately).
+        /// Calls every time the back button gets pressed.
         /// </summary>
-        protected void AddRefreshButton()
+        internal void OnReturn()
         {
-            if (RefreshButton != null) return;
-            RefreshButton = AddButton(Localization.Get("Window", "RefreshButton"), Window);
-        }
-
-        /// <summary>
-        /// Adds the return button which closes the current window and opens the return window (if exists).
-        /// </summary>
-        /// <param name="content">(Optional) Text to be displayed on the main frame.</param>
-        protected void AddReturnButton(LocalString content = null)
-        {
-            if (ReturnButton != null) return;
-            ReturnButton = AddButton(Localization.Get("Window", HasReturnWindow ? "ReturnButton" : "ExitButton"), null, content);
+            Window.ForceClose();
+            if (HasReturnWindow) ReturnWindow.Window.Show();
         }
 
         /// <summary>
         /// Closes and then opens the window back.
         /// </summary>
-        protected void RefreshWindow()
+        internal virtual void OnRefresh()
         {
             Window.ForceClose();
             Window.Show();
         }
 
-        protected virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
+        protected virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow _, int objectIndex)
         {
             if (!Window.Activated) return;
             ForumObject button = Window.ForumObjects[objectIndex];
 
             Window.ForceClose();
 
-            if (HasReturnWindow && button == ReturnButton)
+            object windowToOpen = ButtonsWindows[button];
+            if (windowToOpen is null)
             {
-                ReturnWindow.Window.Show();
+                return;
             }
-            else
+            else if (windowToOpen is MainMenu)
             {
-                object windowToOpen = ButtonsWindows[button];
-                if (windowToOpen is null)
-                {
-                    return;
-                }
-                else if (windowToOpen is MainMenu)
-                {
-                    ((MainMenu)windowToOpen).Open();
-                }
-                else if (windowToOpen is BaseMultiplayerWindow)
-                {
-                    ((BaseMultiplayerWindow)windowToOpen).Window.Show();
-                }
-                else if (windowToOpen is BaseWindow)
-                {
-                    ((BaseWindow)windowToOpen).Show();
-                }
-                else if (windowToOpen is AbstractMessageBox)
-                {
-                    ((AbstractMessageBox)windowToOpen).Show();
-                }
+                ((MainMenu)windowToOpen).Open();
+            }
+            else if (windowToOpen is BaseMultiplayerWindow)
+            {
+                ((BaseMultiplayerWindow)windowToOpen).Window.Show();
+            }
+            else if (windowToOpen is BaseWindow)
+            {
+                ((BaseWindow)windowToOpen).Show();
+            }
+            else if (windowToOpen is AbstractMessageBox)
+            {
+                ((AbstractMessageBox)windowToOpen).Show();
             }
         }
 
-        protected virtual void OnShow(BaseWindow window)
+        protected virtual void OnShow(BaseWindow _)
         {
             if (Title is null) return;
-            UIManager.WindowTitle.text = Title.ToString();
-            UIManager.WindowTitle.gameObject.SetActive(true);
+            BulletinExtension.CurrentWindow = this;
+            BulletinExtension.WindowTitle.text = Title.ToString();
+            BulletinExtension.Toggle(true);
         }
 
-        protected virtual void OnCompletion(BaseWindow window)
+        protected virtual void OnCompletion(BaseWindow _)
         {
-            UIManager.WindowTitle.gameObject.SetActive(false);
+            BulletinExtension.CurrentWindow = null;
+            BulletinExtension.Toggle(false);
         }
     }
 }

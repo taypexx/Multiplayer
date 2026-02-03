@@ -61,9 +61,19 @@ namespace Multiplayer.UI
 
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
             var chartLabel = ChartManager.GetNiceChartName(entry.MusicInfo, entry.Difficulty);
-            var topGirl = GetGirl(CurrentTopGirlID);
-            var topElfin = GetElfin(CurrentTopElfinID);
             var secondsLeft = Constants.IntermissionTimeMS/1000 - Stopwatch.Elapsed.TotalSeconds;
+
+            string topGirl, topElfin;
+            if (CurrentTopGirlID >= 0 && CurrentTopElfinID >= 0)
+            {
+                topGirl = GetGirl(CurrentTopGirlID);
+                topElfin = GetElfin(CurrentTopElfinID);
+            }
+            else
+            {
+                topGirl = Localization.Get("Global", "Loading").ToString();
+                topElfin = topGirl;
+            }
 
             TimerText.text = String.Format(
                 Localization.Get("Lobby", "IntermissionLabel").ToString(),
@@ -74,17 +84,44 @@ namespace Multiplayer.UI
         }
 
         /// <summary>
-        /// Gets the top rank of a <paramref name="entry"/> from <see href="https://api.musedash.moe"/>.
+        /// Gets the top rank of a <paramref name="entry"/> from either <see href="https://api.musedash.moe"/> or <see href="https://api.mdmc.moe"/>.
         /// </summary>
-        private static async Task UpdateTopRank(PlaylistEntry entry)
+        private static async Task UpdateTopCombo(PlaylistEntry entry)
         {
-            var response = await Client.GetAsync($"https://api.musedash.moe/rank/{entry.MusicInfo.uid}/{entry.Difficulty-1}/all", true, false);
-            if (response == null) return;
+            try
+            {
+                if (entry.IsCustom)
+                {
+                    var response = await Client.GetAsync($"https://api.mdmc.moe/v3/sheets/{entry.EntryKey}/scores?limit=1", true, false);
+                    if (response == null) return;
 
-            var scores = await response.Content.ReadFromJsonAsync<List<List<JsonElement>>>();
-            var topScore = scores.First();
-            CurrentTopGirlID = int.Parse(topScore[6].GetString());
-            CurrentTopElfinID = int.Parse(topScore[7].GetString());
+                    var body = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+                    if (body.Count == 0) return;
+
+                    var scores = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(body["scores"]);
+                    if (scores.Count == 0) return;
+
+                    var topScore = scores.First();
+                    CurrentTopGirlID = topScore["characterId"].GetInt32();
+                    CurrentTopElfinID = topScore["elfinId"].GetInt32();
+                }
+                else
+                {
+                    var response = await Client.GetAsync($"https://api.musedash.moe/rank/{entry.MusicInfo.uid}/{entry.Difficulty - 1}/all", true, false);
+                    if (response == null) return;
+
+                    var scores = await response.Content.ReadFromJsonAsync<List<List<JsonElement>>>();
+                    if (scores.Count == 0) return;
+
+                    var topScore = scores.First();
+                    CurrentTopGirlID = int.Parse(topScore[6].GetString());
+                    CurrentTopElfinID = int.Parse(topScore[7].GetString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Main.Log(ex);
+            }
         }
 
         /// <summary>
@@ -136,10 +173,13 @@ namespace Multiplayer.UI
         /// </summary>
         private static void UnsetPnlMenu()
         {
+            CurrentTopGirlID = -1;
+            CurrentTopElfinID = -1;
+
             GameObject.Destroy(TimerText.gameObject);
             UIManager.MainLobbyDisplay.Destroy();
             UIManager.ChatLobbyDisplay.Destroy();
-            PnlHomeExtension.Disable();
+            PnlHomeExtension.Destroy();
         }
 
         /// <summary>
@@ -182,21 +222,21 @@ namespace Multiplayer.UI
 
             UIManager.Debounce = true;
             LobbyManager.LocalLobby.SyncPlaylistEntry();
-            await UpdateTopRank(LobbyManager.LocalLobby.CurrentPlaylistEntry);
+            _ = UpdateTopCombo(LobbyManager.LocalLobby.CurrentPlaylistEntry);
 
             Stopwatch.Restart();
-            Main.Dispatcher.Enqueue(SetPnlMenu);
+            Main.Dispatch(SetPnlMenu);
 
             while (Stopwatch.ElapsedMilliseconds < Constants.IntermissionTimeMS)
             {
-                Main.Dispatcher.Enqueue(Update);
+                Main.Dispatch(Update);
                 await Task.Delay(1000);
             }
             Stopwatch.Stop();
 
             UIManager.Debounce = false;
-            Main.Dispatcher.Enqueue(UnsetPnlMenu);
-            Main.Dispatcher.Enqueue(StartBattle);
+            Main.Dispatch(UnsetPnlMenu);
+            Main.Dispatch(StartBattle);
             Active = false;
         }
     }

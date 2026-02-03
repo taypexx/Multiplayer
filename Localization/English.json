@@ -20,6 +20,7 @@
     "ShowOtherElfins": "Show elfins of other players on the home page",
     "DisplayLobbyStatus": "Display status of your lobby (Public or Private)",
     "ShowBattlePopups": "Show popups when someone loses AP/FC or misses",
+    "EnableLogging": "Show log messages in the console",
     "LobbyUpdateIntervalMS": "How often will your lobby data update in milliseconds. Recommended values: 3000ms — 5000ms",
     "BattleUpdateIntervalMS": "How often will your battle data update in milliseconds. Recommended values: 300ms — 1000ms"
   },
@@ -59,10 +60,8 @@
     "NoInternet": "You are offline. Connect to the internet to play multiplayer!"
   },
   "Window": {
-    "RefreshButton": "— Refresh —",
-    "ReturnButton": "— Back —",
-    "ExitButton": "— Exit —",
-    "Empty": "—"
+    "Empty": "—",
+    "EmptyDescription": "Nothing here... ┐(￣ ヘ￣)┌"
   },
   "Battle": {
     "Next": "NEXT",
@@ -103,7 +102,12 @@
     "RequestSendSuccess": "Request sent",
     "RemoveFriendSuccess": "Unfriended!",
     "CancelFriendRequestSuccess": "Cancelled friend request",
-    "AddedFriend": "New friend added!"
+    "AddedFriend": "New friend added!",
+    "EmptyFriends": "This person doesn't have friends. Maybe you could be their first one... (˶ᵔ ᵕ ᵔ˶)",
+    "EmptyFriendsLocal": "You don't have friends... yet (╥ ᴗ ╥)",
+    "EmptyFriendRequests": "Nobody has sent you any friend requests.\n\nDo it yourself! ( • ̀ω•́ )੭ ✧´-",
+    "EmptyAchievements": "You didn't achieve anything.\n\nKeep playing! (•̀ ᴗ -˵)",
+    "EmptyAchievementsLocal": "This person didn't achieve anything.\n\nBut they are trying! (•̀ ᴗ -˵)"
   },
   "Ranks": {
     "1": "Initiate",
@@ -150,7 +154,7 @@
   "PublicLobbies": {
     "Title": "Public Lobbies",
     "Description": "Pick the one you like the most.\n\n (^.^)",
-    "DescriptionEmpty": "There are no public lobbies available right now.\n\n 〜(＞.＜)〜"
+    "EmptyDescription": "There are no public lobbies available right now.\n\n 〜(＞.＜)〜"
   },
   "LobbyCreation": {
     "Title": "Create a lobby",

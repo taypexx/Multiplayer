@@ -22,7 +22,6 @@ namespace Multiplayer.UI.LobbyWindows
 
         internal LobbyPlayTypeWindow() : base(Localization.Get("LobbyCreation", "PlayType"), UIManager.LobbyCreationWindow, "Lobbies.png")
         {
-            AddReturnButton(MainDescription);
             AllButton = AddButton(Localization.Get("Lobby", "All"), null, MainDescription);
             VanillaOnlyButton = AddButton(Localization.Get("Lobby", "VanillaOnly"), null, MainDescription);
             CustomOnlyButton = AddButton(Localization.Get("Lobby", "CustomOnly"), null, MainDescription);
@@ -40,7 +39,6 @@ namespace Multiplayer.UI.LobbyWindows
             base.OnButtonClick(window, objectIndex);
 
             ForumObject button = Window.ForumObjects[objectIndex];
-            if (button == ReturnButton) return;
 
             Value = PlayTypeValues[button];
 

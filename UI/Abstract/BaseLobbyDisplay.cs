@@ -11,38 +11,38 @@ namespace Multiplayer.UI.Abstract
 {
     internal abstract class BaseLobbyDisplay
     {
-        internal string FrameParentPath { get; set; }
-        internal Transform FrameParent => GameObject.Find(FrameParentPath).transform;
         internal GameObject Frame { get; private set; }
+        protected string FrameParentPath { get; set; }
+        protected Transform FrameParent => GameObject.Find(FrameParentPath).transform;
 
-        internal TextAnchor TextAnchor { get; set; }
-        internal HorizontalWrapMode TextHorizontalWrapMode { get; set; }
-        internal VerticalWrapMode TextVerticalWrapMode { get; set; }
-        internal int? MaxLines { get; set; }
-        internal int FontSize { get; set; }
-        internal float EntryWidth { get; 
+        protected TextAnchor TextAnchor { get; set; }
+        protected HorizontalWrapMode TextHorizontalWrapMode { get; set; }
+        protected VerticalWrapMode TextVerticalWrapMode { get; set; }
+        protected int? MaxLines { get; set; }
+        protected int FontSize { get; set; }
+        protected float EntryWidth { get; 
             set {
                 EntrySize = new(value, FontSize + 8);
                 FrameSize = new(EntrySize.x, EntrySize.y * (MaxLines ?? 1));
                 field = value;
             } 
         }
-        internal Vector2 EntrySize { get; private set; }
-        internal int EntryDir { get; set; }
+        protected Vector2 EntrySize { get; private set; }
+        protected int EntryDir { get; set; }
 
-        internal Vector2 FrameAnchorPosition { get; set; }
-        internal Vector2 FrameSize { get; private set; }
-        internal Vector2 Pivot { get; 
+        protected Vector2 FrameAnchorPosition { get; set; }
+        protected Vector2 FrameSize { get; private set; }
+        protected Vector2 Pivot { get; 
             set {
                 PopupDir = Pivot.x * 2 - 1;
                 field = value;
             } 
         }
-        internal float PopupDir { get; private set; }
+        protected float PopupDir { get; private set; }
 
-        internal Text Title;
-        internal Dictionary<object, Text> TextList;
-        internal List<object> PositionList;
+        protected Text Title;
+        protected Dictionary<object, Text> TextList;
+        protected List<object> PositionList;
 
         internal Lobby Lobby;
         internal bool DoesSort = false;
@@ -83,7 +83,7 @@ namespace Multiplayer.UI.Abstract
         /// <param name="key">Key to which this <see cref="Text"/> will be linked.</param>
         /// <param name="clickAction">(Optional) Invokes this <see cref="Action"/> when the <see cref="Button"/> is clicked. Will not add the <see cref="Button"/> component if <see langword="null"/>.</param>
         /// <returns>A new <see cref="Text"/>.</returns>
-        internal Text AddText(object key, Action clickAction = null)
+        protected Text AddText(object key, Action clickAction = null)
         {
             if (Frame == null) return null;
 
@@ -122,7 +122,7 @@ namespace Multiplayer.UI.Abstract
         /// </summary>
         /// <param name="key">Key to which the <see cref="Text"/> was linked.</param>
         /// <param name="realignAfter">Whether to realign the entire display visually.</param>
-        internal void RemoveText(object key)
+        protected void RemoveText(object key)
         {
             Text text = TextList[key];
             var removeAt = PositionList.IndexOf(key);
@@ -164,7 +164,7 @@ namespace Multiplayer.UI.Abstract
         /// <summary>
         /// Sorts the <see cref="PositionList"/> according to the <see cref="LobbyGoal"/> of the <see cref="Lobby"/>.
         /// </summary>
-        internal void Sort()
+        protected void Sort()
         {
             if (Lobby is null) return;
 
@@ -186,7 +186,7 @@ namespace Multiplayer.UI.Abstract
         /// <summary>
         /// Sets the position of every text entry according to the previous lines and its own placement.
         /// </summary>
-        internal void SetTextPositions()
+        protected void SetTextPositions()
         {
             var y = 0f;
             for (int i = 0; i < PositionList.Count; i++)
@@ -261,7 +261,7 @@ namespace Multiplayer.UI.Abstract
         /// </summary>
         /// <param name="text">Contents of the message.</param>
         /// <param name="key">Key to which the text belongs.</param>
-        internal virtual void Popup(string text, object key)
+        protected virtual void Popup(string text, object key)
         {
             if (!TextList.TryGetValue(key, out Text owner)) return;
 

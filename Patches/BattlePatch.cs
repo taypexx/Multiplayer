@@ -32,7 +32,7 @@ namespace Multiplayer.Patches
             }
 
             AwaitingForOthers = false;
-            Main.Dispatcher.Enqueue(() => 
+            Main.Dispatch(() => 
             {
                 SingletonMonoBehaviour<PnlBattle>.instance.GameStart();
             });

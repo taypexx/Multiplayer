@@ -15,6 +15,7 @@ namespace Multiplayer.Static
         {
             // TODO: actually write this thing holy shit
 
+            if (container == null || container.m_Expressions == null || container.m_Expressions.Count == 0) return null; 
             return container.m_Expressions[Random.Shared.Next(0,container.m_Expressions.Count-1)];
         }
     }

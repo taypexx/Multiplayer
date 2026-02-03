@@ -41,13 +41,11 @@ namespace Multiplayer.Data.Chat
             else return $"<b><color=#{(LobbyManager.LocalLobby.Host.Uid == AuthorUid ? Constants.Yellow : "ffffff")}>[{AuthorName}]:</color></b> <color=#e8e8e8>{Message}</color>";
         }
 
-        internal void Init()
+        internal void InitCommand()
         {
-            if (IsCommand)
-            {
-                Arguments = Message.Split(" ");
-                Command = IsCommand ? Static.Chat.TotalCommands.TryGetValue(Arguments[0].Substring(1), out var cmd) ? cmd : Static.Chat.TotalCommands["."] : null;
-            }
+            if (!IsCommand) return;
+            Arguments = Message.Split(" ");
+            Command = IsCommand ? Static.Chat.TotalCommands.TryGetValue(Arguments[0].Substring(1), out var cmd) ? cmd : Static.Chat.TotalCommands["."] : null;
         }
     }
 }

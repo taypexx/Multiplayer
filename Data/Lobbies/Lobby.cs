@@ -35,7 +35,7 @@ namespace Multiplayer.Data.Lobbies
             Playlist is null 
             ? null 
             : Playlist.Count > 0
-                ? Playlist.First()
+                ? Playlist[CurrentPlaylistEntryIndex]
                 : null;
 
         internal DateTime LastUpdated { get; private set; }

@@ -39,8 +39,8 @@ namespace Multiplayer.Managers
             var layout = UIManager.PnlMessage.layout.transform;
             Task.Run(async () => 
             {
-                await Task.Delay(500);
-                Main.Dispatcher.Enqueue(() =>
+                await Task.Delay(200);
+                Main.Dispatch(() =>
                 {
                     for (int i = 0; i < layout.childCount; i++)
                     {

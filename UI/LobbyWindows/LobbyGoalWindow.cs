@@ -22,7 +22,6 @@ namespace Multiplayer.UI.LobbyWindows
 
         internal LobbyGoalWindow() : base(Localization.Get("LobbyCreation", "Goal"), UIManager.LobbyCreationWindow, "Lobbies.png")
         {
-            AddReturnButton(MainDescription);
             AccuracyButton = AddButton(Localization.Get("Lobby", "Accuracy"), null, MainDescription);
             ScoreButton = AddButton(Localization.Get("Lobby", "Score"), null, MainDescription);
             CustomButton = AddButton(Localization.Get("Lobby", "Custom"), null, MainDescription);
@@ -40,7 +39,6 @@ namespace Multiplayer.UI.LobbyWindows
             base.OnButtonClick(window, objectIndex);
 
             ForumObject button = Window.ForumObjects[objectIndex];
-            if (button == ReturnButton) return;
             
             // REMOVE LATER
             if (button == CustomButton)

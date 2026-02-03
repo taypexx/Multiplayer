@@ -19,7 +19,7 @@ namespace Multiplayer.Patches
             {
                 await customData.Update();
                 PnlPreparationExtension.IsRetrieving = false;
-                Main.Dispatcher.Enqueue(PnlPreparationExtension.UpdatePnlPreparation);
+                Main.Dispatch(PnlPreparationExtension.UpdatePnlPreparation);
             }
 
             private static void Postfix()

@@ -7,6 +7,7 @@ namespace Multiplayer.Static
     public static class Constants
     {
         public const string ModName = "Multiplayer";
+        public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
         public const string Version = "0.1.0";
         public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty, Medeyah";

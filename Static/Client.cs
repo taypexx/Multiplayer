@@ -62,9 +62,9 @@ namespace Multiplayer.Static
 
             WebSocket.Options.SetRequestHeader("Authorization", $"Basic {PlayerManager.LocalPlayerUid}#{Token}");
 
-            Main.Logger.Msg("Connecting to the Websocket...");
+            Main.Log("Connecting to the Websocket...");
             await WebSocket.ConnectAsync(WebsocketAddress, CancellationToken.None);
-            Main.Logger.Msg(ConsoleColor.Green, "Websocket connection was successfully established at " + WebsocketAddress);
+            Main.Log("Websocket connection was successfully established at " + WebsocketAddress, Main.LogType.Success);
 
             var buffer = new byte[4096];
             while (WebSocket.State == WebSocketState.Open && LobbyManager.IsInLobby)
@@ -98,7 +98,7 @@ namespace Multiplayer.Static
                         _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true);
                         break;
                     case "Chat":
-                        Main.Dispatcher.Enqueue(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));
+                        Main.Dispatch(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));
                         break;
                 }
             }
@@ -107,7 +107,7 @@ namespace Multiplayer.Static
             await LobbyManager.LeaveLobby(true);
             UIManager.Debounce = false;
 
-            Main.Logger.Msg("Websocket connection ended.");
+            Main.Log("Websocket connection ended.");
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace Multiplayer.Static
             }
             catch (Exception ex)
             {
-                Main.Logger.Error(ex);
+                Main.Log(ex);
                 return null;
             }
         }
@@ -170,7 +170,7 @@ namespace Multiplayer.Static
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    Main.Logger.Error($"[{(int)response.StatusCode}] GET request failed: {await response.Content.ReadAsStringAsync()}");
+                    Main.Log($"[{(int)response.StatusCode}] GET request failed: {await response.Content.ReadAsStringAsync()}", Main.LogType.Error);
 
                     if (!isFullPath && (response.StatusCode == HttpStatusCode.BadGateway || response.StatusCode == HttpStatusCode.GatewayTimeout))
                     {
@@ -183,7 +183,7 @@ namespace Multiplayer.Static
             }
             catch (Exception)
             {
-                Main.Logger.Error($"GET request timeout at: {address}!");
+                Main.Log($"GET request timeout at: {address}!", Main.LogType.Error);
                 if (!isFullPath) Disconnect(true);
                 return null;
             }
@@ -216,7 +216,7 @@ namespace Multiplayer.Static
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    Main.Logger.Error($"[{(int)response.StatusCode}] POST request failed: {await response.Content.ReadAsStringAsync()}");
+                    Main.Log($"[{(int)response.StatusCode}] POST request failed: {await response.Content.ReadAsStringAsync()}", Main.LogType.Error);
 
                     if (!isFullPath && (response.StatusCode == HttpStatusCode.BadGateway || response.StatusCode == HttpStatusCode.GatewayTimeout))
                     {
@@ -230,7 +230,7 @@ namespace Multiplayer.Static
             catch (Exception)
             {
                 
-                Main.Logger.Error($"POST request timeout at {address}!");
+                Main.Log($"POST request timeout at {address}!", Main.LogType.Error);
                 if (!isFullPath) Disconnect(true);
                 return null;
             }
@@ -241,13 +241,16 @@ namespace Multiplayer.Static
         /// </summary>
         internal static async Task AwaitAndConnect()
         {
+            if (Debounce) return;
+            Debounce = true;
+
             var listener = new HttpListener();
             listener.Prefixes.Add($"http://localhost:{Constants.PortHTTP}/");
             listener.Start();
 
-            Main.Logger.Msg("Awaiting for token...");
+            Main.Log("Awaiting for token...");
 
-            Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
+            Main.Dispatch(UIManager.PnlCloudMessageStart);
 
             HttpListenerContext context = await listener.GetContextAsync();
             var request = context.Request;
@@ -259,6 +262,7 @@ namespace Multiplayer.Static
             context.Response.Close();
             listener.Stop();
 
+            Debounce = false;
             _ = Connect(code);
         }
 
@@ -294,16 +298,16 @@ namespace Multiplayer.Static
             string uid = DataHelper.PeroUid;
             if (uid == null) return;
 
-            Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
+            Main.Dispatch(UIManager.PnlCloudMessageStart);
             Debounce = true;
-            Main.Logger.Msg("Connecting to the server...");
+            Main.Log("Connecting to the server...");
 
             object payload = code is null 
                 ? new { Uid = uid, Name = DataHelper.nickname } 
                 : new { Uid = uid, Name = DataHelper.nickname, Code = code };
 
             var response = await PostAsync($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login", payload, true, code is null, true);
-            Main.Dispatcher.Enqueue(() => UIManager.PnlCloudMessageEnd(response.IsSuccessStatusCode));
+            Main.Dispatch(() => UIManager.PnlCloudMessageEnd(response.IsSuccessStatusCode));
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
@@ -319,27 +323,29 @@ namespace Multiplayer.Static
                     }
 
                     Connected = true;
+                    ChartManager.Init();
                     _ = Main.InitConnect();
-                    Main.Logger.Msg(ConsoleColor.Green, "Connected to the server successfully!");
+
+                    Main.Log("Connected to the server successfully!", Main.LogType.Success);
                 }
                 else
                 {
                     OutdatedWarning = new(string.Format(Localization.Get("Warning", "Outdated").ToString(), Constants.Version, ServerVersion));
                     UIManager.WarningChooseAction = UpdateModOption;
-                    Main.Dispatcher.Enqueue(() => UIManager.WarnChooseNotification(OutdatedWarning));
-                    Main.Logger.Error("Outdated version of the mod, cannot proceed!");
+                    Main.Dispatch(() => UIManager.WarnChooseNotification(OutdatedWarning));
+                    Main.Log("Outdated version of the mod, cannot proceed!", Main.LogType.Error);
                 }
             } else if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 UIManager.WarningChooseAction = LoginOption;
-                Main.Dispatcher.Enqueue(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "LoginRequired")));
-                Main.Logger.Error("Token has expired, login is required.");
+                Main.Dispatch(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "LoginRequired")));
+                Main.Log("Token has expired, login is required.", Main.LogType.Warning);
             }
             else
             {
                 UIManager.WarningChooseAction = ReconnectOption;
-                Main.Dispatcher.Enqueue(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "Offline")));
-                Main.Logger.Error("Failed to connect to the server!");
+                Main.Dispatch(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "Offline")));
+                Main.Log("Failed to connect to the server!", Main.LogType.Error);
             }
             Debounce = false;
         }
@@ -354,7 +360,7 @@ namespace Multiplayer.Static
             if (LobbyManager.IsInLobby) _ = LobbyManager.LeaveLobby(true);
 
             Connected = false;
-            Main.Logger.Msg("Disconneced from the server.");
+            Main.Log("Disconneced from the server.", Main.LogType.Warning);
 
             if (lost)
             {
@@ -377,7 +383,7 @@ namespace Multiplayer.Static
         /// </summary>
         private static void LoginOption(bool doLogin)
         {
-            if (!doLogin) return;
+            if (!doLogin || Debounce) return;
             Utilities.OpenBrowserLink(Constants.DiscordAuthURL);
             _ = AwaitAndConnect();
         }

@@ -22,7 +22,6 @@ namespace Multiplayer.UI.LobbyWindows
 
         internal LobbyChartSelectionWindow() : base(Localization.Get("LobbyCreation", "ChartSelection"), UIManager.LobbyCreationWindow, "Lobbies.png")
         {
-            AddReturnButton(MainDescription);
             HostPlaylistButton = AddButton(Localization.Get("Lobby", "HostPlaylist"), null, MainDescription);
             PlaylistButton = AddButton(Localization.Get("Lobby", "Playlist"), null, MainDescription);
             RandomButton = AddButton(Localization.Get("Lobby", "Random"), null, MainDescription);
@@ -40,7 +39,6 @@ namespace Multiplayer.UI.LobbyWindows
             base.OnButtonClick(window, objectIndex);
 
             ForumObject button = Window.ForumObjects[objectIndex];
-            if (button == ReturnButton) return;
 
             // REMOVE LATER
             if (button == RandomButton)

@@ -41,7 +41,6 @@ namespace Multiplayer.UI
                 ForumObject button = AddButton(new(prop.Name), prop.PropertyType == typeof(bool) ? PromptWindow : InputWindow);
                 ButtonsProperties.Add(button, prop);
             }
-            AddReturnButton();
             UpdateDescription();
         }
 

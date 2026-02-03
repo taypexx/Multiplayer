@@ -33,7 +33,6 @@ namespace Multiplayer.UI.LobbyWindows
             PublicLobbiesButton = AddButton(Localization.Get("Lobbies", "PublicButton"), null, MainDescription);
             PrivateLobbyButton = AddButton(Localization.Get("Lobbies", "PrivateButton"), null, MainDescription);
             CreateLobbyButton = AddButton(Localization.Get("Lobbies", "CreateButton"), null, MainDescription);
-            AddReturnButton(MainDescription);
         }
 
         /// <summary>
@@ -45,7 +44,7 @@ namespace Multiplayer.UI.LobbyWindows
 
             await UIManager.PublicLobbiesWindow.Update();
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 UIManager.Debounce = false;
                 UIManager.PublicLobbiesWindow.Window.Show();
@@ -65,7 +64,7 @@ namespace Multiplayer.UI.LobbyWindows
 
                 Lobby lobby = await LobbyManager.GetLobby((int)id, true);
 
-                Main.Dispatcher.Enqueue(() =>
+                Main.Dispatch(() =>
                 {
                     UIManager.Debounce = false;
                     if (lobby is null)

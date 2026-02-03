@@ -72,7 +72,7 @@ namespace Multiplayer.Managers
                 // Sending a chat message
                 else if (Input.GetKeyDown(Constants.ChatSendKeyCode))
                 {
-                    var msg = inputField.text.TrimStart().TrimEnd(['\r', '\n']);
+                    var msg = inputField.text.TrimStart().TrimEnd().Replace("\r", string.Empty).Replace("\n", string.Empty);
                     if (msg != string.Empty)
                     {
                         inputField.text = string.Empty;

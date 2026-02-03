@@ -28,7 +28,7 @@ namespace Multiplayer.UI.Displays
             DoesSort = true;
         }
 
-        internal override void Popup(string text, object key)
+        protected override void Popup(string text, object key)
         {
             if (!Settings.Config.ShowBattlePopups) return;
             base.Popup(text, key);
@@ -82,7 +82,7 @@ namespace Multiplayer.UI.Displays
 
                                 break;
                             case LobbyGoal.Score:
-                                battleInfo = $"<color=#{Constants.Blue}>{battleStats.Score}</color>";
+                                battleInfo = $"<color=#{Constants.Pink}>{battleStats.Score}</color>";
                                 break;
                             case LobbyGoal.Custom:
                                 break;

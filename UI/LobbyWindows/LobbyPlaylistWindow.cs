@@ -15,7 +15,6 @@ namespace Multiplayer.UI.LobbyWindows
 
         internal LobbyPlaylistWindow() : base(Localization.Get("Lobby", "PlaylistTitle"), UIManager.LobbyWindow, "Lobby.png")
         {
-            AddReturnButton(MainDescription);
             ButtonsEntries = new();
         }
 
@@ -23,8 +22,8 @@ namespace Multiplayer.UI.LobbyWindows
         {
             int prevEntries = ButtonsEntries.Count;
 
-            RemoveAllButtons(true);
             ButtonsEntries.Clear();
+            RemoveAllButtons();
 
             MainDescription = new(String.Format(
                 Localization.Get("Lobby", "PlaylistDescription").ToString(),
@@ -33,15 +32,17 @@ namespace Multiplayer.UI.LobbyWindows
                 lobby.PlaylistSize
             ));
 
-            ReturnButton.Contents = MainDescription;
-
-            foreach (PlaylistEntry entry in lobby.Playlist)
+            if (lobby.Playlist.Count > 0)
             {
-                ForumObject button = AddButton((LocalString)ChartManager.GetNiceChartName(entry.MusicInfo,entry.Difficulty), null, MainDescription);
-                ButtonsEntries.Add(button, entry);
+                foreach (PlaylistEntry entry in lobby.Playlist)
+                {
+                    ForumObject button = AddButton((LocalString)ChartManager.GetNiceChartName(entry.MusicInfo, entry.Difficulty), null, MainDescription);
+                    ButtonsEntries.Add(button, entry);
+                }
             }
+            else AddEmptyButton(MainDescription);
 
-            if (Window.Activated && prevEntries != lobby.Playlist.Count && prevEntries != 0) RefreshWindow();
+            if (Window.Activated && prevEntries != lobby.Playlist.Count) OnRefresh();
         }
 
         protected override void OnButtonClick(IListWindow window, int objectIndex)

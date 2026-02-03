@@ -5,6 +5,7 @@ using Multiplayer.Static;
 using Multiplayer.UI;
 using PopupLib.UI;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Multiplayer.Managers
 {
@@ -52,7 +53,7 @@ namespace Multiplayer.Managers
                 if (lobby == LocalLobby)
                 {
                     await SyncLobby();
-                    Main.Dispatcher.Enqueue(() => 
+                    Main.Dispatch(() => 
                     {
                         UIManager.LobbyPlaylistWindow.Update(lobby);
                         UIManager.MainLobbyDisplay.Update();
@@ -145,14 +146,14 @@ namespace Multiplayer.Managers
             if (success)
             {
                 LocalLobby.Playlist.Add(new(musicInfo, difficulty, entry));
-                Main.Dispatcher.Enqueue(() => 
+                Main.Dispatch(() => 
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistAdded"));
                     UIManager.LobbyPlaylistWindow.Update(LocalLobby);
                     PnlPreparationExtension.UpdatePnlPreparation();
                 });
             } 
-            else Main.Dispatcher.Enqueue(() =>
+            else Main.Dispatch(() =>
             {
                 LocalString reason;
                 switch (result)
@@ -196,7 +197,7 @@ namespace Multiplayer.Managers
             if (success)
             {
                 LocalLobby.Playlist.Remove(LocalLobby.GetFromPlaylist(entry));
-                Main.Dispatcher.Enqueue(() =>
+                Main.Dispatch(() =>
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistRemoved"));
                     UIManager.LobbyPlaylistWindow.Update(LocalLobby);
@@ -262,8 +263,8 @@ namespace Multiplayer.Managers
             var response = await Client.PostAsync("hasLobby", payload);
             if (response is null) return false;
 
-            int id = await response.Content.ReadFromJsonAsync<int>();
-            if (id == 0) return false;
+            var idJson = await response.Content.ReadFromJsonAsync<JsonElement>();
+            if (idJson.ValueKind == JsonValueKind.Null || !idJson.TryGetInt32(out int id)) return false;
 
             Lobby lobby = await GetLobby(id, true);
             if (lobby is null) return false;
@@ -301,7 +302,7 @@ namespace Multiplayer.Managers
                 {
                     Lobby lobby = await GetLobby(id);
                     OnJoin(lobby);
-                } 
+                }
                 else return false;
             }
             return success;
@@ -359,14 +360,14 @@ namespace Multiplayer.Managers
             _ = Client.WebsocketListen();
             _ = AutoUpdateStart(lobby);
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 UIManager.PlayConfirmPrompt.Title = (LocalString)lobby.Name;
-                PnlHomeExtension.Enable();
                 UIManager.MainLobbyDisplay.Create(lobby);
                 UIManager.ChatLobbyDisplay.Create(lobby, true);
                 PnlPreparationExtension.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
+                PnlHomeExtension.Create();
             });
         }
 
@@ -379,13 +380,13 @@ namespace Multiplayer.Managers
             LocalLobby = null;
             IsAutoUpdating = false;
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 UIManager.MainLobbyDisplay.Destroy();
                 UIManager.ChatLobbyDisplay.Destroy();
                 PnlPreparationExtension.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
-                PnlHomeExtension.Disable();
+                PnlHomeExtension.Destroy();
                 ClearLobbyFromCache(prevLobby);
             });
         }

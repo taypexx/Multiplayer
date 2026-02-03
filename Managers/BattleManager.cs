@@ -138,14 +138,14 @@ namespace Multiplayer.Managers
             BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;
             StageBattleComponent = StageBattleComponent.instance;
 
-            Main.Logger.Msg("Battle synchronization started!");
+            Main.Log("Battle synchronization started!");
             Synchronizing = true;
 
-            try
+            while (Synchronizing && Client.Connected)
             {
-                while (Synchronizing && Client.Connected)
+                try
                 {
-                    Main.Dispatcher.Enqueue(() =>
+                    Main.Dispatch(() =>
                     {
                         UpdateLocalBattleStats();
                         UpdateOthersBattleStats();
@@ -154,12 +154,12 @@ namespace Multiplayer.Managers
                     });
 
                     ReceivedDatagram = await ServerSync();
-                    await Task.Delay(Settings.Config.BattleUpdateIntervalMS);
                 }
-            }
-            catch (Exception ex)
-            {
-                Main.Logger.Error(ex);
+                catch (Exception ex)
+                {
+                    Main.Log(ex);
+                }
+                await Task.Delay(Settings.Config.BattleUpdateIntervalMS);
             }
         }
 
@@ -177,7 +177,7 @@ namespace Multiplayer.Managers
                 player.BattleStats.Reset();
             }
 
-            Main.Logger.Msg("Battle synchronization ended!");
+            Main.Log("Battle synchronization ended!");
         }
     }
 }

@@ -14,13 +14,11 @@ namespace Multiplayer.UI.LobbyWindows
         private Dictionary<ForumObject, Lobby> ButtonsLobbies;
 
         private static LocalString MainDescription => Localization.Get("PublicLobbies", "Description");
-        private static LocalString EmptyDescription => Localization.Get("PublicLobbies", "DescriptionEmpty");
+        private static LocalString EmptyDescription => Localization.Get("PublicLobbies", "EmptyDescription");
 
         internal PublicLobbiesWindow() : base(Localization.Get("PublicLobbies", "Title"), UIManager.LobbiesWindow, "Lobbies.png")
         {
             ButtonsLobbies = new();
-            AddReturnButton();
-            AddRefreshButton();
         }
 
         private string GetLobbyString(Lobby lobby)
@@ -67,32 +65,43 @@ namespace Multiplayer.UI.LobbyWindows
                 await lobby.Update();
             }
 
-            RemoveAllButtons(true);
-            ReturnButton.Contents = LobbyManager.PublicLobbies.Count > 0 ? MainDescription : EmptyDescription;
-            RefreshButton.Contents = ReturnButton.Contents;
-            ButtonsLobbies.Clear();
-
-            foreach (Lobby lobby in LobbyManager.PublicLobbies)
+            Main.Dispatch(() =>
             {
-                ForumObject button = AddButton(new(GetLobbyString(lobby)), null, MainDescription);
-                ButtonsLobbies.Add(button, lobby);
-            }
+                ButtonsLobbies.Clear();
+                RemoveAllButtons();
+
+                if (LobbyManager.PublicLobbies.Count > 0)
+                {
+                    foreach (Lobby lobby in LobbyManager.PublicLobbies)
+                    {
+                        ForumObject button = AddButton(new(GetLobbyString(lobby)), null, MainDescription);
+                        ButtonsLobbies.Add(button, lobby);
+                    }
+                }
+                else AddEmptyButton(EmptyDescription);
+            });
         }
 
         /// <summary>
         /// Refreshes current public lobbies and displays the updated list.
         /// </summary>
-        private async void Refresh()
+        private async Task Refresh()
         {
             UIManager.Debounce = true;
 
             await Update();
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 UIManager.Debounce = false;
                 Window.Show();
             });
+        }
+
+        internal override void OnRefresh()
+        {
+            Window.ForceClose();
+            _ = Refresh();
         }
 
         protected override void OnButtonClick(IListWindow window, int objectIndex)
@@ -101,11 +110,7 @@ namespace Multiplayer.UI.LobbyWindows
 
             ForumObject button = Window.ForumObjects[objectIndex];
 
-            if (button == RefreshButton)
-            {
-                Refresh();
-            }
-            else if (ButtonsLobbies.TryGetValue(button, out Lobby lobby))
+            if (ButtonsLobbies.TryGetValue(button, out Lobby lobby))
             {
                 _ = UIManager.OpenLobbyWindow(lobby);
             }

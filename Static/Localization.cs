@@ -29,7 +29,7 @@ namespace Multiplayer.Static
                 string localizationJson = AssetManager.GetStringAsset($"Localization.{language}.json");
                 if (localizationJson is null)
                 {
-                    Main.Logger.Error($"Failed to load {language} localization!");
+                    Main.Log($"Failed to load {language} localization!", Main.LogType.Error);
                     continue;
                 }
 

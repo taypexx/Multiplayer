@@ -4,13 +4,16 @@ using Multiplayer.Static;
 using Multiplayer.Patches;
 using System.Reflection;
 using System.Drawing;
+using static Multiplayer.Static.Dispatcher;
 
 namespace Multiplayer
 {
     public class Main : MelonMod
     {
-        internal static Dispatcher Dispatcher { get; private set; }
-        internal static MelonLogger.Instance Logger { get; private set; }
+        private static MelonLogger.Instance Logger;
+        private static Dispatcher Dispatcher;
+        internal enum LogType : byte { Error, Warning, Info, Success }
+
         internal static string CurrentScene { get; private set; }
         internal static bool IsUIScene => CurrentScene == "UISystem_PC";
 
@@ -24,16 +27,44 @@ namespace Multiplayer
             return asm;
         }
 
+        /// <summary>
+        /// Logs the passed object.
+        /// </summary>
+        /// <param name="msg">Message to log.</param>
+        /// <param name="logType">Type of the log</param>
+        internal static void Log(object msg, LogType logType = LogType.Info)
+        {
+            if (msg is Exception || logType == LogType.Error)
+            {
+                Logger.Error(msg);
+            }
+            else if (Settings.Config.EnableLogging)
+            {
+                switch (logType)
+                {
+                    case LogType.Info:
+                        Logger.Msg(msg); break;
+                    case LogType.Success:
+                        Logger.Msg(System.ConsoleColor.Green, msg); break;
+                    case LogType.Warning:
+                        Logger.Warning(msg); break;
+                }
+            }
+        }
+
+        internal static void Dispatch(DispatcherCallbackDelegate del)
+        {
+            Dispatcher.ThreadQueue.Enqueue(del);
+        }
+
         public override void OnEarlyInitializeMelon()
         {
-            base.OnEarlyInitializeMelon();
             Dispatcher = new();
+            Logger = new(Constants.ModName, Color.Magenta);
         }
 
         public override void OnInitializeMelon()
         {
-            base.OnInitializeMelon();
-
             foreach (var dependencyName in Dependencies)
             {
                 if (!RegisteredMelons.Any(m => m.Info.Name == dependencyName))
@@ -49,11 +80,9 @@ namespace Multiplayer
                 AdditionalDependenciesInstalled.Add(dependencyName, AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == dependencyName));
             }
 
-            Logger = new(Constants.ModName, Color.Magenta);
-
             InitGlobal();
 
-            Logger.Msg(Constants.ModName + " was successfully initialized.");
+            Logger.Msg(System.ConsoleColor.Green, Constants.ModName + " was successfully initialized.");
         }
 
         /// <summary>
@@ -64,9 +93,8 @@ namespace Multiplayer
             Settings.Load();
             AssetManager.Init();
             Localization.Init();
-            Chat.Init();
             Client.Init();
-            ChartManager.Init();
+            Chat.Init();
         }
 
         /// <summary>
@@ -76,7 +104,7 @@ namespace Multiplayer
         {
             await PlayerManager.Init();
             await LobbyManager.Init();
-            Dispatcher.Enqueue(() => 
+            Dispatch(() => 
             {
                 AchievementManager.Init();
                 UIManager.MainMenu.Open();
@@ -85,10 +113,9 @@ namespace Multiplayer
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
-            base.OnSceneWasLoaded(buildIndex, sceneName);
             CurrentScene = sceneName;
 
-            if (sceneName == "UISystem_PC")
+            if (IsUIScene)
             {
                 UIManager.UpdateVanillaPanels();
                 UIManager.Init();
@@ -100,14 +127,12 @@ namespace Multiplayer
             } else if (sceneName == "GameMain")
             {
                 UIManager.InitGameMain();
-
                 BattlePatch.SceneLoaded();
             }
         }
 
         public override void OnUpdate()
         {
-            base.OnUpdate();
             Dispatcher.Update();
             InputManager.Update();
         }
@@ -116,7 +141,6 @@ namespace Multiplayer
         {
             Settings.Save();
             Client.Disconnect();
-            base.OnDeinitializeMelon();
         }
 
         public override void OnApplicationQuit()

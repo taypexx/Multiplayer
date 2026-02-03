@@ -34,7 +34,6 @@ namespace Multiplayer.UI
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
             SettingsButton = AddButton(Localization.Get("MainMenu", "Settings"), null, MainDescription);
             CreditsButton = AddButton(Localization.Get("MainMenu", "CreditsTitle"), null, Credits);
-            AddReturnButton(MainDescription);
         }
 
         /// <summary>

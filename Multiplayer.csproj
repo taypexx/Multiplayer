@@ -16,6 +16,8 @@
   <ItemGroup>
     <None Remove="Assets\UI\Achievements.png" />
     <None Remove="Assets\UI\Awaiting.png" />
+    <None Remove="Assets\UI\Back.png" />
+    <None Remove="Assets\UI\Cross.png" />
     <None Remove="Assets\UI\Friends.png" />
     <None Remove="Assets\UI\Lobbies.png" />
     <None Remove="Assets\UI\Lobby.png" />
@@ -25,23 +27,27 @@
     <None Remove="Assets\UI\PcSprButton.png" />
     <None Remove="Assets\UI\People.png" />
     <None Remove="Assets\UI\Profile.png" />
+    <None Remove="Assets\UI\Refresh.png" />
     <None Remove="Assets\UI\Settings.png" />
     <None Remove="Localization\English.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Assets\UI\Back.png" />
     <EmbeddedResource Include="Assets\UI\Banners\Achievements.png" />
     <EmbeddedResource Include="Assets\UI\Awaiting.png" />
     <EmbeddedResource Include="Assets\UI\Banners\Friends.png" />
     <EmbeddedResource Include="Assets\UI\Banners\Lobbies.png" />
     <EmbeddedResource Include="Assets\UI\Banners\Lobby.png" />
     <EmbeddedResource Include="Assets\UI\Banners\MainMenu.png" />
+    <EmbeddedResource Include="Assets\UI\Cross.png" />
     <EmbeddedResource Include="Assets\UI\Navigation\Globe.png" />
     <EmbeddedResource Include="Assets\UI\Navigation\PcSprButton.png" />
     <EmbeddedResource Include="Assets\UI\Navigation\People.png" />
     <EmbeddedResource Include="Assets\UI\Banners\Profile.png" />
     <EmbeddedResource Include="Assets\UI\Navigation\Play.png" />
     <EmbeddedResource Include="Assets\UI\Navigation\Playlist.png" />
+    <EmbeddedResource Include="Assets\UI\Refresh.png" />
     <EmbeddedResource Include="Assets\UI\RinRich.png" />
     <EmbeddedResource Include="Assets\UI\Banners\Settings.png" />
     <EmbeddedResource Include="Localization\English.json" />

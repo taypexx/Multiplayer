@@ -68,7 +68,6 @@ namespace Multiplayer.UI.LobbyWindows
 
         internal void CreateButtons()
         {
-            AddReturnButton();
             CreateButton = AddButton(Localization.Get("LobbyCreation", "CreateButton"), CreatePrompt);
             NameButton = AddButton(Localization.Get("LobbyCreation", "LobbyName"), NamePrompt);
             MaxPlayersButton = AddButton(Localization.Get("LobbyCreation", "MaxPlayers"), MaxPlayersPrompt);
@@ -96,12 +95,12 @@ namespace Multiplayer.UI.LobbyWindows
                 return;
             }
 
-            Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
+            Main.Dispatch(UIManager.PnlCloudMessageStart);
             UIManager.Debounce = true;
 
             bool success = await LobbyManager.CreateLobby(MaxPlayersField,GoalField,PlayTypeField,ChartSelectionField,NameField,PlaylistSizeField,PasswordField);
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 UIManager.Debounce = false;
                 UIManager.PnlCloudMessageEnd(success);

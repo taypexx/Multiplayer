@@ -18,8 +18,6 @@ namespace Multiplayer.Static
         {
             if (!LobbyManager.IsInLobby || !Settings.Config.EnableChat) return;
 
-            chatMessage.Init();
-
             if (!chatMessage.IsSystemMessage)
             {
                 var player = PlayerManager.GetCachedPlayer(chatMessage.AuthorUid);
@@ -54,9 +52,9 @@ namespace Multiplayer.Static
                 }
             };
 
-            message.Body.Init();
             if (message.Body.IsCommand)
             {
+                message.Body.InitCommand();
                 message.Body.Command.Run(message.Body.Arguments);
             } 
             else _ = Client.WebsocketSend(message);
@@ -94,7 +92,7 @@ namespace Multiplayer.Static
         /// Mutes/unmutes a <see cref="Player"/> on the client.
         /// </summary>
         /// <param name="args"><see cref="ChatCommand"/> arguments.</param>
-        /// <param name="mute">Whether to mute or unmute.</param>
+        /// <param name="doMute">Whether to mute or unmute.</param>
         private static void MuteToggle(string[] args, bool doMute)
         {
             if (!LobbyManager.IsInLobby) return;
@@ -110,7 +108,11 @@ namespace Multiplayer.Static
                 if (target != null)
                 {
                     var wasMuted = MutedPlayerUids.Contains(target.Uid);
-                    if (doMute && wasMuted)
+                    if (target == PlayerManager.LocalPlayer)
+                    {
+                        msg = Localization.Get("SystemChatMessages", "PlayerMuteSelf").ToString();
+                    }
+                    else if (doMute && wasMuted)
                     {
                         msg = String.Format(Localization.Get("SystemChatMessages", "PlayerAlreadyMuted").ToString(), target.MultiplayerStats.Name);
                     }
@@ -118,10 +120,6 @@ namespace Multiplayer.Static
                     {
                         msg = String.Format(Localization.Get("SystemChatMessages", "PlayerNotMuted").ToString(), target.MultiplayerStats.Name);
                     }
-                    else if (target == PlayerManager.LocalPlayer)
-                    {
-                        msg = Localization.Get("SystemChatMessages", "PlayerMuteSelf").ToString();
-                    } 
                     else
                     {
                         if (doMute) MutedPlayerUids.Add(target.Uid);

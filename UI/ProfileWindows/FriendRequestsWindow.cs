@@ -14,7 +14,6 @@ namespace Multiplayer.UI.ProfileWindows
         internal FriendRequestsWindow() : base(Localization.Get("ProfileWindow", "FriendRequests"), UIManager.ProfileWindow, "Friends.png")
         {
             ButtonsUids = new();
-            AddReturnButton();
         }
 
         /// <summary>
@@ -22,14 +21,19 @@ namespace Multiplayer.UI.ProfileWindows
         /// </summary>
         internal void Update()
         {
-            RemoveAllButtons(true);
+            RemoveAllButtons();
             ButtonsUids.Clear();
 
-            foreach ((string playerUid, string playerName) in PlayerManager.LocalPlayer.MultiplayerStats.FriendRequests)
+            var localStats = PlayerManager.LocalPlayer.MultiplayerStats;
+            if (localStats.FriendRequests.Count > 0)
             {
-                ForumObject button = AddButton((LocalString)playerName);
-                ButtonsUids.Add(button, playerUid);
+                foreach ((string playerUid, string playerName) in localStats.FriendRequests)
+                {
+                    ForumObject button = AddButton((LocalString)playerName);
+                    ButtonsUids.Add(button, playerUid);
+                }
             }
+            else AddEmptyButton(Localization.Get("ProfileWindow", "EmptyFriendRequests"));
         }
 
         protected override void OnButtonClick(IListWindow window, int objectIndex)

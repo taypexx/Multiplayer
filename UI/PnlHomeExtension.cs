@@ -117,23 +117,26 @@ namespace Multiplayer.UI
         private static Vector3 MiddleElfinScale = new(-1.5f, 1.5f, 1.5f);
         private static Vector3 SideElfinScale = new(-1.2f, 1.2f, 1.2f);
 
-        private static Dictionary<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble, string> BubblesLastMessage = new();
+        private static CancellationTokenSource PlayerSpeakCTS;
 
         /// <summary>
         /// Turns off the speech bubble.
         /// </summary>
-        internal static async Task PlayerEndSpeak(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble, int msDelay, string lastMsg)
+        internal static async Task PlayerEndSpeak(Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble bubble, int msgDurationMs, CancellationToken token)
         {
             try
             {
-                await Task.Delay(msDelay);
-                if (BubblesLastMessage[bubble] != lastMsg) return;
-                Main.Dispatcher.Enqueue(bubble.EndTalk);
+                await Task.Delay(msgDurationMs, token);
+                token.ThrowIfCancellationRequested();
 
-                await Task.Delay(300);
-                Main.Dispatcher.Enqueue(() => bubble.gameObject.SetActive(false));
+                Main.Dispatch(bubble.EndTalk);
+
+                await Task.Delay(300, token);
+                token.ThrowIfCancellationRequested();
+
+                Main.Dispatch(() => bubble.gameObject.SetActive(false));
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException) {}
         }
 
         /// <summary>
@@ -156,10 +159,16 @@ namespace Multiplayer.UI
 
             var charExpress = museShow.transform.Find("BtnInteraction").GetComponent<Il2CppAssets.Scripts.UI.Controls.CharacterExpression>();
             var express = ExpressionDeterminer.Determine(charExpress.expressionContainer, msg);
-            charExpress.m_CharacterApply.PlayCharacterApply(express.animName, null);
+            if (express != null)
+            {
+                charExpress.m_CharacterApply.PlayCharacterApply(express.animName, null);
+            }
 
             var bubble = museShow.transform.Find("FirstTwnTalkBubble").gameObject.GetComponent<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble>();
             if (bubble == null) return;
+
+            bubble.gameObject.SetActive(true);
+            bubble.SetTalkTxt(msg);
 
             var msgDurationMs = Math.Clamp(
                 msg.Split(" ").Length * 500 + 800
@@ -167,14 +176,13 @@ namespace Multiplayer.UI
                 + (msg.Count(c => c == '.') * 400)
                 + (msg.Count(c => c == '!') * 200)
                 + (msg.Count(c => c == '?') * 300),
-                1200,10000
+                1200, 10000
             );
 
-            bubble.gameObject.SetActive(true);
-            bubble.SetTalkTxt(msg);
+            if (PlayerSpeakCTS != null) PlayerSpeakCTS.Cancel();
+            PlayerSpeakCTS = new();
 
-            BubblesLastMessage[bubble] = msg;
-            _ = PlayerEndSpeak(bubble, msgDurationMs, msg);
+            _ = PlayerEndSpeak(bubble, msgDurationMs, PlayerSpeakCTS.Token);
         }
 
         /// <summary>
@@ -213,46 +221,50 @@ namespace Multiplayer.UI
         {
             if (ElfinFancyPanel is null || elfinShow == OriginalElfinShow) return;
 
-            var elfinVisible = elfinIndex >= 0;
-            elfinShow.SetActive(elfinVisible);
-            if (!elfinVisible) return;
-
-            for (int i = 0; i < elfinShow.transform.childCount; i++)
+            try
             {
-                GameObject.Destroy(elfinShow.transform.GetChild(i).gameObject);
+                var elfinVisible = elfinIndex >= 0;
+                elfinShow.SetActive(elfinVisible);
+                if (!elfinVisible) return;
+
+                for (int i = 0; i < elfinShow.transform.childCount; i++)
+                {
+                    GameObject.Destroy(elfinShow.transform.GetChild(i).gameObject);
+                }
+
+                var orderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(elfinIndex).order - 1;
+                var scrollView = ElfinFancyPanel.m_FancyScrollView;
+                scrollView.ScrollToDataIndex(orderIndex, 0, true);
+
+                var cell = scrollView.GetCell(orderIndex);
+                bool destroyCellAfter = false;
+                if (cell == null)
+                {
+                    cell = scrollView.CreateNewCell(orderIndex);
+                    cell.Init();
+                    cell.UpdateData(orderIndex);
+                    cell.SetVisible(elfinVisible);
+                    destroyCellAfter = true;
+                }
+
+                var newPrefab = GameObject.Instantiate(cell.gameObject.transform.GetChild(0).gameObject, elfinShow.transform);
+
+                // Destroy the neon egg label
+                if (elfinIndex == 10)
+                {
+                    Component.Destroy(newPrefab.transform.Find("SpecialElfinName").GetComponent<Image>());
+                    GameObject.Destroy(newPrefab.transform.Find("SpecialElfinName/TxtSpecialElfinName").gameObject);
+                }
+
+                if (destroyCellAfter) UnityEngine.Object.Destroy(cell);
+
+                var curOrderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(DataHelper.selectedElfinIndex).order - 1;
+                scrollView.ScrollToDataIndex(curOrderIndex, 0, true);
+
+                LeftElfinShow.transform.position = LeftElfinPosition;
+                RightElfinShow.transform.position = RightElfinPosition;
             }
-
-            var orderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(elfinIndex).order - 1;
-            var scrollView = ElfinFancyPanel.m_FancyScrollView;
-            scrollView.ScrollToDataIndex(orderIndex, 0, true);
-
-            var cell = scrollView.GetCell(orderIndex);
-            bool destroyCellAfter = false;
-            if (cell == null) 
-            {
-                cell = scrollView.CreateNewCell(orderIndex);
-                cell.Init();
-                cell.UpdateData(orderIndex);
-                cell.SetVisible(elfinVisible);
-                destroyCellAfter = true;
-            }
-
-            var newPrefab = GameObject.Instantiate(cell.gameObject.transform.GetChild(0).gameObject, elfinShow.transform);
-
-            // Destroy the neon egg label
-            if (elfinIndex == 10)
-            {
-                Component.Destroy(newPrefab.transform.Find("SpecialElfinName").GetComponent<Image>());
-                GameObject.Destroy(newPrefab.transform.Find("SpecialElfinName/TxtSpecialElfinName").gameObject);
-            }
-
-            if (destroyCellAfter) UnityEngine.Object.Destroy(cell);
-
-            var curOrderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(DataHelper.selectedElfinIndex).order;
-            scrollView.ScrollToDataIndex(curOrderIndex, 0, true);
-
-            LeftElfinShow.transform.position = LeftElfinPosition;
-            RightElfinShow.transform.position = RightElfinPosition;
+            catch {}
         }
 
         private static string GetName(Player player)
@@ -423,7 +435,7 @@ namespace Multiplayer.UI
         /// <summary>
         /// Enables the extension.
         /// </summary>
-        internal static void Enable()
+        internal static void Create()
         {
             if (!Main.IsUIScene) return;
 
@@ -592,8 +604,6 @@ namespace Multiplayer.UI
             LeftElfinShow.transform.localScale = SideElfinScale;
             RightElfinShow.transform.localScale = SideElfinScale;
 
-            BubblesLastMessage = new();
-
             Enabled = true;
             UpdateAllPages();
         }
@@ -601,7 +611,7 @@ namespace Multiplayer.UI
         /// <summary>
         /// Disables the extension.
         /// </summary>
-        internal static void Disable()
+        internal static void Destroy()
         {
             Enabled = false;
             try
@@ -638,8 +648,6 @@ namespace Multiplayer.UI
 
                 GameObject.Destroy(LeftButton);
                 GameObject.Destroy(RightButton);
-
-                BubblesLastMessage = null;
             }
             catch { }
         }

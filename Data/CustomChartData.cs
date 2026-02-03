@@ -1,5 +1,4 @@
 ﻿using CustomAlbums.Data;
-using CustomAlbums.Managers;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Static;
 using System.Net.Http.Json;
@@ -25,37 +24,44 @@ namespace Multiplayer.Data
         }
 
         /// <summary>
-        /// Gets data from mdmc api and updates fields. Should be called only when necessary.
+        /// Gets data from mdmc api and updates fields. Should be called only if necessary.
         /// </summary>
         internal async Task Update()
         {
-            if (!Album.Sheets.ContainsKey(2)) return;
-            var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + Album.Sheets[2].Md5, true, false, true);
-
-            // We check for the 404 specifically, because the server might be down or anything.
-            if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            try
             {
-                IsOnWebsite = response.IsSuccessStatusCode;
-                if (response.IsSuccessStatusCode)
+                if (!Album.Sheets.ContainsKey(2)) return;
+                var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + Album.Sheets[2].Md5, true, false, true);
+
+                // We check for the 404 specifically, because the server might be down or anything.
+                if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    var body = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
-                    var chartData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body["chart"]);
-                    WebsiteId = chartData["id"].GetString();
-                    IsRanked = chartData["ranked"].GetBoolean();
-                    MapDifficulties[body["map"].GetInt32()] = body["difficulty"].GetString();
-
-                    var thisSheetId = body["id"].GetString();
-                    foreach (var sheetId in JsonSerializer.Deserialize<List<string>>(chartData["sheets"]))
+                    IsOnWebsite = response.IsSuccessStatusCode;
+                    if (response.IsSuccessStatusCode)
                     {
-                        if (sheetId == thisSheetId) continue;
+                        var body = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+                        var chartData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body["chart"]);
+                        WebsiteId = chartData["id"].GetString();
+                        IsRanked = chartData["ranked"].GetBoolean();
+                        MapDifficulties[body["map"].GetInt32()] = body["difficulty"].GetString();
 
-                        var otherSheet = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + sheetId, true, false, true);
-                        if (!otherSheet.IsSuccessStatusCode) continue;
+                        var thisSheetId = body["id"].GetString();
+                        foreach (var sheetId in JsonSerializer.Deserialize<List<string>>(chartData["sheets"]))
+                        {
+                            if (sheetId == thisSheetId) continue;
 
-                        var otherBody = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
-                        MapDifficulties[otherBody["map"].GetInt32()] = otherBody["difficulty"].GetString();
+                            var otherSheet = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + sheetId, true, false, true);
+                            if (!otherSheet.IsSuccessStatusCode) continue;
+
+                            var otherBody = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+                            MapDifficulties[otherBody["map"].GetInt32()] = otherBody["difficulty"].GetString();
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Main.Log(ex);
             }
         }
     }

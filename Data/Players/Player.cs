@@ -45,13 +45,20 @@ namespace Multiplayer.Data.Players
         /// <param name="fullUpdate">Whether to update <see cref="HQStats"/> and <see cref="MoeStats"/> as well.</param>
         internal async Task Update(bool fullUpdate = false)
         {
-            await MultiplayerStats.Update();
-            if (fullUpdate)
+            try
             {
-                await MoeStats.Update();
-                await HQStats.Update();
+                await MultiplayerStats.Update();
+                if (fullUpdate)
+                {
+                    await MoeStats.Update();
+                    await HQStats.Update();
+                }
+                LastUpdated = DateTime.Now;
             }
-            LastUpdated = DateTime.Now;
+            catch (Exception ex)
+            {
+                Main.Log(ex);
+            }
         }
     }
 }

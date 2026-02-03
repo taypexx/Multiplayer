@@ -65,19 +65,13 @@ namespace Multiplayer.UI.Displays
             MessageHistoryIndex = 0;
         }
 
-        internal override void Update()
-        {
-            if (Lobby is null) { Destroy(); return; }
-            if (Title == null || PlaceholderText == null) return;
-
-            PlaceholderText.transform.position = Title.transform.position;
-        }
-
         /// <summary>
         /// Adds the <see cref="ChatMessage"/> to the display.
         /// </summary>
         internal void AddMessage(ChatMessage chatMessage)
         {
+            if (Lobby is null) return;
+
             while (GetTotalLines() >= MaxLines)
             {
                 RemoveText(PositionList.First());
@@ -101,6 +95,14 @@ namespace Multiplayer.UI.Displays
 
             SetTextPositions();
             Update();
+        }
+
+        internal override void Update()
+        {
+            if (Lobby is null) { Destroy(); return; }
+            if (Title == null || PlaceholderText == null) return;
+
+            PlaceholderText.transform.position = Title.transform.position;
         }
 
         internal override void Create(Lobby lobby, bool addTitle = true)

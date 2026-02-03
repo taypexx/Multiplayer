@@ -7,41 +7,40 @@ namespace Multiplayer.Static
     public class Config
     {
         internal bool ShowNavigationButtons { 
-            get;
-            set 
+            get; set 
             {
                 UIManager.ToggleNavigationButtons(value);
                 field = value;
             } 
-        } = true;
+        } 
+        = true;
 
-        internal bool EnableChat
-        {
-            get;
-            set
+        internal bool EnableChat {
+            get; set
             {
                 if (UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Frame != null) UIManager.ChatLobbyDisplay.Frame.SetActive(value);
                 field = value;
             }
-        } = true;
+        } 
+        = true;
 
         internal bool EnableShortcuts { 
-            get; 
-            set 
+            get; set 
             {
                 if (UIManager.ChatLobbyDisplay != null) UIManager.ChatLobbyDisplay.UpdatePlaceholder(value);
                 field = value;
             }
-        } = false;
+        } 
+        = false;
 
         internal bool FavGirlMode { 
-            get; 
-            set 
+            get; set 
             {
                 PnlHomeExtension.UpdateCurrentPage();
                 field = value;
             } 
-        } = false;
+        } 
+        = false;
 
         internal bool ShowOtherElfins { get; set; } = true;
 
@@ -49,21 +48,23 @@ namespace Multiplayer.Static
 
         internal bool ShowBattlePopups { get; set; } = true;
 
+        internal bool EnableLogging { get; set; } = true;
+
         internal int LobbyUpdateIntervalMS { 
-            get; 
-            set 
+            get; set 
             {
                 field = Math.Clamp(value, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS);
             } 
-        } = 3000;
+        } 
+        = 3000;
 
         internal int BattleUpdateIntervalMS { 
-            get; 
-            set 
+            get; set 
             {
                 field = Math.Clamp(value, Constants.BattleUpdateIntervalMinMS, Constants.BattleUpdateIntervalMaxMS);
             } 
-        } = 300;
+        } 
+        = 300;
     }
 
     internal static class Settings
@@ -73,7 +74,7 @@ namespace Multiplayer.Static
 
         internal static void Load()
         {
-            Main.Logger.Msg("Loading the settings...");
+            Main.Log("Loading the settings...");
             try
             {
                 if (!File.Exists(ConfigFilePath))
@@ -84,25 +85,25 @@ namespace Multiplayer.Static
 
                 Config = TomletMain.To<Config>(File.ReadAllText(ConfigFilePath));
 
-                Main.Logger.Msg(ConsoleColor.Green, "Successfully loaded the settings!");
+                Main.Log("Successfully loaded the settings!", Main.LogType.Success);
             }
             catch (Exception ex)
             {
-                Main.Logger.Error("Failed to load settings: " + ex);
+                Main.Log("Failed to load settings: " + ex, Main.LogType.Error);
             }
         }
 
         internal static void Save()
         {
-            Main.Logger.Msg("Saving the settings...");
+            Main.Log("Saving the settings...");
             try
             {
                 File.WriteAllText(ConfigFilePath, TomletMain.TomlStringFrom(Config));
-                Main.Logger.Msg(ConsoleColor.Green, "Successfully saved the settings!");
+                Main.Log("Successfully saved the settings!", Main.LogType.Success);
             }
             catch (Exception ex)
             {
-                Main.Logger.Error("Failed to save the settings: " + ex);
+                Main.Log("Failed to save the settings: " + ex, Main.LogType.Error);
             }
         }
     }

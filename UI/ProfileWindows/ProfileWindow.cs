@@ -23,9 +23,9 @@ namespace Multiplayer.UI.ProfileWindows
         private ForumObject StatsButton;
         private ForumObject AvatarButton;
         private ForumObject BioButton;
+        private ForumObject AchievementsButton;
         private ForumObject FriendsButton;
         private ForumObject FriendRequestsButton;
-        private ForumObject AchievementsButton;
         private ForumObject HQStatsButton;
         private ForumObject MDMoeButton;
         private ForumObject FriendActionButton;
@@ -82,6 +82,7 @@ namespace Multiplayer.UI.ProfileWindows
         internal void CreateButtons()
         {
             StatsButton = AddButton(Localization.Get("ProfileWindow", "Stats"));
+            AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
 
             if (Player == PlayerManager.LocalPlayer)
             {
@@ -91,7 +92,6 @@ namespace Multiplayer.UI.ProfileWindows
             }
 
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"));
-            AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
             MDMoeButton = AddButton(Localization.Get("ProfileWindow", "MDMoe"));
 
@@ -99,9 +99,6 @@ namespace Multiplayer.UI.ProfileWindows
             {
                 FriendActionButton = AddButton(Localization.Get("ProfileWindow", "AddFriend"));
             }
-
-            AddRefreshButton();
-            AddReturnButton();
         }
 
         /// <summary>
@@ -139,7 +136,7 @@ namespace Multiplayer.UI.ProfileWindows
 
             await Update(Player, true);
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 UIManager.Debounce = false;
                 Window.Show();
@@ -155,7 +152,7 @@ namespace Multiplayer.UI.ProfileWindows
             await UIManager.FriendsWindow.Update(Player);
             UIManager.Debounce = false;
 
-            Main.Dispatcher.Enqueue(() => UIManager.FriendsWindow.Window.Show());
+            Main.Dispatch(() => UIManager.FriendsWindow.Window.Show());
         }
 
         /// <summary>
@@ -191,7 +188,7 @@ namespace Multiplayer.UI.ProfileWindows
                 await player.Update();
             }
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 Player localPlayer = PlayerManager.LocalPlayer;
 
@@ -220,8 +217,6 @@ namespace Multiplayer.UI.ProfileWindows
                 AchievementsButton.Contents = StatsButton.Contents;
                 FriendsButton.Contents = StatsButton.Contents;
                 MDMoeButton.Contents = StatsButton.Contents;
-                RefreshButton.Contents = StatsButton.Contents;
-                ReturnButton.Contents = StatsButton.Contents;
 
                 if (AvatarButton != null)
                 {
@@ -273,7 +268,7 @@ namespace Multiplayer.UI.ProfileWindows
             await Update(Player, false);
 
             Show:
-            Main.Dispatcher.Enqueue(() => Window.Show());
+            Main.Dispatch(() => Window.Show());
         }
 
         /// <summary>
@@ -340,6 +335,12 @@ namespace Multiplayer.UI.ProfileWindows
             Window.Show();
         }
 
+        internal override void OnRefresh()
+        {
+            Window.ForceClose();
+            _ = Refresh();
+        }
+
         protected override void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
             ForumObject button = Window.ForumObjects[objectIndex];
@@ -378,7 +379,6 @@ namespace Multiplayer.UI.ProfileWindows
                 }
             } 
             else if (button == FriendsButton) _ = OpenFriendsWindow();
-            else if (button == RefreshButton) _ = Refresh();
         }
 
         protected override void OnShow(BaseWindow window)

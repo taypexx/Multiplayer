@@ -67,7 +67,6 @@ namespace Multiplayer.UI.LobbyWindows
             DisbandPrompt.AutoReset = true;
             DisbandPrompt.OnCompletion += (BaseWindow window) => _ = OnActionDecided(window);
 
-            AddReturnButton();
             ActionButton = AddButton(ActionButtonTitles[0], null, MainDescription);
         }
 
@@ -87,7 +86,7 @@ namespace Multiplayer.UI.LobbyWindows
             Lobby = lobby;
             if (updateLobby) await lobby.Update(updatePlayers);
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 ForumObject[] keepButtons = new ForumObject[3];
                 keepButtons[0] = ActionButton;
@@ -117,7 +116,7 @@ namespace Multiplayer.UI.LobbyWindows
                     PlayButton = null;
                 }
 
-                RemoveAllButtons(true, keepButtons);
+                RemoveAllButtons(keepButtons);
                 ButtonsPlayers.Clear();
 
                 ActionButtonIsJoin = !lobby.IsMember(PlayerManager.LocalPlayer);
@@ -150,7 +149,6 @@ namespace Multiplayer.UI.LobbyWindows
                     PlayButton.Contents = MainDescription;
                 }
 
-                ReturnButton.Contents = MainDescription;
                 ReturnWindow = LobbyManager.LocalLobby == Lobby ? UIManager.MainMenu : Lobby.IsPrivate ? UIManager.LobbiesWindow : UIManager.PublicLobbiesWindow;
 
                 foreach (string playerUid in lobby.Players)
@@ -167,7 +165,7 @@ namespace Multiplayer.UI.LobbyWindows
 
                 if (!lobby.IsPrivate) UIManager.PublicLobbiesWindow.UpdateLobbyButton(lobby);
 
-                if (prevPlayers != lobby.Players.Count && prevPlayers != 0) RefreshWindow();
+                if (prevPlayers != lobby.Players.Count && prevPlayers != 0) OnRefresh();
 
                 UpdateDebounce = false;
             });
@@ -183,17 +181,17 @@ namespace Multiplayer.UI.LobbyWindows
                 string passwordGuess = null;
                 if (PasswordPrompt.Completed) passwordGuess = PasswordPrompt.Result;
 
-                Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
+                Main.Dispatch(UIManager.PnlCloudMessageStart);
 
                 bool success = await LobbyManager.JoinLobby(Lobby, passwordGuess);
                 LocalString msg = success ? ActionButtonResponses[0] : window == PasswordPrompt ? Localization.Get("Lobby", "IncorrectPassword") : Localization.Get("Warning", "Unknown");
 
-                Main.Dispatcher.Enqueue(() => UIManager.PnlCloudMessageEnd(success));
+                Main.Dispatch(() => UIManager.PnlCloudMessageEnd(success));
 
                 UpdateDebounce = false;
                 if (success) await Update(Lobby);
 
-                Main.Dispatcher.Enqueue(() =>
+                Main.Dispatch(() =>
                 {
                     PopupUtils.ShowInfo(msg);
 
@@ -206,17 +204,17 @@ namespace Multiplayer.UI.LobbyWindows
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
-                Main.Dispatcher.Enqueue(UIManager.PnlCloudMessageStart);
+                Main.Dispatch(UIManager.PnlCloudMessageStart);
 
                 bool success = await LobbyManager.LeaveLobby();
                 LocalString msg = success ? ActionButtonResponses[window == LeavePrompt ? 1 : 2] : Localization.Get("Warning", "Unknown");
 
-                Main.Dispatcher.Enqueue(() => UIManager.PnlCloudMessageEnd(success));
+                Main.Dispatch(() => UIManager.PnlCloudMessageEnd(success));
 
                 UpdateDebounce = false;
                 if (success && window != DisbandPrompt) await Update(Lobby);
 
-                Main.Dispatcher.Enqueue(() =>
+                Main.Dispatch(() =>
                 {
                     PopupUtils.ShowInfo(msg);
 

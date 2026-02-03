@@ -28,10 +28,6 @@ namespace Multiplayer.Managers
 
         internal static bool Initialized { get; private set; } = false;
         internal static bool Debounce = false;
-        internal static Text WindowTitle { get; private set; }
-        internal static Button WindowBackButton { get; private set; }
-        internal static Button WindowExitButton { get; private set; }
-        internal static Button WindowRefreshButton { get; private set; }
 
         internal static GameObject MainFrame;
         internal static PnlMessage PnlMessage;
@@ -133,7 +129,7 @@ namespace Multiplayer.Managers
             Player player = await PlayerManager.GetPlayer(uid);
             await ProfileWindow.Update(player);
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 Debounce = false;
                 ProfileWindow.Window.Show();
@@ -152,7 +148,7 @@ namespace Multiplayer.Managers
 
             await ProfileWindow.Update(player, updatePlayer);
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 Debounce = false;
                 ProfileWindow.Window.Show();
@@ -171,7 +167,7 @@ namespace Multiplayer.Managers
 
             await LobbyWindow.Update(lobby, lobby != LobbyManager.LocalLobby);
 
-            Main.Dispatcher.Enqueue(() =>
+            Main.Dispatch(() =>
             {
                 Debounce = false;
                 LobbyWindow.Window.Show();
@@ -358,34 +354,6 @@ namespace Multiplayer.Managers
         {
             EventSystem = GameObject.Find("UI/EventSystem").GetComponent<EventSystem>();
 
-            // Upgrading bulletin
-
-            var windowTitleGo = MainFrame.transform.Find("TxtTittle").gameObject;
-            windowTitleGo.name = "WindowTitle";
-            windowTitleGo.SetActive(false);
-
-            var titleRect = windowTitleGo.GetComponent<RectTransform>();
-            titleRect.pivot = new(0.5f, 1f);
-            titleRect.anchorMin = titleRect.pivot;
-            titleRect.anchorMax = titleRect.pivot;
-            titleRect.anchoredPosition = new(0f, -170f);
-
-            WindowTitle = windowTitleGo.GetComponent<Text>();
-
-            var backBtnGo = Utilities.CreateText(MainFrame.transform.Find("ImgBase"), "BackBtn");
-            var backBtnText = backBtnGo.GetComponent<Text>();
-            backBtnText.text = "➜";
-            backBtnText.fontSize = 60;
-
-            var backBtnRect = backBtnGo.GetComponent<RectTransform>();
-            backBtnRect.localScale = new(-1f, 1f, 1f);
-            backBtnRect.pivot = new(0f, 1f);
-            backBtnRect.anchorMin = backBtnRect.pivot;
-            backBtnRect.anchorMax = backBtnRect.pivot;
-            backBtnRect.anchoredPosition = new(125f, 35f);
-
-            WindowBackButton = backBtnGo.AddComponent<Button>();
-
             // Navigation
 
             MainNavButton.Create();
@@ -395,11 +363,13 @@ namespace Multiplayer.Managers
 
             // Displays and extensions
 
+            BulletinExtension.Create();
+
             if (LobbyManager.IsInLobby && LobbyManager.LocalLobby.Playlist.Count == 0)
             {
-                PnlHomeExtension.Enable();
                 MainLobbyDisplay.Create(LobbyManager.LocalLobby);
                 ChatLobbyDisplay.Create(LobbyManager.LocalLobby, true);
+                PnlHomeExtension.Create();
             }
 
             var updateLobbyDisplayAction = (UnityAction)new Action(MainLobbyDisplay.UpdateTexts);
