@@ -4,14 +4,14 @@ using UnityEngine.UI;
 
 namespace Multiplayer.UI
 {
-    internal sealed class PnlAwait
+    internal static class PnlAwait
     {
         private static GameObject AwaitingLabelRef => GameObject.Find("Forward/PnlReady/PnlReadyGo/Ready");
         private static Transform ParentRef => GameObject.Find("Forward")?.transform;
 
-        private GameObject PnlGameObject;
+        private static GameObject PnlGameObject;
 
-        internal void Create()
+        internal static void Create()
         {
             if (AwaitingLabelRef is null || ParentRef is null) return;
             PnlGameObject = GameObject.Instantiate(AwaitingLabelRef, ParentRef);
@@ -40,7 +40,7 @@ namespace Multiplayer.UI
             PnlGameObject.SetActive(true);
         }
 
-        internal void Destroy()
+        internal static void Destroy()
         {
             GameObject.Destroy(PnlGameObject);
         }

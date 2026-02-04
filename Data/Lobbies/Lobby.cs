@@ -1,5 +1,6 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
+using Multiplayer.Data.Stats;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using System.Net.Http.Json;
@@ -20,6 +21,7 @@ namespace Multiplayer.Data.Lobbies
         public bool Locked { get; internal set; }
         public HashSet<string> ReadyPlayers { get; private set; }
         public bool EveryoneReady => ReadyPlayers.Count == Players.Count;
+        public bool EveryoneFinished => ReadyPlayers.Count == 0;
 
         public Player Host { get; private set; }
         public HashSet<string> Players { get; private set; }
@@ -67,6 +69,56 @@ namespace Multiplayer.Data.Lobbies
         internal bool IsMember(Player player)
         {
             return Players.Contains(player.Uid);
+        }
+
+        internal string GetBattleInfo(Player player)
+        {
+            var battleInfo = string.Empty;
+            var battleStats = player.BattleStats;
+
+            if (battleStats.Alive)
+            {
+                switch (Goal)
+                {
+                    case LobbyGoal.Accuracy:
+
+                        if (battleStats.TrueAP)
+                        {
+                            battleInfo = $"<color=#{Constants.Red}>TP</color>";
+                        }
+                        else if (battleStats.AP)
+                        {
+                            battleInfo = $"<color=#{Constants.Yellow}>AP</color>";
+                            if (battleStats.Earlies > 0)
+                            {
+                                battleInfo += $" <color=#{Constants.Blue}>{battleStats.Earlies}E</color>";
+                            }
+                            if (battleStats.Lates > 0)
+                            {
+                                battleInfo += $" <color=#{Constants.Red}>{battleStats.Lates}L</color>";
+                            }
+                        }
+                        else if (battleStats.FC)
+                        {
+                            battleInfo = $"<color=#{Constants.Blue}>FC</color> {battleStats.Accuracy}%  {battleStats.Greats}G";
+                        }
+                        else
+                        {
+                            battleInfo = $"{battleStats.Accuracy}%  {battleStats.Misses}M";
+                            if (battleStats.Greats > 0) battleInfo += $" {battleStats.Greats}G";
+                        }
+
+                        break;
+                    case LobbyGoal.Score:
+                        battleInfo = battleStats.Score.ToString();//$"<color=#{Constants.Yellow}>{battleStats.Score}</color>";
+                        break;
+                    case LobbyGoal.Custom:
+                        break;
+                }
+            }
+            else battleInfo = $"<color=#{Constants.Red}>Down</color>";
+
+            return battleInfo;
         }
 
         /// <summary>

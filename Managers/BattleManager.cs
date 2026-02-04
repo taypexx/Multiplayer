@@ -45,7 +45,9 @@ namespace Multiplayer.Managers
         /// </summary>
         private static async Task<byte[]> ServerSync()
         {
-            Datagram = new byte[UidSize + BattleStatsSize + 2 + Client.Token.Length];
+            var tokenSize = Encoding.UTF8.GetByteCount(Client.Token);
+
+            Datagram = new byte[UidSize + BattleStatsSize + sizeof(ushort) + tokenSize];
             Span<byte> span = Datagram;
 
             Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(0, UidSize));
@@ -62,7 +64,7 @@ namespace Multiplayer.Managers
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 20), BattleStats.Player.PingMS);
 
             // Signed string because the length is not fixed
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 22), (ushort)Client.Token.Length);
+            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 22), (ushort)tokenSize);
             Encoding.UTF8.GetBytes(Client.Token, span.Slice(UidSize + 24));
 
             return await Client.UdpSendAsync(Datagram);
@@ -169,13 +171,6 @@ namespace Multiplayer.Managers
         internal static void SyncStop()
         {
             Synchronizing = false;
-
-            foreach (string playerUid in LobbyManager.LocalLobby.Players)
-            {
-                Player player = PlayerManager.GetCachedPlayer(playerUid);
-                if (player == null) continue;
-                player.BattleStats.Reset();
-            }
 
             Main.Log("Battle synchronization ended!");
         }

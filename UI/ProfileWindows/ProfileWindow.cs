@@ -1,5 +1,4 @@
 ﻿using Il2Cpp;
-using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppSirenix.Serialization.Utilities;
 using LocalizeLib;
@@ -7,6 +6,7 @@ using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
+using Multiplayer.UI.Extensions;
 using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
@@ -37,7 +37,7 @@ namespace Multiplayer.UI.ProfileWindows
         private Dictionary<int, LocalString> FriendButtonTitles;
         private Dictionary<int, LocalString> FriendButtonResponses;
 
-        private static bool PnlHeadWasOpened = false;
+        internal bool PnlHeadWasOpened = false;
         private GameObject AvatarBox;
         private HeadItem AvatarHeadItem;
 
@@ -82,7 +82,6 @@ namespace Multiplayer.UI.ProfileWindows
         internal void CreateButtons()
         {
             StatsButton = AddButton(Localization.Get("ProfileWindow", "Stats"));
-            AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
 
             if (Player == PlayerManager.LocalPlayer)
             {
@@ -92,6 +91,7 @@ namespace Multiplayer.UI.ProfileWindows
             }
 
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"));
+            AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
             //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
             MDMoeButton = AddButton(Localization.Get("ProfileWindow", "MDMoe"));
 
@@ -269,28 +269,6 @@ namespace Multiplayer.UI.ProfileWindows
 
             Show:
             Main.Dispatch(() => Window.Show());
-        }
-
-        /// <summary>
-        /// Calls every time <see cref="PnlHead"/> gets closed.
-        /// </summary>
-        internal async Task OnPnlHeadClose()
-        {
-            if (PlayerManager.LocalPlayer is null) return;
-
-            string newAvatarName = "head_" + DataHelper.selectedHeadIndex.ToString();
-            if (PlayerManager.LocalPlayer.MultiplayerStats.AvatarName != newAvatarName)
-            {
-                PlayerManager.LocalPlayer.MultiplayerStats.AvatarName = newAvatarName;
-                PlayerManager.SyncProfile();
-                await Update(Player, false);
-            }
-
-            if (PnlHeadWasOpened)
-            {
-                PnlHeadWasOpened = false;
-                Window.Show();
-            }
         }
 
         private async Task OnFriendActionDecided(BaseWindow window = null)

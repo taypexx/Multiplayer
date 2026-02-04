@@ -6,6 +6,7 @@ using Multiplayer.UI.Abstract;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows.Interfaces;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Multiplayer.UI.LobbyWindows
 {
@@ -49,21 +50,7 @@ namespace Multiplayer.UI.LobbyWindows
         /// </summary>
         internal async Task Update()
         {
-            var payload = new
-            {
-                Client.Token,
-                PlayerManager.LocalPlayer.Uid
-            };
-
-            var response = await Client.PostAsync("getLobbies", payload);
-            if (response == null) return;
-
-            var lobbyIds = await response.Content.ReadFromJsonAsync<List<int>>();
-            foreach (int id in lobbyIds)
-            {
-                Lobby lobby = await LobbyManager.GetLobby(id);
-                await lobby.Update();
-            }
+            await LobbyManager.UpdatePublicLobbies();
 
             Main.Dispatch(() =>
             {

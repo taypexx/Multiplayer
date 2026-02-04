@@ -13,6 +13,7 @@ using System.Net;
 using System.Net.WebSockets;
 using Multiplayer.Data.Chat;
 using UnityEngine;
+using Multiplayer.UI.Extensions;
 
 namespace Multiplayer.Static
 {
@@ -34,8 +35,11 @@ namespace Multiplayer.Static
 
         private static HttpMessageHandler HttpHandler;
         private static HttpClient Http;
+
         private static UdpClient Udp;
+
         private static ClientWebSocket WebSocket;
+        private static int WebsocketReconnectTries = 0;
 
         internal static string Token { get; 
             private set 
@@ -53,27 +57,18 @@ namespace Multiplayer.Static
         }
         internal static readonly string TokenPath = Path.Combine(MelonEnvironment.GameRootDirectory, "mdmp.token");
 
-        /// <summary>
-        /// Connects to the server websocket and starts listening for incoming messages/lobby updates.
-        /// </summary>
-        internal static async Task WebsocketListen()
+        private static async Task WebsocketListen()
         {
-            if (!LobbyManager.IsInLobby || WebSocket.State == WebSocketState.Open) return;
-
-            WebSocket.Options.SetRequestHeader("Authorization", $"Basic {PlayerManager.LocalPlayerUid}#{Token}");
-
-            Main.Log("Connecting to the Websocket...");
-            await WebSocket.ConnectAsync(WebsocketAddress, CancellationToken.None);
-            Main.Log("Websocket connection was successfully established at " + WebsocketAddress, Main.LogType.Success);
-
             var buffer = new byte[4096];
             while (WebSocket.State == WebSocketState.Open && LobbyManager.IsInLobby)
             {
                 var msgBuilder = new StringBuilder();
                 WebSocketReceiveResult res = null;
 
-                do {
+                do
+                {
                     res = await WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
                     unchecked
                     {
                         PingMS = Stopwatch.ElapsedMilliseconds == 0 ? PingMS : (ushort)Stopwatch.ElapsedMilliseconds;
@@ -83,12 +78,12 @@ namespace Multiplayer.Static
                     if (res.MessageType == WebSocketMessageType.Close || !LobbyManager.IsInLobby)
                     {
                         await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
-                        goto End;
+                        return;
                     }
                     else if (res.MessageType != WebSocketMessageType.Text) continue;
 
                     msgBuilder.Append(Encoding.UTF8.GetString(buffer, 0, res.Count));
-                } 
+                }
                 while (!res.EndOfMessage);
 
                 var message = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(msgBuilder.ToString());
@@ -102,12 +97,71 @@ namespace Multiplayer.Static
                         break;
                 }
             }
-            End:
-            UIManager.Debounce = true;
-            await LobbyManager.LeaveLobby(true);
-            UIManager.Debounce = false;
+        }
 
-            Main.Log("Websocket connection ended.");
+        /// <summary>
+        /// Connects to the server websocket and starts listening for incoming messages/lobby updates.
+        /// </summary>
+        internal static async Task WebsocketStart()
+        {
+            if (!LobbyManager.IsInLobby || WebSocket.State == WebSocketState.Open) return;
+
+            WebSocket.Options.SetRequestHeader("Authorization", $"Basic {PlayerManager.LocalPlayerUid}#{Token}");
+
+            Main.Log("Connecting to the Websocket...");
+
+            while (WebsocketReconnectTries < Constants.WebsocketTryReconnectTimes)
+            {
+                try
+                {
+                    await WebSocket.ConnectAsync(WebsocketAddress, CancellationToken.None);
+                    await Task.Delay(1000);
+
+                    Main.Log("Websocket connection was successfully established at " + WebsocketAddress, Main.LogType.Success);
+                    WebsocketReconnectTries = 0;
+
+                    await WebsocketListen();
+
+                    if (LobbyManager.IsInLobby)
+                    {
+                        throw new Exception();
+                    }
+                    else break;
+                }
+                catch (Exception)
+                {
+                    WebsocketReconnectTries++;
+                    Main.Log($"Websocket connection was lost, reconnecting... (attempt {WebsocketReconnectTries})", Main.LogType.Warning);
+
+                    if (WebsocketReconnectTries == 1)
+                    {
+                        Main.Dispatch(() => Chat.Recieve(new()
+                        {
+                            Message = Localization.Get("SystemChatMessages", "WebsocketReconnect").ToString(),
+                            AuthorName = "system"
+                        }));
+                    }
+
+                    await Task.Delay(Constants.WebsocketReconnectAfterMS);
+                }
+            }
+
+            if (LobbyManager.IsInLobby)
+            {
+                Main.Log("Websocket connection was lost.", Main.LogType.Error);
+
+                UIManager.Debounce = true;
+                await LobbyManager.LeaveLobby(true);
+                UIManager.Debounce = false;
+
+                Main.Dispatch(() =>
+                {
+                    UIManager.WarnNotification(Localization.Get("Warning", "WebsocketFail"));
+                });
+            }
+            else Main.Log("Websocket connection has ended.");
+
+            WebsocketReconnectTries = 0;
         }
 
         /// <summary>
@@ -250,7 +304,7 @@ namespace Multiplayer.Static
 
             Main.Log("Awaiting for token...");
 
-            Main.Dispatch(UIManager.PnlCloudMessageStart);
+            Main.Dispatch(() => PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Awaiting").ToString()));
 
             HttpListenerContext context = await listener.GetContextAsync();
             var request = context.Request;
@@ -298,7 +352,7 @@ namespace Multiplayer.Static
             string uid = DataHelper.PeroUid;
             if (uid == null) return;
 
-            Main.Dispatch(UIManager.PnlCloudMessageStart);
+            Main.Dispatch(() => PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Connecting").ToString()));
             Debounce = true;
             Main.Log("Connecting to the server...");
 
@@ -307,7 +361,7 @@ namespace Multiplayer.Static
                 : new { Uid = uid, Name = DataHelper.nickname, Code = code };
 
             var response = await PostAsync($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login", payload, true, code is null, true);
-            Main.Dispatch(() => UIManager.PnlCloudMessageEnd(response.IsSuccessStatusCode));
+            Main.Dispatch(() => PnlCloudExtension.Finish(response.IsSuccessStatusCode));
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
@@ -406,8 +460,10 @@ namespace Multiplayer.Static
             Http = new(HttpHandler);
             Http.DefaultRequestHeaders.ConnectionClose = false;
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
             Udp = new();
             Udp.Client.ReceiveTimeout = Constants.BattleUpdateTimeoutMS;
+
             WebSocket = new();
 
             if (File.Exists(TokenPath)) Token = Cipher.Decrypt(File.ReadAllText(TokenPath), Constants.TokenCipherShift);

@@ -3,6 +3,7 @@ using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
 using Multiplayer.Static;
+using Multiplayer.UI.Extensions;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;

@@ -10,7 +10,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Il2Cpp;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.Extensions
 {
     internal static class Intermission
     {
@@ -21,7 +21,6 @@ namespace Multiplayer.UI
 
         private static Text TimerText;
         private static GameObject BtnBack;
-        private static Vector3 BtnLabelOffset = new Vector3(1.4f, -0.2f, 0f);
 
         /// <summary>
         /// Gets the name of a girl with the given <paramref name="girlId"/>.
@@ -61,7 +60,7 @@ namespace Multiplayer.UI
 
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
             var chartLabel = ChartManager.GetNiceChartName(entry.MusicInfo, entry.Difficulty);
-            var secondsLeft = Constants.IntermissionTimeMS/1000 - Stopwatch.Elapsed.TotalSeconds;
+            var secondsLeft = Constants.IntermissionTimeMS / 1000 - Stopwatch.Elapsed.TotalSeconds;
 
             string topGirl, topElfin;
             if (CurrentTopGirlID >= 0 && CurrentTopElfinID >= 0)
@@ -75,9 +74,9 @@ namespace Multiplayer.UI
                 topElfin = topGirl;
             }
 
-            TimerText.text = String.Format(
+            TimerText.text = string.Format(
                 Localization.Get("Lobby", "IntermissionLabel").ToString(),
-                Constants.Yellow, chartLabel, 
+                Constants.Yellow, chartLabel,
                 Constants.Blue, topGirl, topElfin,
                 Constants.Yellow, (int)secondsLeft
             );
@@ -98,7 +97,7 @@ namespace Multiplayer.UI
                     var body = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
                     if (body.Count == 0) return;
 
-                    var scores = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(body["scores"]);
+                    var scores = body["scores"].Deserialize<List<Dictionary<string, JsonElement>>>();
                     if (scores.Count == 0) return;
 
                     var topScore = scores.First();
@@ -176,7 +175,7 @@ namespace Multiplayer.UI
             CurrentTopGirlID = -1;
             CurrentTopElfinID = -1;
 
-            GameObject.Destroy(TimerText.gameObject);
+            UnityEngine.Object.Destroy(TimerText.gameObject);
             UIManager.MainLobbyDisplay.Destroy();
             UIManager.ChatLobbyDisplay.Destroy();
             PnlHomeExtension.Destroy();

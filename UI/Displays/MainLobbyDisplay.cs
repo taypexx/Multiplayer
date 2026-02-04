@@ -2,6 +2,7 @@
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
+using Multiplayer.UI.Extensions;
 using UnityEngine;
 using UnityEngine.UI;
 

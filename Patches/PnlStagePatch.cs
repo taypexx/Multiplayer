@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Il2CppAssets.Scripts.UI.Panels;
 using Multiplayer.Managers;
-using Multiplayer.UI;
+using Multiplayer.UI.Extensions;
 
 namespace Multiplayer.Patches
 {

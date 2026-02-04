@@ -48,47 +48,7 @@ namespace Multiplayer.UI.Displays
                 
                 if (!InputManager.PingMode)
                 {
-                    if (battleStats.Alive)
-                    {
-                        switch (LobbyManager.LocalLobby.Goal)
-                        {
-                            case LobbyGoal.Accuracy:
-
-                                if (battleStats.TrueAP)
-                                {
-                                    battleInfo = $"<color=#{Constants.Red}>TP</color>";
-                                }
-                                else if (battleStats.AP)
-                                {
-                                    battleInfo = $"<color=#{Constants.Yellow}>AP</color>";
-                                    if (battleStats.Earlies > 0)
-                                    {
-                                        battleInfo += $" <color=#{Constants.Blue}>{battleStats.Earlies}E</color>";
-                                    }
-                                    if (battleStats.Lates > 0)
-                                    {
-                                        battleInfo += $" <color=#{Constants.Red}>{battleStats.Lates}L</color>";
-                                    }
-                                }
-                                else if (battleStats.FC)
-                                {
-                                    battleInfo = $"<color=#{Constants.Blue}>FC</color> {battleStats.Accuracy}%  {battleStats.Greats}G";
-                                }
-                                else
-                                {
-                                    battleInfo = $"{battleStats.Accuracy}%  {battleStats.Misses}M";
-                                    if (battleStats.Greats > 0) battleInfo += $" {battleStats.Greats}G";
-                                }
-
-                                break;
-                            case LobbyGoal.Score:
-                                battleInfo = $"<color=#{Constants.Pink}>{battleStats.Score}</color>";
-                                break;
-                            case LobbyGoal.Custom:
-                                break;
-                        }
-                    } 
-                    else battleInfo = $"<color=#{Constants.Red}>Down</color>";
+                    battleInfo = LobbyManager.LocalLobby.GetBattleInfo(player);
                 } 
                 else battleInfo = $"<color=#{Utilities.GetPingColor(player.PingMS)}>{player.PingMS}ms</color>";
 

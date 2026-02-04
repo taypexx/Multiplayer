@@ -3,6 +3,7 @@ using Il2Cpp;
 using Il2CppAssets.Scripts.UI.Panels.PnlRole;
 using Multiplayer.Managers;
 using Multiplayer.Static;
+using Multiplayer.UI.Extensions;
 using System;
 
 namespace Multiplayer.Patches
@@ -64,13 +65,13 @@ namespace Multiplayer.Patches
                 if (!LobbyManager.IsInLobby) return;
 
                 bool sleepwalkerVisible = UIManager.PnlRole.m_ConfigCharacter.GetCharacterInfoByOrder(index + 1).listIndex == Constants.SleepwalkerRoleIndex;
-                if (!UIManager.ImgPnlRoleLocked.active && sleepwalkerVisible)
+                if (!PnlMenuExtension.ImgPnlRoleLockedEnabled && sleepwalkerVisible)
                 {
-                    UIManager.ToggleSleepwalkerSelection(false);
+                    PnlMenuExtension.ToggleSleepwalkerSelection(false);
                 }
-                else if (UIManager.ImgPnlRoleLocked.active && !sleepwalkerVisible)
+                else if (PnlMenuExtension.ImgPnlRoleLockedEnabled && !sleepwalkerVisible)
                 {
-                    UIManager.ToggleSleepwalkerSelection(true);
+                    PnlMenuExtension.ToggleSleepwalkerSelection(true);
                 }
             }
         }

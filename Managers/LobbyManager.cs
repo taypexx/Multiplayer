@@ -2,7 +2,7 @@
 using LocalizeLib;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Static;
-using Multiplayer.UI;
+using Multiplayer.UI.Extensions;
 using PopupLib.UI;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -12,22 +12,7 @@ namespace Multiplayer.Managers
     internal static class LobbyManager
     {
         internal static Dictionary<int,Lobby> CachedLobbies { get; private set; }
-        internal static List<Lobby> PublicLobbies 
-        { 
-            get 
-            { 
-                if (CachedLobbies is null) return null;
-
-                field.Clear();
-                foreach (Lobby lobby in CachedLobbies.Values)
-                {
-                    if (lobby.IsPrivate) continue;
-                    field.Add(lobby);
-                }
-                return field;
-            } 
-            private set; 
-        }
+        internal static List<Lobby> PublicLobbies => CachedLobbies.Values.Where(l => !l.IsPrivate).ToList();
 
         internal static Lobby LocalLobby { get; set; }
         internal static bool IsInLobby => LocalLobby != null;
@@ -37,7 +22,7 @@ namespace Multiplayer.Managers
         internal static bool IsAutoUpdating = false;
 
         /// <summary>
-        /// Starts the auto update loop and updates the <see cref="Lobby"/> every <see cref="AutoUpdateInterval"/>.
+        /// Starts auto updating the UI according to the current <see cref="Lobby"/>.
         /// </summary>
         internal static async Task AutoUpdateStart(Lobby lobby)
         {
@@ -48,24 +33,23 @@ namespace Multiplayer.Managers
                 await Task.Delay(Settings.Config.LobbyUpdateIntervalMS);
 
                 // Websocket handles the lobby update (if local lobby), we just update the window without lobby
-                await UIManager.LobbyWindow.Update(lobby, lobby != LocalLobby); 
+                await UIManager.LobbyWindow.Update(lobby, lobby != LocalLobby);
 
-                if (lobby == LocalLobby)
+                if (lobby != LocalLobby) continue;
+                
+                await SyncLobby();
+                Main.Dispatch(() => 
                 {
-                    await SyncLobby();
-                    Main.Dispatch(() => 
-                    {
-                        UIManager.LobbyPlaylistWindow.Update(lobby);
-                        UIManager.MainLobbyDisplay.Update();
-                        PnlPreparationExtension.UpdatePnlPreparation();
-                        PnlHomeExtension.UpdateAllPages();
-                    });
+                    UIManager.LobbyPlaylistWindow.Update(lobby);
+                    UIManager.MainLobbyDisplay.Update();
+                    PnlPreparationExtension.UpdatePnlPreparation();
+                    PnlHomeExtension.UpdateAllPages();
+                });
 
-                    // Start condition (for everyone except host)
-                    if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.IsUIScene && LocalLobby.CurrentPlaylistEntry != null)
-                    {
-                        _ = Intermission.Start();
-                    }
+                // Start condition (for everyone except host)
+                if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.IsUIScene && LocalLobby.CurrentPlaylistEntry != null)
+                {
+                    _ = Intermission.Start();
                 }
             }
         }
@@ -90,8 +74,35 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
+        /// Sends a request to the server to kick the player from the <see cref="Lobby"/>.
+        /// </summary>
+        /// <param name="playerUid">UID of a rogue.</param>
+        /// <returns><see langword="true"/> if the player was kicked, otherwise <see langword="false"/>.</returns>
+        internal static async Task<bool> KickPlayer(string playerUid)
+        {
+            if (!Client.Connected || !IsInLobby || LocalLobby.Host != PlayerManager.LocalPlayer) return false;
+
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                TargetUid = playerUid
+            };
+
+            var response = await Client.PostAsync("lobbyKick", payload);
+            bool success = response != null;
+
+            if (success && LocalLobby.Players.Contains(playerUid))
+            {
+                LocalLobby.Players.Remove(playerUid);
+            }
+
+            return success;
+        }
+
+        /// <summary>
         /// Sends a request to the server to continue and remove the first <see cref="PlaylistEntry"/>.
         /// </summary>
+        /// <returns><see langword="true"/> if the first <see cref="PlaylistEntry"/> was removed, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> PlaylistContinue()
         {
             if (!Client.Connected || !IsInLobby || LocalLobby.Host != PlayerManager.LocalPlayer) return false;
@@ -120,6 +131,7 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Sends a request to the server to add a new <see cref="PlaylistEntry"/> to the playlist.
         /// </summary>
+        /// <returns><see langword="true"/> if the <see cref="PlaylistEntry"/> was added, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> PlaylistAdd(MusicInfo musicInfo, int difficulty)
         {
             if (!Client.Connected || !IsInLobby || LocalLobby.IsPlaylistFull) return false;
@@ -180,6 +192,7 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Sends a request to the server to remove the <see cref="PlaylistEntry"/> from the playlist.
         /// </summary>
+        /// <returns><see langword="true"/> if the <see cref="PlaylistEntry"/> was removed, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> PlaylistRemove(MusicInfo musicInfo, int difficulty)
         {
             if (!Client.Connected || !IsInLobby) return false;
@@ -251,6 +264,7 @@ namespace Multiplayer.Managers
         /// Tries to restore the <see cref="Lobby"/> of the local player.
         /// </summary>
         /// <param name="lobbyId">Id of the <see cref="Lobby"/> current local player is in.</param>
+        /// <returns><see langword="true"/> if the <see cref="Lobby"/> was restored, otherwise <see langword="false"/>.</returns>
         private static async Task<bool> RestoreLobby()
         {
             if (!Client.Connected || IsInLobby) return false;
@@ -357,7 +371,7 @@ namespace Multiplayer.Managers
         private static void OnJoin(Lobby lobby)
         {
             LocalLobby = lobby;
-            _ = Client.WebsocketListen();
+            _ = Client.WebsocketStart();
             _ = AutoUpdateStart(lobby);
 
             Main.Dispatch(() =>
@@ -389,6 +403,33 @@ namespace Multiplayer.Managers
                 PnlHomeExtension.Destroy();
                 ClearLobbyFromCache(prevLobby);
             });
+        }
+
+        /// <summary>
+        /// Gets all public lobbies from the server and also updates the cached ones.
+        /// </summary>
+        internal static async Task UpdatePublicLobbies()
+        {
+            var response = await Client.GetAsync("getLobbies");
+            if (response == null) return;
+
+            try
+            {
+                var lobbies = await response.Content.ReadFromJsonAsync<Dictionary<int, Dictionary<string, JsonElement>>>();
+                foreach ((int id, var body) in lobbies)
+                {
+                    if (LocalLobby.Id == id) continue;
+
+                    Lobby lobby = GetCachedLobby(id);
+                    if (lobby == null)
+                    {
+                        lobby = new(id);
+                        CacheLobby(lobby);
+                    }
+                    await lobby.UpdateFields(body);
+                }
+            }
+            catch {}
         }
 
         /// <summary>
@@ -476,7 +517,6 @@ namespace Multiplayer.Managers
         internal static async Task Init()
         {
             CachedLobbies = new();
-            PublicLobbies = new();
             await RestoreLobby();
             _ = CacheCleaner();
         }

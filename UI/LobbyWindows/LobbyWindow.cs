@@ -4,6 +4,7 @@ using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
+using Multiplayer.UI.Extensions;
 using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
@@ -122,15 +123,15 @@ namespace Multiplayer.UI.LobbyWindows
                 ActionButtonIsJoin = !lobby.IsMember(PlayerManager.LocalPlayer);
                 ActionButton.Titles = ActionButtonIsJoin ? lobby.Players.Count < lobby.MaxPlayers ? ActionButtonTitles[0] : ActionButtonTitles[3] : lobby.Host == PlayerManager.LocalPlayer ? ActionButtonTitles[2] : ActionButtonTitles[1];
 
-                MainDescription = new(string.Format(
-                    Localization.Get("Lobby", "Description").ToString(),
-                    lobby.Name,
+                MainDescription = new(string.Format(Localization.Get("Lobby", "Description").ToString(),
+                    Constants.Red, lobby.Name,
+                    Constants.Yellow, $"{lobby.Players.Count}/{lobby.MaxPlayers}",
                     lobby.IsPrivate ? Constants.Red : Constants.Green,
                     lobby.IsPrivate ? Localization.Get("Lobby", "PrivateStatus").ToString() : Localization.Get("Lobby", "PublicStatus").ToString(),
                     lobby.Id,
-                    lobby.Host.MultiplayerStats.Name,
-                    lobby.Players.Count, lobby.MaxPlayers,
-                    Constants.PlayTypeColors[lobby.PlayType], Localization.Get("Lobby", lobby.PlayType.ToString()), 
+                    Constants.Yellow, lobby.Host.MultiplayerStats.Name,
+                    Constants.GoalColors[lobby.Goal], Localization.Get("Lobby", lobby.Goal.ToString()),
+                    Constants.PlayTypeColors[lobby.PlayType], Localization.Get("Lobby", lobby.PlayType.ToString()),
                     lobby.Locked ? Localization.Get("Global", "Yes").ToString() : Localization.Get("Global", "No").ToString()
                 ));
 
@@ -181,12 +182,12 @@ namespace Multiplayer.UI.LobbyWindows
                 string passwordGuess = null;
                 if (PasswordPrompt.Completed) passwordGuess = PasswordPrompt.Result;
 
-                Main.Dispatch(UIManager.PnlCloudMessageStart);
+                Main.Dispatch(() => PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Joining").ToString()));
 
                 bool success = await LobbyManager.JoinLobby(Lobby, passwordGuess);
                 LocalString msg = success ? ActionButtonResponses[0] : window == PasswordPrompt ? Localization.Get("Lobby", "IncorrectPassword") : Localization.Get("Warning", "Unknown");
 
-                Main.Dispatch(() => UIManager.PnlCloudMessageEnd(success));
+                Main.Dispatch(() => PnlCloudExtension.Finish(success));
 
                 UpdateDebounce = false;
                 if (success) await Update(Lobby);
@@ -204,12 +205,12 @@ namespace Multiplayer.UI.LobbyWindows
                 UIManager.Debounce = true;
                 UpdateDebounce = true;
 
-                Main.Dispatch(UIManager.PnlCloudMessageStart);
+                Main.Dispatch(() => PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Leaving").ToString()));
 
                 bool success = await LobbyManager.LeaveLobby();
                 LocalString msg = success ? ActionButtonResponses[window == LeavePrompt ? 1 : 2] : Localization.Get("Warning", "Unknown");
 
-                Main.Dispatch(() => UIManager.PnlCloudMessageEnd(success));
+                Main.Dispatch(() => PnlCloudExtension.Finish(success));
 
                 UpdateDebounce = false;
                 if (success && window != DisbandPrompt) await Update(Lobby);

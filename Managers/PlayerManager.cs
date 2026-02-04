@@ -1,6 +1,5 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
-using Multiplayer.Data.Stats;
 using Multiplayer.Static;
 
 namespace Multiplayer.Managers

@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.Extensions
 {
     internal static class PnlPreparationExtension
     {
@@ -111,7 +111,7 @@ namespace Multiplayer.UI
             {
                 playText.text = Localization.Get("PnlPreparation", "RetrievingInfo").ToString();
             }
-            else 
+            else
             {
                 playText.text = Localization.Get("PnlPreparation",
                     isRemoving

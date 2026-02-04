@@ -19,6 +19,7 @@ using Multiplayer.UI.NavigationButtons;
 using UnityEngine.Events;
 using Il2CppAssets.Scripts.UI.Panels.PnlRole;
 using UnityEngine.EventSystems;
+using Multiplayer.UI.Extensions;
 
 namespace Multiplayer.Managers
 {
@@ -44,8 +45,6 @@ namespace Multiplayer.Managers
         internal static GameObject PnlCloudMessage;
 
         internal static PnlVictory PnlVictory;
-
-        internal static GameObject ImgPnlRoleLocked;
 
         internal static PromptWindow PlayConfirmPrompt;
         internal static bool LobbyWindowQueued = false;
@@ -82,8 +81,6 @@ namespace Multiplayer.Managers
         internal static LobbyButton LobbyNavButton { get; private set; }
         internal static PlayButton PlayNavButton { get; private set; }
         internal static PlaylistButton PlaylistNavButton { get; private set; }
-
-        internal static PnlAwait PnlAwait { get; private set; }
 
 
         /// <summary>
@@ -282,49 +279,18 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Enables the <see cref="PnlCloudMessage"/> so it sits there with the "Synchronizing" label.
+        /// Calls every time <see cref="PnlHead"/> gets closed.
         /// </summary>
-        internal static void PnlCloudMessageStart()
+        internal static void OnPnlHeadClose()
         {
-            if (!Main.IsUIScene || !Initialized || PnlCloudMessage.active) return;
+            if (PlayerManager.LocalPlayer is null) return;
+            PlayerManager.SyncProfile();
 
-            PnlCloudMessage.transform.Find("ImgBase/SynchronizingCompleted").gameObject.SetActive(false);
-            PnlCloudMessage.transform.Find("ImgBase/SynchronizingFail").gameObject.SetActive(false);
-
-            PnlCloudMessage.transform.Find("ImgBase/Synchronizing").gameObject.SetActive(true);
-            PnlCloudMessage.SetActive(true);
-        }
-
-        /// <summary>
-        /// Finishes the <see cref="PnlCloudMessage"/> animation.
-        /// </summary>
-        /// <param name="success">Will display completed or failed.</param>
-        internal static void PnlCloudMessageEnd(bool success)
-        {
-            if (!Main.IsUIScene || !Initialized || !PnlCloudMessage.active) return;
-
-            PnlCloudMessage.transform.Find("ImgBase/Synchronizing").gameObject.SetActive(false);
-            PnlCloudMessage.transform.Find("ImgBase/Synchronizing" + (success ? "Completed" : "Fail")).gameObject.SetActive(true);
-        }
-
-        /// <summary>
-        /// Locks/unlocks sleepwalker selection on the <see cref="PnlRole"/>.
-        /// </summary>
-        /// <param name="state">Whether to lock or unlock the select button.</param>
-        internal static void ToggleSleepwalkerSelection(bool state)
-        {
-            var parent = ImgPnlRoleLocked.transform.parent;
-            if (!state)
+            if (ProfileWindow.PnlHeadWasOpened)
             {
-                for (int i = 0; i < parent.childCount; i++)
-                {
-                    parent.GetChild(i).gameObject.SetActive(false);
-                }
+                ProfileWindow.Window.Show();
+                ProfileWindow.PnlHeadWasOpened = false;
             }
-
-            parent.parent.gameObject.SetActive(!state);
-            parent.gameObject.SetActive(!state);
-            ImgPnlRoleLocked.SetActive(!state);
         }
 
         /// <summary>
@@ -364,6 +330,9 @@ namespace Multiplayer.Managers
             // Displays and extensions
 
             BulletinExtension.Create();
+            PnlMenuExtension.Create();
+            PnlCloudExtension.Create();
+            PnlMessageExtension.Create();
 
             if (LobbyManager.IsInLobby && LobbyManager.LocalLobby.Playlist.Count == 0)
             {
@@ -379,29 +348,10 @@ namespace Multiplayer.Managers
             navBackButton.onClick.AddListener(updateLobbyDisplayAction);
             homeStartButton.onClick.AddListener(updateLobbyDisplayAction);
 
-            // PnlRole character lock
-
-            var pnlRoleLockedRef = PnlRole.transform.Find("Properties/BtnApply/Locked/ImgLocked/ImgSkinPurchase").gameObject;
-            ImgPnlRoleLocked = GameObject.Instantiate(
-                pnlRoleLockedRef,
-                pnlRoleLockedRef.transform.parent
-            );
-            ImgPnlRoleLocked.name = "ImgUnavailable";
-            ImgPnlRoleLocked.SetActive(false);
-            Component.Destroy(ImgPnlRoleLocked.GetComponent<Image>());
-
-            var pnlRoleLockedText = ImgPnlRoleLocked.transform.Find("TxtPurchase").GetComponent<Text>();
-            pnlRoleLockedText.gameObject.name = "TxtUnavailable";
-            Component.Destroy(pnlRoleLockedText.GetComponent<Il2CppAssets.Scripts.PeroTools.GeneralLocalization.Localization>());
-            pnlRoleLockedText.font = Utilities.NormalFont;
-            pnlRoleLockedText.text = Localization.Get("Global", "Unavailable").ToString().ToUpper();
-            pnlRoleLockedText.resizeTextMaxSize = 34;
-            pnlRoleLockedText.color = new(0.9176f, 0.9137f, 1f, 1f);
-
             // Other
 
             ProfileWindow.CreateAvatarBox();
-            PnlHead.onClose += (Action)(() => _ = ProfileWindow.OnPnlHeadClose());
+            PnlHead.onClose += (Action)OnPnlHeadClose;
             PnlPreparationExtension.BindCustomPnlPreparationClick(PnlPreparation);
         }
 
@@ -415,7 +365,6 @@ namespace Multiplayer.Managers
             if (LobbyManager.IsInLobby)
             {
                 BattleLobbyDisplay.Create(LobbyManager.LocalLobby, false);
-                PnlAwait.Create();
             }
         }
 
@@ -462,8 +411,6 @@ namespace Multiplayer.Managers
             LobbyNavButton = new();
             PlayNavButton = new();
             PlaylistNavButton = new();
-
-            PnlAwait = new();
 
             SettingsWindow.CreateButtons();
             ProfileWindow.CreateButtons();

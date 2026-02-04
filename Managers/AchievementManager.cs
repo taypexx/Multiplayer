@@ -1,5 +1,6 @@
 ﻿using Il2CppAssets.Scripts.PeroTools.Commons;
 using Multiplayer.Data.Players;
+using Multiplayer.UI.Extensions;
 using UnityEngine.UI;
 
 namespace Multiplayer.Managers
@@ -8,8 +9,6 @@ namespace Multiplayer.Managers
     {
         internal static Dictionary<int,Achievement> Achievements { get; private set; }
         private static Queue<Achievement> QueuedAchievements;
-
-        private static Il2CppAssets.Scripts.GameCore.Managers.AchievementManager PeroAchievementManager => Singleton<Il2CppAssets.Scripts.GameCore.Managers.AchievementManager>.instance;
 
         /// <summary>
         /// Performs an achievement check and rewards the local <see cref="Player"/> if the conditions are met.
@@ -27,30 +26,17 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static void PlayAchievementAnimation()
         {
-            if (QueuedAchievements == null) return;
+            if (QueuedAchievements == null || QueuedAchievements.Count == 0) return;
 
-            foreach (var _ in QueuedAchievements)
+            string[] texts = new string[QueuedAchievements.Count];
+            for (int i = 0; i < QueuedAchievements.Count; i++)
             {
-                PeroAchievementManager.Reward("1-1");
+                var achievement = QueuedAchievements.Dequeue();
+                texts[i] = $"<color=#ffca5fff>{achievement.Name}</color>    {achievement.Description}";
             }
 
-            UIManager.PnlMessage.FinishMessage();
-
-            var layout = UIManager.PnlMessage.layout.transform;
-            Task.Run(async () => 
-            {
-                await Task.Delay(200);
-                Main.Dispatch(() =>
-                {
-                    for (int i = 0; i < layout.childCount; i++)
-                    {
-                        Achievement achievement = QueuedAchievements.Dequeue();
-                        layout.GetChild(i).Find("TxtDescription").GetComponent<Text>().text =
-                            $"<color=#ffca5fff>{achievement.Name}</color>    {achievement.Description}";
-                    }
-                    QueuedAchievements.Clear();
-                });
-            });
+            PnlMessageExtension.Enable();
+            _ = PnlMessageExtension.AddMultiple(texts);
         }
 
         /// <summary>

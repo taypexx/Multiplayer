@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.Extensions
 {
     internal static class PnlHomeExtension
     {
@@ -136,7 +136,7 @@ namespace Multiplayer.UI
 
                 Main.Dispatch(() => bubble.gameObject.SetActive(false));
             }
-            catch (OperationCanceledException) {}
+            catch (OperationCanceledException) { }
         }
 
         /// <summary>
@@ -172,10 +172,10 @@ namespace Multiplayer.UI
 
             var msgDurationMs = Math.Clamp(
                 msg.Split(" ").Length * 500 + 800
-                + (msg.Count(c => c == ',') * 200)
-                + (msg.Count(c => c == '.') * 400)
-                + (msg.Count(c => c == '!') * 200)
-                + (msg.Count(c => c == '?') * 300),
+                + msg.Count(c => c == ',') * 200
+                + msg.Count(c => c == '.') * 400
+                + msg.Count(c => c == '!') * 200
+                + msg.Count(c => c == '?') * 300,
                 1200, 10000
             );
 
@@ -206,10 +206,10 @@ namespace Multiplayer.UI
 
             for (int i = 0; i < prefab.transform.childCount; i++)
             {
-                GameObject.Destroy(prefab.transform.GetChild(i).gameObject);
+                UnityEngine.Object.Destroy(prefab.transform.GetChild(i).gameObject);
             }
 
-            var newShow = GameObject.Instantiate(charApply.gameObject, prefab.transform);
+            var newShow = UnityEngine.Object.Instantiate(charApply.gameObject, prefab.transform);
             newShow.GetComponent<MeshRenderer>().sortingOrder = 0;
             museShowComponent.m_MuseShow = newShow;
         }
@@ -229,7 +229,7 @@ namespace Multiplayer.UI
 
                 for (int i = 0; i < elfinShow.transform.childCount; i++)
                 {
-                    GameObject.Destroy(elfinShow.transform.GetChild(i).gameObject);
+                    UnityEngine.Object.Destroy(elfinShow.transform.GetChild(i).gameObject);
                 }
 
                 var orderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(elfinIndex).order - 1;
@@ -247,13 +247,13 @@ namespace Multiplayer.UI
                     destroyCellAfter = true;
                 }
 
-                var newPrefab = GameObject.Instantiate(cell.gameObject.transform.GetChild(0).gameObject, elfinShow.transform);
+                var newPrefab = UnityEngine.Object.Instantiate(cell.gameObject.transform.GetChild(0).gameObject, elfinShow.transform);
 
                 // Destroy the neon egg label
                 if (elfinIndex == 10)
                 {
-                    Component.Destroy(newPrefab.transform.Find("SpecialElfinName").GetComponent<Image>());
-                    GameObject.Destroy(newPrefab.transform.Find("SpecialElfinName/TxtSpecialElfinName").gameObject);
+                    UnityEngine.Object.Destroy(newPrefab.transform.Find("SpecialElfinName").GetComponent<Image>());
+                    UnityEngine.Object.Destroy(newPrefab.transform.Find("SpecialElfinName/TxtSpecialElfinName").gameObject);
                 }
 
                 if (destroyCellAfter) UnityEngine.Object.Destroy(cell);
@@ -264,7 +264,7 @@ namespace Multiplayer.UI
                 LeftElfinShow.transform.position = LeftElfinPosition;
                 RightElfinShow.transform.position = RightElfinPosition;
             }
-            catch {}
+            catch { }
         }
 
         private static string GetName(Player player)
@@ -274,7 +274,7 @@ namespace Multiplayer.UI
 
         private static string GetInfo(Player player)
         {
-            return InputManager.PingMode ? String.Format(PingInfoFormat, Utilities.GetPingColor(player.PingMS), player.PingMS) : String.Format(InfoFormat, player.MoeStats.RL);
+            return InputManager.PingMode ? string.Format(PingInfoFormat, Utilities.GetPingColor(player.PingMS), player.PingMS) : string.Format(InfoFormat, player.MoeStats.RL);
         }
 
         /// <summary>
@@ -473,8 +473,8 @@ namespace Multiplayer.UI
             CurrentPageIndex = 0;
 
             MiddleMuseShow = OriginalMuseShow;
-            LeftMuseShow = GameObject.Instantiate(OriginalMuseShow, OriginalMuseShow.transform.parent);
-            RightMuseShow = GameObject.Instantiate(OriginalMuseShow, OriginalMuseShow.transform.parent);
+            LeftMuseShow = UnityEngine.Object.Instantiate(OriginalMuseShow, OriginalMuseShow.transform.parent);
+            RightMuseShow = UnityEngine.Object.Instantiate(OriginalMuseShow, OriginalMuseShow.transform.parent);
 
             LeftMuseShow.SetActive(true);
             RightMuseShow.SetActive(true);
@@ -556,8 +556,8 @@ namespace Multiplayer.UI
             LeftInfo.alignment = TextAnchor.MiddleCenter;
             RightInfo.alignment = TextAnchor.MiddleCenter;
 
-            LeftButton = GameObject.Instantiate(OriginalButton, OriginalMuseShow.transform.parent);
-            RightButton = GameObject.Instantiate(OriginalButton, OriginalMuseShow.transform.parent);
+            LeftButton = UnityEngine.Object.Instantiate(OriginalButton, OriginalMuseShow.transform.parent);
+            RightButton = UnityEngine.Object.Instantiate(OriginalButton, OriginalMuseShow.transform.parent);
 
             LeftButton.name = "LeftButton";
             RightButton.name = "RightButton";
@@ -581,17 +581,17 @@ namespace Multiplayer.UI
             buttonRight.onClick.AddListener((UnityAction)new Action(RightButtonClick));
 
             MiddleName.text = PlayerManager.LocalPlayer.MultiplayerStats.Name;
-            MiddleInfo.text = String.Format(InfoFormat, PlayerManager.LocalPlayer.MoeStats.RL);
+            MiddleInfo.text = string.Format(InfoFormat, PlayerManager.LocalPlayer.MoeStats.RL);
 
             MiddleElfinShow = OriginalElfinShow;
-            LeftElfinShow = GameObject.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
-            RightElfinShow = GameObject.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
+            LeftElfinShow = UnityEngine.Object.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
+            RightElfinShow = UnityEngine.Object.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
 
-            Component.Destroy(LeftElfinShow.GetComponent<OnActivate>());
-            Component.Destroy(RightElfinShow.GetComponent<OnActivate>());
+            UnityEngine.Object.Destroy(LeftElfinShow.GetComponent<OnActivate>());
+            UnityEngine.Object.Destroy(RightElfinShow.GetComponent<OnActivate>());
 
-            Component.Destroy(LeftElfinShow.GetComponent<DesElfinIfLessThanZero>());
-            Component.Destroy(RightElfinShow.GetComponent<DesElfinIfLessThanZero>());
+            UnityEngine.Object.Destroy(LeftElfinShow.GetComponent<DesElfinIfLessThanZero>());
+            UnityEngine.Object.Destroy(RightElfinShow.GetComponent<DesElfinIfLessThanZero>());
 
             LeftElfinShow.name = "LeftElfinShow";
             RightElfinShow.name = "RightElfinShow";
@@ -631,23 +631,23 @@ namespace Multiplayer.UI
                 OriginalElfinShow.transform.localScale = OriginalElfinScale;
 
                 MiddleMuseShow = null;
-                GameObject.Destroy(LeftMuseShow);
-                GameObject.Destroy(RightMuseShow);
+                UnityEngine.Object.Destroy(LeftMuseShow);
+                UnityEngine.Object.Destroy(RightMuseShow);
 
-                GameObject.Destroy(MiddleNameLabel);
-                GameObject.Destroy(LeftNameLabel);
-                GameObject.Destroy(RightNameLabel);
+                UnityEngine.Object.Destroy(MiddleNameLabel);
+                UnityEngine.Object.Destroy(LeftNameLabel);
+                UnityEngine.Object.Destroy(RightNameLabel);
 
-                GameObject.Destroy(MiddleInfoLabel);
-                GameObject.Destroy(LeftInfoLabel);
-                GameObject.Destroy(RightInfoLabel);
+                UnityEngine.Object.Destroy(MiddleInfoLabel);
+                UnityEngine.Object.Destroy(LeftInfoLabel);
+                UnityEngine.Object.Destroy(RightInfoLabel);
 
                 MiddleElfinShow = null;
-                GameObject.Destroy(LeftElfinShow);
-                GameObject.Destroy(RightElfinShow);
+                UnityEngine.Object.Destroy(LeftElfinShow);
+                UnityEngine.Object.Destroy(RightElfinShow);
 
-                GameObject.Destroy(LeftButton);
-                GameObject.Destroy(RightButton);
+                UnityEngine.Object.Destroy(LeftButton);
+                UnityEngine.Object.Destroy(RightButton);
             }
             catch { }
         }

@@ -1,6 +1,6 @@
 ﻿using Il2CppAssets.Scripts.PeroTools.Commons;
 using Multiplayer.Static;
-using Multiplayer.UI;
+using Multiplayer.UI.Extensions;
 using UnityEngine;
 
 namespace Multiplayer.Managers

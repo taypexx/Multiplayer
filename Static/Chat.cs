@@ -1,7 +1,7 @@
 ﻿using Multiplayer.Data.Players;
 using Multiplayer.Data.Chat;
 using Multiplayer.Managers;
-using Multiplayer.UI;
+using Multiplayer.UI.Extensions;
 
 namespace Multiplayer.Static
 {
@@ -131,10 +131,57 @@ namespace Multiplayer.Static
             }
             else msg = Localization.Get("SystemChatMessages", "NoArguments").ToString();
 
-            UIManager.ChatLobbyDisplay.AddMessage(new()
+            Recieve(new()
             {
                 Message = $"<i>{msg}</i>",
                 AuthorName = "system"
+            });
+        }
+
+        /// <summary>
+        /// Kicks the <see cref="Player"/> from the lobby.
+        /// </summary>
+        /// <param name="args"><see cref="ChatCommand"/> arguments.</param>
+        private static async Task KickPlayer(string[] args)
+        {
+            if (!LobbyManager.IsInLobby) return;
+
+            string msg;
+            if (LobbyManager.LocalLobby.Host == PlayerManager.LocalPlayer)
+            {
+                var query = args.Length == 0 ? null : args[1];
+
+                if (query != null)
+                {
+                    Player target = FindPlayer(query);
+                    if (target != null)
+                    {
+                        if (target == PlayerManager.LocalPlayer)
+                        {
+                            msg = Localization.Get("SystemChatMessages", "PlayerKickSelf").ToString();
+                        }
+                        else
+                        {
+                            if (await LobbyManager.KickPlayer(target.Uid))
+                            {
+                                msg = String.Format(Localization.Get("SystemChatMessages", "PlayerKicked").ToString(), target.MultiplayerStats.Name);
+                            }
+                            else msg = String.Format(Localization.Get("Warning", "Unknown").ToString(), target.MultiplayerStats.Name);
+                        }
+                    }
+                    else msg = String.Format(Localization.Get("SystemChatMessages", "PlayerNotFound").ToString(), query);
+                }
+                else msg = Localization.Get("SystemChatMessages", "NoArguments").ToString();
+            }
+            else msg = Localization.Get("SystemChatMessages", "NoPerms").ToString();
+
+            Main.Dispatch(() =>
+            {
+                Recieve(new()
+                {
+                    Message = $"<i>{msg}</i>",
+                    AuthorName = "system"
+                });
             });
         }
 
@@ -156,7 +203,7 @@ namespace Multiplayer.Static
                     helpText = helpText + $"/{commandName} — {chatCommand.Description}";
                 }
 
-                UIManager.ChatLobbyDisplay.AddMessage(new()
+                Recieve(new()
                 {
                     Message = helpText,
                     AuthorName = "system"
@@ -166,7 +213,7 @@ namespace Multiplayer.Static
             TotalCommands = new() 
             {
                 ["."] = new(".", new((args) => {
-                    UIManager.ChatLobbyDisplay.AddMessage(new()
+                    Recieve(new()
                     {
                         Message = String.Format(Localization.Get("SystemChatMessages", "UnknownCommand").ToString(), args[0]),
                         AuthorName = "system"
@@ -192,9 +239,36 @@ namespace Multiplayer.Static
                     MuteToggle(args, false);
                 })),
 
+                ["muted"] = new("muted", new((_) => 
+                {
+                    string playerList = string.Empty;
+
+                    foreach (string playerUid in MutedPlayerUids)
+                    {
+                        var player = PlayerManager.GetCachedPlayer(playerUid);
+                        if (player is null) continue;
+
+                        playerList = playerList + player.MultiplayerStats.Name + ", ";
+                    }
+                    playerList.TrimEnd(',', ' ');
+
+                    if (playerList == string.Empty) playerList = Localization.Get("Global", "None").ToString();
+
+                    Recieve(new()
+                    {
+                        Message = String.Format(Localization.Get("SystemChatMessages", "MutedList").ToString(), playerList),
+                        AuthorName = "system"
+                    });
+                })),
+
                 ["discord"] = new("discord", new((_) =>
                 {
                     Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/discord");
+                })),
+
+                ["kick"] = new("kick", new((args) =>
+                {
+                    _ = KickPlayer(args);
                 })),
             };
         }

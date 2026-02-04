@@ -3,8 +3,9 @@ using Multiplayer.UI.Abstract;
 using UnityEngine.Events;
 using UnityEngine;
 using UnityEngine.UI;
+using Multiplayer.Static;
 
-namespace Multiplayer.UI
+namespace Multiplayer.UI.Extensions
 {
     internal static class BulletinExtension
     {
@@ -75,6 +76,7 @@ namespace Multiplayer.UI
             titleRect.anchoredPosition = new(0f, -170f);
 
             WindowTitle = windowTitleGo.GetComponent<Text>();
+            WindowTitle.text = Localization.Get("MainMenu", "Multiplayer").ToString();
 
             WindowBackButton = CreateTopButton(AssetManager.GetImageAsset("UI.Back.png").Sprite, new(40f, 40f), (UnityAction)new Action(() =>
             {

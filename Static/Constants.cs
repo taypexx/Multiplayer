@@ -12,13 +12,17 @@ namespace Multiplayer.Static
         public const string Version = "0.1.0";
         public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty, Medeyah";
 
-        internal const string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
-        internal const string ServerHTTPScheme = "https";
-        internal const string ServerAddress = "mdmp.online";
         internal const int PortHTTP = 9095;
         internal const int PortUDP = 9096;
         internal const int PortWebsocket = 443;
+
+        internal const int WebsocketTryReconnectTimes = 5;
+        internal const int WebsocketReconnectAfterMS = 2000;
+
+        internal const string MDMCAPIEndpoint = "https://api.mdmc.moe/v3/";
         internal static readonly string DiscordAuthURL = $"https://discord.com/oauth2/authorize?client_id=1436371970206728301&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A{PortHTTP}&scope=identify";
+        internal const string ServerHTTPScheme = "https";
+        internal const string ServerAddress = "mdmp.online";
 
         public const KeyCode BattleDisplayKeyCode = KeyCode.LeftShift;
         public const KeyCode MainMenuOpenKeyCode = KeyCode.M;

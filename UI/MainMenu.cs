@@ -1,4 +1,5 @@
-﻿using LocalizeLib;
+﻿using Il2Cpp;
+using LocalizeLib;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -16,6 +17,7 @@ namespace Multiplayer.UI
         private ForumObject LobbiesButton;
         private ForumObject CompetitiveButton;
         private ForumObject SettingsButton;
+        private ForumObject FAQButton;
         private ForumObject CreditsButton;
 
         private static LocalString MainDescription;
@@ -32,7 +34,8 @@ namespace Multiplayer.UI
             MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), null, MainDescription);
             LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
-            SettingsButton = AddButton(Localization.Get("MainMenu", "Settings"), null, MainDescription);
+            SettingsButton = AddButton(Localization.Get("MainMenu", "Settings"), UIManager.SettingsWindow, MainDescription);
+            FAQButton = AddButton(Localization.Get("MainMenu", "FAQ"), null, MainDescription);
             CreditsButton = AddButton(Localization.Get("MainMenu", "CreditsTitle"), null, Credits);
         }
 
@@ -99,9 +102,9 @@ namespace Multiplayer.UI
                 PopupUtils.ShowInfo(Localization.Get("Global", "ComingSoon"));
                 Window.Show();
             }
-            else if (button == SettingsButton)
+            else if (button == FAQButton)
             {
-                UIManager.SettingsWindow.Window.Show();
+                Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/faq");
             }
         }
     }

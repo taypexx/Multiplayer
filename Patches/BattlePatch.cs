@@ -3,8 +3,11 @@ using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Il2CppAssets.Scripts.UI.Panels;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
+using Multiplayer.UI;
+using Multiplayer.UI.Extensions;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,42 +17,44 @@ namespace Multiplayer.Patches
 {
     internal static class BattlePatch
     {
-        private static bool AwaitingForOthers = false;
-        private static bool CanExit = false;
+        private static bool AwaitingForReady = false;
+        private static bool HasFailed = false;
         private static bool Started = false;
-
-        /// <summary>
-        /// Runs a loop and waits until everyone loads.
-        /// </summary>
-        private static async Task AwaitForOthers()
-        {
-            if (AwaitingForOthers) return;
-            AwaitingForOthers = true;
-
-            while (LobbyManager.IsInLobby && !LobbyManager.LocalLobby.EveryoneReady)
-            {
-                await Task.Delay(Constants.AwaitBattleInterval);
-            }
-
-            AwaitingForOthers = false;
-            Main.Dispatch(() => 
-            {
-                SingletonMonoBehaviour<PnlBattle>.instance.GameStart();
-            });
-        }
 
         /// <summary>
         /// Runs when the GameMain scene loads.
         /// </summary>
         internal static void SceneLoaded()
         {
-            CanExit = false;
+            HasFailed = false;
             Started = false;
 
             if (!LobbyManager.IsInLobby) return;
 
             // Toggle the pause button
             GameObject.Find("UI_2D/Standard/PnlBattle/PnlBattleUI/PnlBattleOthers/Up/BtnPause").SetActive(false);
+        }
+
+        /// <summary>
+        /// Runs a loop and waits until everyone loads.
+        /// </summary>
+        private static async Task AwaitForReady()
+        {
+            if (AwaitingForReady) return;
+            AwaitingForReady = true;
+
+            PnlAwait.Create();
+
+            while (LobbyManager.IsInLobby && !LobbyManager.LocalLobby.EveryoneReady)
+            {
+                await Task.Delay(Constants.AwaitBattleInterval);
+            }
+
+            AwaitingForReady = false;
+            Main.Dispatch(() => 
+            {
+                SingletonMonoBehaviour<PnlBattle>.instance.GameStart();
+            });
         }
 
         /// <summary>
@@ -69,10 +74,10 @@ namespace Multiplayer.Patches
                 if (!Started)
                 {
                     Started = true;
-                    _ = AwaitForOthers();
+                    _ = AwaitForReady();
                     _ = LobbyManager.SetReady(true);
                 }
-                return !AwaitingForOthers;
+                return !AwaitingForReady;
             }
 
             /// <summary>
@@ -80,9 +85,9 @@ namespace Multiplayer.Patches
             /// </summary>
             private static void Postfix()
             {
-                if (!LobbyManager.IsInLobby || AwaitingForOthers) return;
+                if (!LobbyManager.IsInLobby || AwaitingForReady) return;
 
-                UIManager.PnlAwait.Destroy();
+                PnlAwait.Destroy();
                 _ = BattleManager.SyncStart();
 
                 // Fail screen adjustments
@@ -91,18 +96,6 @@ namespace Multiplayer.Patches
 
                 var returnButtonGo = GameObject.Find("UI_2D/Standard/PnlFail/ImgBgDown/BtnReturn");
                 returnButtonGo.transform.localPosition = failRestartButtonGo.transform.localPosition;
-
-                // PnlVictory adjustments
-                var restartButton = UIManager.PnlVictory.m_CurControls.btnReset;
-                restartButton.transform.Find("TxtRestart").GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
-                restartButton.onClick.RemoveAllListeners();
-                restartButton.onClick.AddListener((UnityAction)new Action(ShowPlayResults));
-
-                var continueButton = UIManager.PnlVictory.m_CurControls.btnContinue;
-                if (LobbyManager.LocalLobby.Playlist.Count > 1)
-                {
-                    continueButton.transform.Find("TxtContinue").GetComponent<Text>().text = Localization.Get("Battle", "Next").ToString();
-                }
 
                 // Toggle info+ label
                 var infoPlusLabel = GameObject.Find("InfoPlus_TextLowerLeft");
@@ -113,33 +106,78 @@ namespace Multiplayer.Patches
             }
         }
 
-        private static void ShowPlayResults()
-        {
-            // make sure to not show the results unless everyone got to the end
-        }
+        ////////////////////////////////////////////////////////////////
+
+        private static HashSet<string> DisplayedPlayers = new();
 
         /// <summary>
-        /// Resets everything before moving further.
+        /// Tells the server you are done with the chart
         /// </summary>
         private static void FinishCurrentChart()
         {
-            if (BattleManager.Synchronizing)
-            {
-                BattleManager.SyncStop();
-            }
             UIManager.BattleLobbyDisplay.Destroy();
             _ = LobbyManager.SetReady(false);
+        }
+
+        private static async Task AddPlayerResults()
+        {
+            var localLobby = LobbyManager.LocalLobby;
+            foreach (var playerUid in localLobby.Players)
+            {
+                if (!DisplayedPlayers.Contains(playerUid) && !localLobby.ReadyPlayers.Contains(playerUid))
+                {
+                    var player = PlayerManager.GetCachedPlayer(playerUid);
+                    if (player is null) continue;
+
+                    DisplayedPlayers.Add(playerUid);
+                    await PnlMessageExtension.AddOne($"{player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void ShowPlayResults()
+        {
+            DisplayedPlayers.Clear();
+            PnlMessageExtension.Enable();
+
+            _ = AddPlayerResults();
+        }
+
+        private static async Task AwaitForFinish()
+        {
+            while (LobbyManager.IsInLobby && !LobbyManager.LocalLobby.EveryoneFinished)
+            {
+                await Task.Delay(Constants.AwaitBattleInterval);
+                await AddPlayerResults();
+            }
+
+            Main.Dispatch(() =>
+            {
+                UIManager.PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").GetComponent<Text>().text =
+                    Localization.Get("Battle", "Awaiting").ToString();
+            });
+
+            BattleManager.SyncStop();
         }
 
         /// <summary>
         /// ummm i forgor
         /// </summary>
         [HarmonyPatch]
-        internal static class BattleVictoryPatch
+        internal static class BattleVictoryShowPatch
         {
             private static IEnumerable<MethodBase> TargetMethods()
             {
                 return typeof(PnlBattle).GetMethods().Where(m => m.Name == nameof(PnlBattle.OnShowVictory));
+            }
+
+            private static void Postfix()
+            {
+                ShowPlayResults();
+                _ = AwaitForFinish();
             }
         }
 
@@ -147,28 +185,29 @@ namespace Multiplayer.Patches
         /// Patches the visuals of PnlVictory.
         /// </summary>
         [HarmonyPatch]
-        internal static class BattleVictoryPanelPatch
+        internal static class BattleVictoryPatch
         {
             private static IEnumerable<MethodBase> TargetMethods()
             {
                 return typeof(PnlVictory).GetMethods().Where(m => m.Name == nameof(PnlVictory.OnVictory));
             }
 
-            private static async Task Continue()
-            {
-                await LobbyManager.PlaylistContinue();
-                CanExit = true;
-            }
-
             private static void Postfix()
             {
                 if (!LobbyManager.IsInLobby) return;
 
+                // PnlVictory adjustments
+                var restartButton = UIManager.PnlVictory.m_CurControls.btnReset;
+                restartButton.transform.Find("TxtRestart").GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
+                restartButton.onClick.RemoveAllListeners();
+                restartButton.onClick.AddListener((UnityAction)new Action(ShowPlayResults));
+
+                UIManager.PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").GetComponent<Text>().text =
+                    Localization.Get("Battle", "Awaiting").ToString();
+
                 FinishCurrentChart();
 
-                // Display the fake achievements as the winners (await for thr retrieval)
-
-                _ = Continue();
+                _ = LobbyManager.PlaylistContinue();
             }
         }
 
@@ -182,31 +221,27 @@ namespace Multiplayer.Patches
             {
                 if (!LobbyManager.IsInLobby) return;
 
+                BattleManager.SyncStop();
+
                 FinishCurrentChart();
-                CanExit = true;
+                HasFailed = true;
             }
         }
 
+        ////////////////////////////////////////////////////////////////
+
         /// <summary>
-        /// Disables the pause method.
+        /// Keeps the application focused and disables the pause if local player is in the lobby.
         /// </summary>
-        [HarmonyPatch(typeof(PnlBattle), nameof(PnlBattle.Pause))]
         [HarmonyPriority(Priority.First)]
         internal static class BattlePausePatch
         {
-            private static bool Prefix() 
-            {
-                return !LobbyManager.IsInLobby;
-            }
-        }
+            private static MethodBase[] Methods = { 
+                typeof(PnlBattle).GetMethod(nameof(PnlBattle.Pause)),
+                typeof(Il2CppAssets.Scripts.PeroTools.Managers.UnityGameManager).GetMethod(nameof(Il2CppAssets.Scripts.PeroTools.Managers.UnityGameManager.OnApplicationFocus))
+            };
+            private static IEnumerable<MethodBase> TargetMethods() => Methods;
 
-        /// <summary>
-        /// Keeps the application focused if local player is in the lobby.
-        /// </summary>
-        [HarmonyPatch(typeof(Il2CppAssets.Scripts.PeroTools.Managers.UnityGameManager), "OnApplicationFocus")]
-        [HarmonyPriority(Priority.First)]
-        internal static class OnApplicationFocusPatch
-        {
             private static bool Prefix()
             {
                 return !LobbyManager.IsInLobby;
@@ -222,12 +257,12 @@ namespace Multiplayer.Patches
         {
             private static bool Prefix()
             {
-                return !LobbyManager.IsInLobby;// || CanExit;
+                return !LobbyManager.IsInLobby;// || HasFailed;
             }
 
             private static void Postfix()
             {
-                AwaitingForOthers = false;
+                AwaitingForReady = false;
             }
         }
 
@@ -240,14 +275,22 @@ namespace Multiplayer.Patches
         {
             private static bool Prefix()
             {
-                return !LobbyManager.IsInLobby || CanExit;
+                return !LobbyManager.IsInLobby || LobbyManager.LocalLobby.EveryoneFinished || HasFailed;
             }
 
             private static void Postfix()
             {
                 if (!LobbyManager.IsInLobby) return;
 
-                AwaitingForOthers = false;
+                // Resetting stats on exit
+                foreach (string playerUid in LobbyManager.LocalLobby.Players)
+                {
+                    Player player = PlayerManager.GetCachedPlayer(playerUid);
+                    if (player == null) continue;
+                    player.BattleStats.Reset();
+                }
+
+                AwaitingForReady = false;
             }
         }
     }

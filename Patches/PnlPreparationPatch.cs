@@ -3,7 +3,7 @@ using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data;
 using Multiplayer.Managers;
-using Multiplayer.UI;
+using Multiplayer.UI.Extensions;
 
 namespace Multiplayer.Patches
 {

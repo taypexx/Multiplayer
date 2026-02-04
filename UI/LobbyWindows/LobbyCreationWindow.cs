@@ -4,6 +4,7 @@ using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
+using Multiplayer.UI.Extensions;
 using PopupLib.UI;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
@@ -95,7 +96,7 @@ namespace Multiplayer.UI.LobbyWindows
                 return;
             }
 
-            Main.Dispatch(UIManager.PnlCloudMessageStart);
+            Main.Dispatch(() => PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Creating").ToString()));
             UIManager.Debounce = true;
 
             bool success = await LobbyManager.CreateLobby(MaxPlayersField,GoalField,PlayTypeField,ChartSelectionField,NameField,PlaylistSizeField,PasswordField);
@@ -103,7 +104,7 @@ namespace Multiplayer.UI.LobbyWindows
             Main.Dispatch(() =>
             {
                 UIManager.Debounce = false;
-                UIManager.PnlCloudMessageEnd(success);
+                PnlCloudExtension.Finish(success);
 
                 if (success) _ = UIManager.OpenLobbyWindow();
                 else UIManager.LobbiesWindow.Window.Show();

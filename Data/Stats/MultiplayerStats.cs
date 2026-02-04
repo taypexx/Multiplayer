@@ -12,7 +12,10 @@ namespace Multiplayer.Data.Stats
     {
         public Player Player { get; private set; }
         public string Name { get; private set; }
-        public string AvatarName { get; internal set; }
+        public string AvatarName {
+            get => Player == PlayerManager.LocalPlayer ? "head_" + DataHelper.selectedHeadIndex.ToString() : field;
+            private set; 
+        }
         public string Bio { get; internal set; }
         public int Level { 
             get => Player == PlayerManager.LocalPlayer ? DataHelper.Level : field;

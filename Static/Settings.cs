@@ -1,5 +1,5 @@
 ﻿using Multiplayer.Managers;
-using Multiplayer.UI;
+using Multiplayer.UI.Extensions;
 using Tomlet;
 
 namespace Multiplayer.Static
@@ -64,7 +64,7 @@ namespace Multiplayer.Static
                 field = Math.Clamp(value, Constants.BattleUpdateIntervalMinMS, Constants.BattleUpdateIntervalMaxMS);
             } 
         } 
-        = 300;
+        = 200;
     }
 
     internal static class Settings
