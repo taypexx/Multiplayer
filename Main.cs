@@ -82,7 +82,7 @@ namespace Multiplayer
 
             InitGlobal();
 
-            Logger.Msg(System.ConsoleColor.Green, Constants.ModName + " was successfully initialized.");
+            Log(Constants.ModName + " was successfully initialized.", LogType.Success);
         }
 
         /// <summary>
