@@ -59,7 +59,7 @@ namespace Multiplayer.UI.ProfileWindows
 
             FriendButtonResponses = new()
             {
-                [0] = Localization.Get("ProfileWindow", "AddFriendSuccess"),
+                [0] = Localization.Get("ProfileWindow", "AddedFriend"),
                 [1] = Localization.Get("ProfileWindow", "CancelFriendRequestSuccess"),
                 [2] = Localization.Get("ProfileWindow", "RemoveFriendSuccess"),
                 [3] = Localization.Get("ProfileWindow", "RequestSendSuccess"),

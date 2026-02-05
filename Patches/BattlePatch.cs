@@ -119,8 +119,14 @@ namespace Multiplayer.Patches
             _ = LobbyManager.SetReady(false);
         }
 
-        private static async Task AddPlayerResults()
+        /// <summary>
+        /// 
+        /// </summary>
+        private static async Task ShowPlayResults()
         {
+            DisplayedPlayers.Clear();
+            PnlMessageExtension.Enable();
+
             var localLobby = LobbyManager.LocalLobby;
             foreach (var playerUid in localLobby.Players)
             {
@@ -135,15 +141,9 @@ namespace Multiplayer.Patches
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        private static void ShowPlayResults()
+        private static void ShowPlaylist()
         {
-            DisplayedPlayers.Clear();
-            PnlMessageExtension.Enable();
 
-            _ = AddPlayerResults();
         }
 
         private static async Task AwaitForFinish()
@@ -151,7 +151,6 @@ namespace Multiplayer.Patches
             while (LobbyManager.IsInLobby && !LobbyManager.LocalLobby.EveryoneFinished)
             {
                 await Task.Delay(Constants.AwaitBattleInterval);
-                await AddPlayerResults();
             }
 
             Main.Dispatch(() =>
@@ -161,24 +160,7 @@ namespace Multiplayer.Patches
             });
 
             BattleManager.SyncStop();
-        }
-
-        /// <summary>
-        /// ummm i forgor
-        /// </summary>
-        [HarmonyPatch]
-        internal static class BattleVictoryShowPatch
-        {
-            private static IEnumerable<MethodBase> TargetMethods()
-            {
-                return typeof(PnlBattle).GetMethods().Where(m => m.Name == nameof(PnlBattle.OnShowVictory));
-            }
-
-            private static void Postfix()
-            {
-                ShowPlayResults();
-                _ = AwaitForFinish();
-            }
+            _ = ShowPlayResults();
         }
 
         /// <summary>
@@ -200,7 +182,7 @@ namespace Multiplayer.Patches
                 var restartButton = UIManager.PnlVictory.m_CurControls.btnReset;
                 restartButton.transform.Find("TxtRestart").GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
                 restartButton.onClick.RemoveAllListeners();
-                restartButton.onClick.AddListener((UnityAction)new Action(ShowPlayResults));
+                restartButton.onClick.AddListener((UnityAction)new Action(ShowPlaylist));
 
                 UIManager.PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").GetComponent<Text>().text =
                     Localization.Get("Battle", "Awaiting").ToString();
@@ -208,6 +190,7 @@ namespace Multiplayer.Patches
                 FinishCurrentChart();
 
                 _ = LobbyManager.PlaylistContinue();
+                _ = AwaitForFinish();
             }
         }
 
