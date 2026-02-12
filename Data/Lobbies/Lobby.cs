@@ -1,6 +1,5 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
-using Multiplayer.Data.Stats;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using System.Net.Http.Json;
@@ -16,6 +15,14 @@ namespace Multiplayer.Data.Lobbies
         public LobbyPlayType PlayType { get; private set; }
         public LobbyChartSelection ChartSelection { get; private set; }
         public LobbyGoal Goal { get; private set; }
+
+        public Comparison<object> GoalComparison => Goal switch
+        {
+            LobbyGoal.Accuracy => PlayerManager.AccuracyComparison,
+            LobbyGoal.Score => PlayerManager.ScoreComparison,
+            LobbyGoal.Custom => PlayerManager.CustomComparison,
+            _ => PlayerManager.AccuracyComparison
+        };
 
         public bool IsPrivate { get; private set; }
         public bool Locked { get; internal set; }

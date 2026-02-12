@@ -57,7 +57,7 @@ namespace Multiplayer.UI.LobbyWindows
                 ButtonsLobbies.Clear();
                 RemoveAllButtons();
 
-                if (LobbyManager.PublicLobbies.Count > 0)
+                if (LobbyManager.PublicLobbies.Count() > 0)
                 {
                     foreach (Lobby lobby in LobbyManager.PublicLobbies)
                     {

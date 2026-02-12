@@ -8,7 +8,6 @@ namespace Multiplayer.Managers
 {
     internal static class AssetManager
     {
-        private static Assembly Assembly = Assembly.GetExecutingAssembly();
         private static Dictionary<string, CustomImageAsset> ImageAssets;
         private static GameObject AssetHolder;
 
@@ -30,7 +29,7 @@ namespace Multiplayer.Managers
                     UnityEngine.Object.DontDestroyOnLoad(AssetHolder);
                 }
 
-                using Stream stream = Assembly.GetManifestResourceStream("Multiplayer.Assets." + relativePath);
+                using Stream stream = Main.CurrentAssembly.GetManifestResourceStream("Multiplayer.Assets." + relativePath);
                 if (stream == null) return null;
 
                 byte[] bytes = stream.ToMemoryStream().ReadFully();
@@ -56,7 +55,7 @@ namespace Multiplayer.Managers
         /// <returns><see langword="string"/> content</returns>
         internal static string GetStringAsset(string relativePath)
         {
-            using Stream stream = Assembly.GetManifestResourceStream("Multiplayer." + relativePath);
+            using Stream stream = Main.CurrentAssembly.GetManifestResourceStream("Multiplayer." + relativePath);
             if (stream == null) return null;
 
             using StreamReader streamReader = new StreamReader(stream);

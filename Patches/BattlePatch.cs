@@ -43,18 +43,18 @@ namespace Multiplayer.Patches
             if (AwaitingForReady) return;
             AwaitingForReady = true;
 
-            PnlAwait.Create();
-
-            while (LobbyManager.IsInLobby && !LobbyManager.LocalLobby.EveryoneReady)
+            while (!LobbyManager.LocalLobby.EveryoneReady)
             {
+                if (!LobbyManager.IsInLobby) 
+                {
+                    AwaitingForReady = false; 
+                    return; 
+                }
                 await Task.Delay(Constants.AwaitBattleInterval);
             }
 
             AwaitingForReady = false;
-            Main.Dispatch(() => 
-            {
-                SingletonMonoBehaviour<PnlBattle>.instance.GameStart();
-            });
+            Main.Dispatch(SingletonMonoBehaviour<PnlBattle>.instance.GameStart);
         }
 
         /// <summary>
@@ -74,8 +74,10 @@ namespace Multiplayer.Patches
                 if (!Started)
                 {
                     Started = true;
-                    _ = AwaitForReady();
                     _ = LobbyManager.SetReady(true);
+
+                    PnlAwait.Create();
+                    _ = AwaitForReady();
                 }
                 return !AwaitingForReady;
             }
@@ -120,32 +122,79 @@ namespace Multiplayer.Patches
         }
 
         /// <summary>
-        /// 
+        /// Shows all player results by displaying them as achievements.
         /// </summary>
-        private static async Task ShowPlayResults()
+        private static void ShowPlayResults()
         {
+            var localLobby = LobbyManager.LocalLobby;
+            if (!localLobby.EveryoneFinished) return;
+
             DisplayedPlayers.Clear();
             PnlMessageExtension.Enable();
 
-            var localLobby = LobbyManager.LocalLobby;
-            foreach (var playerUid in localLobby.Players)
-            {
-                if (!DisplayedPlayers.Contains(playerUid) && !localLobby.ReadyPlayers.Contains(playerUid))
-                {
-                    var player = PlayerManager.GetCachedPlayer(playerUid);
-                    if (player is null) continue;
+            var gradeObjects = GameObject.Find("UI_3D/PnlVictory/Default/PnlVictory/PnlVictory_2D/Info/Grade").GetComponent<GameMainGrade>().gradeObjects;
 
-                    DisplayedPlayers.Add(playerUid);
-                    await PnlMessageExtension.AddOne($"{player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}");
+            var sprites = new Sprite[gradeObjects.Count];
+            for (int i = 0; i < gradeObjects.Count; i++)
+            {
+                sprites[i] = gradeObjects[i].GetComponent<Image>().sprite;
+            }
+
+            var positionList = localLobby.Players.ToList();
+            positionList.Sort(localLobby.GoalComparison);
+
+            Task.Run(async () =>
+            {
+                foreach (var playerUid in positionList)
+                {
+                    if (!DisplayedPlayers.Contains(playerUid) && !localLobby.ReadyPlayers.Contains(playerUid))
+                    {
+                        var player = PlayerManager.GetCachedPlayer(playerUid);
+                        if (player is null) continue;
+
+                        DisplayedPlayers.Add(playerUid);
+                        await PnlMessageExtension.AddOne($"{positionList.Count - positionList.IndexOf(playerUid)}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", false, sprites[(int)player.BattleStats.Grade]);
+                    }
                 }
+                Main.Dispatch(() =>
+                {
+                    var nextEntry = localLobby.Playlist[localLobby.CurrentPlaylistEntryIndex + 1];
+                    var chartName = ChartManager.GetNiceChartName(nextEntry.MusicInfo, nextEntry.Difficulty);
+                    if (localLobby.CurrentPlaylistEntryIndex + 1 < localLobby.Playlist.Count)
+                    {
+                        _ = PnlMessageExtension.AddOne(
+                            $"{Localization.Get("Battle", "Next")}: {chartName}", false
+                        );
+                    }
+                });
+            });
+        }
+
+        /// <summary>
+        /// Toggles the buttons based on whether everyone has finished playing.
+        /// </summary>
+        private static void SetVictoryButtons()
+        {
+            var finished = LobbyManager.LocalLobby.EveryoneFinished;
+
+            var btnContinue = UIManager.PnlVictory.m_CurControls.btnContinue;
+            btnContinue.transform.Find("TxtContinue/ImgBtnA").gameObject.SetActive(finished);
+            btnContinue.transform.Find("TxtContinue").GetComponent<Text>().text = Localization.Get("Battle", finished ? "Continue" : "Awaiting").ToString();
+
+            var restartButton = UIManager.PnlVictory.m_CurControls.btnReset;
+            restartButton.gameObject.SetActive(finished);
+
+            if (finished)
+            {
+                restartButton.transform.Find("TxtRestart").GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
+                restartButton.onClick.RemoveAllListeners();
+                restartButton.onClick.AddListener((UnityAction)new Action(ShowPlayResults));
             }
         }
 
-        private static void ShowPlaylist()
-        {
-
-        }
-
+        /// <summary>
+        /// Waits for everyone to finish the chart and continues.
+        /// </summary>
         private static async Task AwaitForFinish()
         {
             while (LobbyManager.IsInLobby && !LobbyManager.LocalLobby.EveryoneFinished)
@@ -153,14 +202,10 @@ namespace Multiplayer.Patches
                 await Task.Delay(Constants.AwaitBattleInterval);
             }
 
-            Main.Dispatch(() =>
-            {
-                UIManager.PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").GetComponent<Text>().text =
-                    Localization.Get("Battle", "Awaiting").ToString();
-            });
+            Main.Dispatch(SetVictoryButtons);
 
             BattleManager.SyncStop();
-            _ = ShowPlayResults();
+            Main.Dispatch(ShowPlayResults);
         }
 
         /// <summary>
@@ -178,19 +223,11 @@ namespace Multiplayer.Patches
             {
                 if (!LobbyManager.IsInLobby) return;
 
-                // PnlVictory adjustments
-                var restartButton = UIManager.PnlVictory.m_CurControls.btnReset;
-                restartButton.transform.Find("TxtRestart").GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
-                restartButton.onClick.RemoveAllListeners();
-                restartButton.onClick.AddListener((UnityAction)new Action(ShowPlaylist));
-
-                UIManager.PnlVictory.m_CurControls.btnContinue.transform.Find("TxtContinue").GetComponent<Text>().text =
-                    Localization.Get("Battle", "Awaiting").ToString();
-
+                SetVictoryButtons();
                 FinishCurrentChart();
 
-                _ = LobbyManager.PlaylistContinue();
                 _ = AwaitForFinish();
+                _ = LobbyManager.PlaylistContinue();
             }
         }
 

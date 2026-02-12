@@ -14,6 +14,28 @@
   </Target>
 
   <ItemGroup>
+    <Compile Remove="Assets\Stickers\Pack1\**" />
+    <EmbeddedResource Remove="Assets\Stickers\Pack1\**" />
+    <None Remove="Assets\Stickers\Pack1\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\Stickers\annoyed.gif" />
+    <None Remove="Assets\Stickers\cooing.gif" />
+    <None Remove="Assets\Stickers\envy.gif" />
+    <None Remove="Assets\Stickers\failed.gif" />
+    <None Remove="Assets\Stickers\flipped.gif" />
+    <None Remove="Assets\Stickers\foundle.gif" />
+    <None Remove="Assets\Stickers\good_night.gif" />
+    <None Remove="Assets\Stickers\jump_kick.gif" />
+    <None Remove="Assets\Stickers\lazily.gif" />
+    <None Remove="Assets\Stickers\onlooker.gif" />
+    <None Remove="Assets\Stickers\rich.gif" />
+    <None Remove="Assets\Stickers\shock.gif" />
+    <None Remove="Assets\Stickers\sob.gif" />
+    <None Remove="Assets\Stickers\speechless.gif" />
+    <None Remove="Assets\Stickers\stay_away.gif" />
+    <None Remove="Assets\Stickers\zombie.gif" />
     <None Remove="Assets\UI\Achievements.png" />
     <None Remove="Assets\UI\Awaiting.png" />
     <None Remove="Assets\UI\Back.png" />
@@ -62,6 +84,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+	<PackageReference Include="SixLabors.ImageSharp" Version="3.1.12">
+		<Aliases>SixLabors</Aliases>
+	</PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -76,9 +101,6 @@
     </Reference>
     <Reference Include="CustomAlbums">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\Mods\CustomAlbums.dll</HintPath>
-    </Reference>
-    <Reference Include="DiscordRPC">
-      <HintPath>..\DiscordRPC.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppDOTween">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Il2CppAssemblies\Il2CppDOTween.dll</HintPath>
@@ -146,6 +168,10 @@
     <Reference Include="UnityEngine.UIModule">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Muse Dash\MelonLoader\Il2CppAssemblies\UnityEngine.UIModule.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets\Stickers\Default\" />
   </ItemGroup>
 
 </Project>

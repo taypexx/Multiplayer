@@ -3,6 +3,7 @@ using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
+using PopupLib.UI.Windows.Interfaces;
 
 namespace Multiplayer.UI.ProfileWindows
 {
@@ -34,6 +35,11 @@ namespace Multiplayer.UI.ProfileWindows
                 }
             }
             else AddEmptyButton(Localization.Get("ProfileWindow", "EmptyAchievements" + (player == PlayerManager.LocalPlayer ? "Local" : string.Empty)));
+        }
+
+        protected override void OnButtonClick(IListWindow _, int objectIndex)
+        {
+            return;
         }
     }
 }

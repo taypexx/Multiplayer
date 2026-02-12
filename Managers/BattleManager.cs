@@ -12,13 +12,10 @@ namespace Multiplayer.Managers
     {
         internal static bool Synchronizing { get; private set; } = false;
 
-        private static byte[] Datagram;
-        private static byte[] ReceivedDatagram;
-
         private const int UidSize = 32;
         private const int BattleStatsSize = 22;
 
-        /* Datagram structure:
+        /* Packet structure:
         
         32B - string UID
         4B - int Score
@@ -31,7 +28,6 @@ namespace Multiplayer.Managers
         1B - bool FC
         1B - bool Alive
         2B - ushort PingMS
-        50-70B - string Token
 
         */
 
@@ -41,17 +37,67 @@ namespace Multiplayer.Managers
         private static StageBattleComponent StageBattleComponent;
 
         /// <summary>
-        /// Sends a datagram to the server and recieves <see cref="Data.Stats.BattleStats"/> of other players.
+        /// Updates <see cref="Data.Stats.BattleStats"/> of every other <see cref="Player"/> in the lobby.
         /// </summary>
-        private static async Task<byte[]> ServerSync()
+        internal static void Recieve(Span<byte> packet)
         {
-            var tokenSize = Encoding.UTF8.GetByteCount(Client.Token);
+            // Datagram size divided by UID + BattleStats size is the amount of entries
+            for (int i = 0; i < packet.Length / (UidSize + BattleStatsSize); i++)
+            {
+                int startAt = i * (UidSize + BattleStatsSize);
+                string uid = Encoding.UTF8.GetString(packet.Slice(startAt, UidSize)).TrimEnd('\0'); // Trimming because of lua null padding (not necessary)
 
-            Datagram = new byte[UidSize + BattleStatsSize + sizeof(ushort) + tokenSize];
-            Span<byte> span = Datagram;
+                Player player = PlayerManager.GetCachedPlayer(uid);
+                if (player is null) continue;
+                BattleStats battleStats = player.BattleStats;
+                if (battleStats is null) continue;
+
+                battleStats.Score = BinaryPrimitives.ReadUInt32LittleEndian(packet.Slice(startAt + UidSize));
+                battleStats.Accuracy = BinaryPrimitives.ReadSingleLittleEndian(packet.Slice(startAt + UidSize + 4));
+                battleStats.Perfects = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 8));
+                battleStats.Greats = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 10));
+                battleStats.Earlies = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 12));
+                battleStats.Lates = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 14));
+                battleStats.Misses = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 16));
+                battleStats.FC = packet[startAt + UidSize + 18] != 0;
+                battleStats.Alive = packet[startAt + UidSize + 19] != 0;
+                player.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 20));
+            }
+
+            UIManager.BattleLobbyDisplay.Update();
+        }
+
+        /// <summary>
+        /// Sends a packet to the server containing <see cref="Data.Stats.BattleStats"/> of the local player.
+        /// </summary>
+        private static void Send()
+        {
+            // This shit needs to be calculated properly bruh
+            int num1 = TaskStageTarget.GetHitCountByResult(2u)
+                + TaskStageTarget.GetHitCountByResult(4u)
+                + TaskStageTarget.GetHitCountByResult(5u)
+                + TaskStageTarget.m_Block + TaskStageTarget.m_MusicCount + TaskStageTarget.m_EnergyCount;
+            int num2 = TaskStageTarget.GetHitCountByResult(3u);
+            int num3 = TaskStageTarget.GetHitCountByResult(1u);
+            float accuracy = (float)((num1 + num2 / 2.0) / (num1 + num2 + num3) * 100.0);
+
+            // Updating battle stats
+            BattleStats.Score = (uint)TaskStageTarget.GetScore();
+            BattleStats.Accuracy = accuracy;
+            BattleStats.FC = TaskStageTarget.IsFullCombo();
+            BattleStats.Alive = !BattleRoleAttributeComponent.IsDead();
+            BattleStats.Perfects = (ushort)TaskStageTarget.m_PerfectResult;
+            BattleStats.Greats = (ushort)TaskStageTarget.m_GreatResult;
+            BattleStats.Earlies = (ushort)BattleRoleAttributeComponent.early;
+            BattleStats.Lates = (ushort)BattleRoleAttributeComponent.late;
+            BattleStats.Misses = (ushort)TaskStageTarget.GetComboMiss();
+            BattleStats.Player.PingMS = Client.PingMS;
+
+            // Sending battle stats
+            var packet = new byte[UidSize + BattleStatsSize];
+            Span<byte> span = packet;
 
             Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(0, UidSize));
-
             BinaryPrimitives.WriteUInt32LittleEndian(span.Slice(UidSize), BattleStats.Score);
             BinaryPrimitives.WriteSingleLittleEndian(span.Slice(UidSize + 4), BattleStats.Accuracy);
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 8), BattleStats.Perfects);
@@ -63,70 +109,7 @@ namespace Multiplayer.Managers
             span[UidSize + 19] = (byte)(BattleStats.Alive ? 1 : 0);
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 20), BattleStats.Player.PingMS);
 
-            // Signed string because the length is not fixed
-            BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 22), (ushort)tokenSize);
-            Encoding.UTF8.GetBytes(Client.Token, span.Slice(UidSize + 24));
-
-            return await Client.UdpSendAsync(Datagram);
-        }
-
-        /// <summary>
-        /// Gets local battle information and updates <see cref="Data.Stats.BattleStats"/> of the local <see cref="Player"/>.
-        /// </summary>
-        private static void UpdateLocalBattleStats()
-        {
-            int num1 = TaskStageTarget.GetHitCountByResult(2u) 
-                + TaskStageTarget.GetHitCountByResult(4u) 
-                + TaskStageTarget.GetHitCountByResult(5u) 
-                + TaskStageTarget.m_Block + TaskStageTarget.m_MusicCount + TaskStageTarget.m_EnergyCount;
-            int num2 = TaskStageTarget.GetHitCountByResult(3u);
-            int num3 = TaskStageTarget.GetHitCountByResult(1u);
-
-            BattleStats.Score = (uint)TaskStageTarget.m_Score;
-            BattleStats.Accuracy = (float)((num1 + num2 / 2.0) / (num1 + num2 + num3) * 100.0);
-            BattleStats.FC = TaskStageTarget.IsFullCombo();
-            BattleStats.Alive = !BattleRoleAttributeComponent.IsDead();
-            BattleStats.Perfects = (ushort)TaskStageTarget.m_PerfectResult;
-            BattleStats.Greats = (ushort)TaskStageTarget.m_GreatResult;
-            BattleStats.Earlies = (ushort)BattleRoleAttributeComponent.early;
-            BattleStats.Lates = (ushort)BattleRoleAttributeComponent.late;
-            BattleStats.Misses = (ushort)TaskStageTarget.GetComboMiss();
-            BattleStats.Player.PingMS = Client.PingMS;
-        }
-
-        /// <summary>
-        /// Updates <see cref="Data.Stats.BattleStats"/> of every other <see cref="Player"/> in the lobby.
-        /// </summary>
-        private static void UpdateOthersBattleStats()
-        {
-            // Validating the datagram length
-            if (ReceivedDatagram is null) return;
-            if (ReceivedDatagram.Length % (UidSize + BattleStatsSize) != 0) return;
-
-            Span<byte> span = ReceivedDatagram;
-
-            // Datagram size divided by UID + BattleStats size is the amount of entries
-            for (int i = 0; i < ReceivedDatagram.Length/(UidSize + BattleStatsSize); i++)
-            {
-                int startAt = i * (UidSize + BattleStatsSize);
-                string uid = Encoding.UTF8.GetString(span.Slice(startAt, UidSize)).TrimEnd('\0'); // Trimming because of lua null padding (not necessary)
-
-                Player player = PlayerManager.GetCachedPlayer(uid);
-                if (player is null) continue;
-                BattleStats battleStats = player.BattleStats;
-                if (battleStats is null) continue;
-
-                battleStats.Score = BinaryPrimitives.ReadUInt32LittleEndian(span.Slice(startAt + UidSize));
-                battleStats.Accuracy = BinaryPrimitives.ReadSingleLittleEndian(span.Slice(startAt + UidSize + 4));
-                battleStats.Perfects = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 8));
-                battleStats.Greats = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 10));
-                battleStats.Earlies = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 12));
-                battleStats.Lates = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 14));
-                battleStats.Misses = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 16));
-                battleStats.FC = span[startAt + UidSize + 18] != 0;
-                battleStats.Alive = span[startAt + UidSize + 19] != 0;
-                player.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(startAt + UidSize + 20));
-            }
+            _ = Client.WebsocketSend(packet);
         }
 
         /// <summary>
@@ -140,22 +123,14 @@ namespace Multiplayer.Managers
             BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;
             StageBattleComponent = StageBattleComponent.instance;
 
-            Main.Log("Battle synchronization started!");
             Synchronizing = true;
+            Main.Log("Battle synchronization started!");
 
             while (Synchronizing && Client.Connected)
             {
                 try
                 {
-                    Main.Dispatch(() =>
-                    {
-                        UpdateLocalBattleStats();
-                        UpdateOthersBattleStats();
-
-                        UIManager.BattleLobbyDisplay.Update();
-                    });
-
-                    ReceivedDatagram = await ServerSync();
+                    Main.Dispatch(Send);
                 }
                 catch (Exception ex)
                 {
@@ -171,7 +146,6 @@ namespace Multiplayer.Managers
         internal static void SyncStop()
         {
             Synchronizing = false;
-
             Main.Log("Battle synchronization ended!");
         }
     }

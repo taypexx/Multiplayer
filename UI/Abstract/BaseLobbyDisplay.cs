@@ -87,7 +87,7 @@ namespace Multiplayer.UI.Abstract
         {
             if (Frame == null) return null;
 
-            GameObject newTextObj = Utilities.CreateText(Frame.transform, "Entry" + TextList.Count.ToString());
+            GameObject newTextObj = Utilities.CreateText(Frame.transform, "Entry" + TextList.Count.ToString(), true);
             var rect = newTextObj.GetComponent<RectTransform>();
             rect.anchorMin = Pivot;
             rect.anchorMax = Pivot;
@@ -168,18 +168,7 @@ namespace Multiplayer.UI.Abstract
         {
             if (Lobby is null) return;
 
-            switch (Lobby.Goal)
-            {
-                case LobbyGoal.Accuracy:
-                    PositionList.Sort(PlayerManager.AccuracyComparison);
-                    break;
-                case LobbyGoal.Score:
-                    PositionList.Sort(PlayerManager.ScoreComparison);
-                    break;
-                case LobbyGoal.Custom:
-                    PositionList.Sort(PlayerManager.CustomComparison);
-                    break;
-            }
+            PositionList.Sort(Lobby.GoalComparison);
             SetTextPositions();
         }
 

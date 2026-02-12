@@ -9,11 +9,37 @@ namespace Multiplayer.UI.Extensions
     internal static class PnlCloudExtension
     {
         private static GameObject Message;
+        private static GameObject ImgBase;
         private static GameObject PendingMsg;
         private static GameObject CompletedMsg;
         private static GameObject FailMsg;
 
         private static Text PendingText;
+
+        internal static void StartIntermission()
+        {
+            if (!Main.IsUIScene || !UIManager.Initialized) return;
+
+            var baseRect = ImgBase.GetComponent<RectTransform>();
+            baseRect.anchoredPosition = new(0f, 250f);
+            baseRect.sizeDelta = new Vector2(350f, 250f);
+
+            var main = Utilities.CreateText(baseRect, "MainTxt");
+            var mainRect = main.GetComponent<RectTransform>();
+
+            mainRect.pivot = Vector2.one;
+            mainRect.anchorMin = mainRect.pivot;
+            mainRect.anchorMax = mainRect.pivot;
+
+            mainRect.anchoredPosition = new(-20f, 0f);
+            mainRect.sizeDelta = new();
+
+            var mainText = main.GetComponent<Text>();
+            mainText.fontSize = 32;
+            mainText.alignment = TextAnchor.UpperRight;
+            
+            // TODO: finish
+        }
 
         /// <summary>
         /// Enables the <see cref="PnlCloudMessage"/> so it sits there with the "Synchronizing" label.
@@ -48,11 +74,14 @@ namespace Multiplayer.UI.Extensions
         internal static void Create()
         {
             Message = GameObject.Instantiate(UIManager.PnlCloudMessage,UIManager.PnlCloudMessage.transform.parent);
+            Message.name = "PnlCloudMessageMultiplayer";
             Message.SetActive(false);
 
-            PendingMsg = Message.transform.Find("ImgBase/Synchronizing").gameObject;
-            CompletedMsg = Message.transform.Find("ImgBase/SynchronizingCompleted").gameObject;
-            FailMsg = Message.transform.Find("ImgBase/SynchronizingFail").gameObject;
+            ImgBase = Message.transform.Find("ImgBase").gameObject;
+
+            PendingMsg = ImgBase.transform.Find("Synchronizing").gameObject;
+            CompletedMsg = ImgBase.transform.Find("SynchronizingCompleted").gameObject;
+            FailMsg = ImgBase.transform.Find("SynchronizingFail").gameObject;
 
             PendingText = PendingMsg.transform.Find("TxtSynchronizing").GetComponent<Text>();
             Component.Destroy(PendingText.GetComponent<Il2CppAssets.Scripts.PeroTools.GeneralLocalization.Localization>());

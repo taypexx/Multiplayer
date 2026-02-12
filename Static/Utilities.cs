@@ -42,7 +42,7 @@ namespace Multiplayer.Static
         /// <summary>
         /// Creates a new <see cref="GameObject"/> with the <see cref="Text"/> component.
         /// </summary>
-        public static GameObject CreateText(Transform parent, string name = "Text")
+        public static GameObject CreateText(Transform parent, string name = "Text", bool addShadow = false)
         {
             var gameObject = new GameObject(name);
             gameObject.transform.SetParent(parent, true);
@@ -51,6 +51,13 @@ namespace Multiplayer.Static
             var text = gameObject.GetComponent<Text>() ?? gameObject.AddComponent<Text>();
             text.text = name;
             text.font = NormalFont;
+
+            if (addShadow)
+            {
+                Shadow shadow = gameObject.AddComponent<Shadow>();
+                shadow.effectDistance = new(2f, -2f);
+                shadow.effectColor = new(0f, 0f, 0f, 0.3f);
+            }
 
             var rect = gameObject.GetComponent<RectTransform>();
             rect.anchoredPosition3D = Vector3.zero;

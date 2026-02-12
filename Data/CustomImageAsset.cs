@@ -2,7 +2,7 @@
 
 namespace Multiplayer.Data
 {
-    public class CustomImageAsset
+    internal class CustomImageAsset
     {
         internal Texture2D Texture { get; private set; }
         internal Sprite Sprite { get; private set; }

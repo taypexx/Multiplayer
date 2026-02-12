@@ -12,7 +12,7 @@ namespace Multiplayer.Managers
     internal static class LobbyManager
     {
         internal static Dictionary<int,Lobby> CachedLobbies { get; private set; }
-        internal static List<Lobby> PublicLobbies => CachedLobbies.Values.Where(l => !l.IsPrivate).ToList();
+        internal static IEnumerable<Lobby> PublicLobbies => CachedLobbies.Values.Where(l => !l.IsPrivate).AsEnumerable();
 
         internal static Lobby LocalLobby { get; set; }
         internal static bool IsInLobby => LocalLobby != null;
@@ -47,7 +47,7 @@ namespace Multiplayer.Managers
                 });
 
                 // Start condition (for everyone except host)
-                if (LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && Main.IsUIScene && LocalLobby.CurrentPlaylistEntry != null)
+                if (Main.IsUIScene && LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && LocalLobby.CurrentPlaylistEntry != null)
                 {
                     _ = Intermission.Start();
                 }
@@ -62,7 +62,7 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Type = "Sync",
-                Body = new
+                Body = new 
                 {
                     Uid = PlayerManager.LocalPlayerUid,
                     Id = LocalLobby.Id,
@@ -415,7 +415,7 @@ namespace Multiplayer.Managers
 
             try
             {
-                var lobbies = await response.Content.ReadFromJsonAsync<Dictionary<int, Dictionary<string, JsonElement>>>();
+                var lobbies = await response.Content.ReadFromJsonAsync<Dictionary<int, JsonElement>>();
                 foreach ((int id, var body) in lobbies)
                 {
                     if (LocalLobby.Id == id) continue;
@@ -426,7 +426,7 @@ namespace Multiplayer.Managers
                         lobby = new(id);
                         CacheLobby(lobby);
                     }
-                    await lobby.UpdateFields(body);
+                    await lobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body));
                 }
             }
             catch {}
@@ -498,7 +498,7 @@ namespace Multiplayer.Managers
         private static async Task CacheCleaner()
         {
             DateTime current;
-            while (true)
+            while (Client.Connected)
             {
                 await Task.Delay(Constants.CacheCheckInterval);
                 current = DateTime.Now;

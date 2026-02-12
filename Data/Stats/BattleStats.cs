@@ -4,13 +4,13 @@ namespace Multiplayer.Data.Stats
 {
     public enum Grade : byte
     {
-        SSS = 0,
-        SS = 1,
-        S = 2,
+        SSS = 6,
+        SS = 5,
+        S = 4,
         A = 3,
-        B = 4,
-        C = 5,
-        D = 6
+        B = 2,
+        C = 1,
+        D = 0
     }
 
     public class BattleStats

@@ -55,7 +55,7 @@ namespace Multiplayer.Managers
 
             if (localPlayer.MultiplayerStats.Achievements.ContainsValue(achievement)) return false;
 
-            localPlayer.MultiplayerStats.Achievements.Add(DateTime.UtcNow,achievement);
+            localPlayer.MultiplayerStats.Achievements.Add(DateTime.UtcNow, achievement);
             PlayerManager.SyncAchievements();
 
             QueuedAchievements.Enqueue(achievement);
@@ -73,8 +73,6 @@ namespace Multiplayer.Managers
                 [0] = new("Welcome!", AchievementDifficulty.Easy),
                 [1] = new("Autoplay.dll", AchievementDifficulty.Hard)
             };
-
-            Achieve(0, true);
         }
     }
 }

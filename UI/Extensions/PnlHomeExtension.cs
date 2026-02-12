@@ -496,9 +496,9 @@ namespace Multiplayer.UI.Extensions
             LeftMuseShow.transform.localScale = SideMuseScale;
             RightMuseShow.transform.localScale = SideMuseScale;
 
-            MiddleNameLabel = Utilities.CreateText(MiddleMuseShow.transform.parent, "NameMiddle");
-            LeftNameLabel = Utilities.CreateText(LeftMuseShow.transform.parent, "NameLeft");
-            RightNameLabel = Utilities.CreateText(RightMuseShow.transform.parent, "NameRight");
+            MiddleNameLabel = Utilities.CreateText(MiddleMuseShow.transform.parent, "NameMiddle", true);
+            LeftNameLabel = Utilities.CreateText(LeftMuseShow.transform.parent, "NameLeft", true);
+            RightNameLabel = Utilities.CreateText(RightMuseShow.transform.parent, "NameRight", true);
 
             MiddleNameLabel.transform.position = MiddleNamePosition;
             LeftNameLabel.transform.position = LeftNamePosition;

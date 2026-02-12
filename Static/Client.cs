@@ -60,6 +60,7 @@ namespace Multiplayer.Static
         private static async Task WebsocketListen()
         {
             var buffer = new byte[4096];
+
             while (WebSocket.State == WebSocketState.Open && LobbyManager.IsInLobby)
             {
                 var msgBuilder = new StringBuilder();
@@ -75,26 +76,35 @@ namespace Multiplayer.Static
                     }
                     Stopwatch.Stop();
 
-                    if (res.MessageType == WebSocketMessageType.Close || !LobbyManager.IsInLobby)
+                    if (res.MessageType == WebSocketMessageType.Binary)
+                    {
+                        Main.Dispatch(() => BattleManager.Recieve(buffer.AsSpan(0, res.Count)));
+                    }
+                    else if (res.MessageType == WebSocketMessageType.Text)
+                    {
+                        msgBuilder.Append(Encoding.UTF8.GetString(buffer, 0, res.Count));
+                    }
+                    else if (res.MessageType == WebSocketMessageType.Close || !LobbyManager.IsInLobby)
                     {
                         await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
                         return;
                     }
-                    else if (res.MessageType != WebSocketMessageType.Text) continue;
-
-                    msgBuilder.Append(Encoding.UTF8.GetString(buffer, 0, res.Count));
                 }
                 while (!res.EndOfMessage);
 
-                var message = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(msgBuilder.ToString());
-                switch (message["Type"].GetString())
+                // Executing the recieved text message
+                if (msgBuilder.Length > 0)
                 {
-                    case "Sync":
-                        _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true);
-                        break;
-                    case "Chat":
-                        Main.Dispatch(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));
-                        break;
+                    var message = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(msgBuilder.ToString());
+                    switch (message["Type"].GetString())
+                    {
+                        case "Sync":
+                            _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true);
+                            break;
+                        case "Chat":
+                            Main.Dispatch(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));
+                            break;
+                    }
                 }
             }
         }
@@ -172,31 +182,19 @@ namespace Multiplayer.Static
         internal static async Task WebsocketSend(object payload, bool recordPing = false)
         {
             if (WebSocket.State != WebSocketState.Open) return;
-            var bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(payload));
+
+            byte[] bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(payload));
 
             if (recordPing) Stopwatch.Restart();
             await WebSocket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
-        /// <summary>
-        /// Performs an <see langword="async"/> SEND request and awaits for the response from the server.
-        /// </summary>
-        /// <param name="data">Datagram to send.</param>
-        /// <returns>Received <see langword="byte"/>[] buffer.</returns>
-        internal static async Task<byte[]> UdpSendAsync(byte[] data)
+        internal static async Task WebsocketSend(byte[] bytes, bool recordPing = false)
         {
-            try
-            {
-                await Udp.SendAsync(data, data.Length, "udp." + Constants.ServerAddress, Constants.PortUDP);
-                var result = await Udp.ReceiveAsync();
+            if (WebSocket.State != WebSocketState.Open) return;
 
-                return result.Buffer;
-            }
-            catch (Exception ex)
-            {
-                Main.Log(ex);
-                return null;
-            }
+            if (recordPing) Stopwatch.Restart();
+            await WebSocket.SendAsync(bytes, WebSocketMessageType.Binary, true, CancellationToken.None);
         }
 
         /// <summary>

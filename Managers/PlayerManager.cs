@@ -186,7 +186,7 @@ namespace Multiplayer.Managers
         private static async Task CacheCleaner()
         {
             DateTime current;
-            while (true)
+            while (Client.Connected)
             {
                 await Task.Delay(Constants.CacheCheckInterval);
                 current = DateTime.Now;

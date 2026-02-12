@@ -10,13 +10,14 @@ namespace Multiplayer
 {
     public class Main : MelonMod
     {
-        private static MelonLogger.Instance Logger;
         private static Dispatcher Dispatcher;
+        private static MelonLogger.Instance Logger;
         internal enum LogType : byte { Error, Warning, Info, Success }
 
         internal static string CurrentScene { get; private set; }
         internal static bool IsUIScene => CurrentScene == "UISystem_PC";
 
+        internal static Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
         private static readonly string[] Dependencies = { "CustomAlbums", "PopupLib", "LocalizeLib" };
         private static readonly string[] AdditionalDependencies = { "FavGirl" };
         private static Dictionary<string, Assembly> AdditionalDependenciesInstalled = new();
@@ -31,7 +32,7 @@ namespace Multiplayer
         /// Logs the passed object.
         /// </summary>
         /// <param name="msg">Message to log.</param>
-        /// <param name="logType">Type of the log</param>
+        /// <param name="logType">Type of the log.</param>
         internal static void Log(object msg, LogType logType = LogType.Info)
         {
             if (msg is Exception || logType == LogType.Error)

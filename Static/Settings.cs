@@ -56,7 +56,7 @@ namespace Multiplayer.Static
                 field = Math.Clamp(value, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS);
             } 
         } 
-        = 3000;
+        = 2000;
 
         internal int BattleUpdateIntervalMS { 
             get; set 

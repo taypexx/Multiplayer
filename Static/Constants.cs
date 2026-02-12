@@ -56,7 +56,7 @@ namespace Multiplayer.Static
         public const int BattleUpdateIntervalMaxMS = 2000;
         public const int BattleUpdateTimeoutMS = 2000;
 
-        public static readonly TimeSpan AwaitBattleInterval = TimeSpan.FromSeconds(1);
+        public static readonly TimeSpan AwaitBattleInterval = TimeSpan.FromMilliseconds(500);
         public static readonly TimeSpan CacheCheckInterval = TimeSpan.FromSeconds(5);
         public static readonly TimeSpan PlayerCacheExpiration = TimeSpan.FromMinutes(10);
         public static readonly TimeSpan LobbyCacheExpiration = TimeSpan.FromMinutes(5);

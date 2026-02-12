@@ -22,7 +22,7 @@
     "DisplayLobbyStatus": "Display status of your lobby (Public or Private)",
     "ShowBattlePopups": "Show popups when someone loses AP/FC or misses",
     "EnableLogging": "Show log messages in the console",
-    "LobbyUpdateIntervalMS": "How often your lobby data updates in milliseconds. Recommended values: 2000ms — 5000ms",
+    "LobbyUpdateIntervalMS": "How often your lobby data updates in milliseconds. Recommended values: 1000ms — 5000ms",
     "BattleUpdateIntervalMS": "How often your battle data updates in milliseconds. Recommended values: 100ms — 500ms"
   },
   "SystemChatMessages": {
@@ -55,6 +55,9 @@
     "discord": "Join the MDMP discord server",
     "kick": "Kick player from the lobby"
   },
+  "StickerPacks": {
+    "Default": "The default sticker pack."
+  },
   "Warning": {
     "Title": "Warning",
     "Unknown": "Unknown error occured!",
@@ -82,7 +85,9 @@
   },
   "Battle": {
     "Awaiting": "AWAITING",
-    "Results": "RESULTS"
+    "Continue": "CONTINUE",
+    "Results": "RESULTS",
+    "Next": "NEXT"
   },
   "MainMenu": {
     "Title": "Multiplayer",
