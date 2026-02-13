@@ -4,7 +4,6 @@ using Il2CppAssets.Scripts.UI.Panels.PnlRole;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Extensions;
-using System;
 
 namespace Multiplayer.Patches
 {

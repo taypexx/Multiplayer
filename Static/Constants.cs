@@ -9,11 +9,11 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
-        public const string Version = "0.1.0";
         public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty, Medeyah";
+        public const string Version = "0.1.0";
+        public static readonly Version Version_ = new Version(Version);
 
         internal const int PortHTTP = 9095;
-        internal const int PortUDP = 9096;
         internal const int PortWebsocket = 443;
 
         internal const int WebsocketTryReconnectTimes = 5;

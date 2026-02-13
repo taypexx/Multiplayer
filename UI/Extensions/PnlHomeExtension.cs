@@ -528,9 +528,9 @@ namespace Multiplayer.UI.Extensions
             LeftName.alignment = TextAnchor.LowerCenter;
             RightName.alignment = TextAnchor.LowerCenter;
 
-            MiddleInfoLabel = Utilities.CreateText(MiddleNameLabel.transform.parent, "InfoMiddle");
-            LeftInfoLabel = Utilities.CreateText(LeftNameLabel.transform.parent, "InfoLeft");
-            RightInfoLabel = Utilities.CreateText(RightNameLabel.transform.parent, "InfoRight");
+            MiddleInfoLabel = Utilities.CreateText(MiddleNameLabel.transform.parent, "InfoMiddle", true);
+            LeftInfoLabel = Utilities.CreateText(LeftNameLabel.transform.parent, "InfoLeft", true);
+            RightInfoLabel = Utilities.CreateText(RightNameLabel.transform.parent, "InfoRight", true);
 
             MiddleInfoLabel.transform.position = MiddleInfoPosition;
             LeftInfoLabel.transform.position = LeftInfoPosition;

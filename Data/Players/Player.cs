@@ -50,8 +50,8 @@ namespace Multiplayer.Data.Players
                 await MultiplayerStats.Update();
                 if (fullUpdate)
                 {
-                    await MoeStats.Update();
-                    await HQStats.Update();
+                    _ = MoeStats.Update();
+                    _ = HQStats.Update();
                 }
                 LastUpdated = DateTime.Now;
             }

@@ -28,8 +28,8 @@ namespace Multiplayer.Static
         internal static readonly string APIAddress = $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/";
         internal static readonly Uri WebsocketAddress = new($"wss://{Constants.ServerAddress}:{Constants.PortWebsocket}/ws");
 
-        internal static string ServerVersion { get; private set; }
-        internal static bool Outdated => ServerVersion != null && ServerVersion != Constants.Version;
+        internal static Version ServerVersion { get; private set; }
+        internal static bool Outdated => ServerVersion != null && ServerVersion > Constants.Version_;
         private static LocalString OutdatedWarning;
         private static LocalString LowLevelWarning;
 
@@ -63,48 +63,55 @@ namespace Multiplayer.Static
 
             while (WebSocket.State == WebSocketState.Open && LobbyManager.IsInLobby)
             {
-                var msgBuilder = new StringBuilder();
-                WebSocketReceiveResult res = null;
-
-                do
+                try
                 {
-                    res = await WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    var msgBuilder = new StringBuilder();
+                    WebSocketReceiveResult res = null;
 
-                    unchecked
+                    do
                     {
-                        PingMS = Stopwatch.ElapsedMilliseconds == 0 ? PingMS : (ushort)Stopwatch.ElapsedMilliseconds;
-                    }
-                    Stopwatch.Stop();
+                        res = await WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-                    if (res.MessageType == WebSocketMessageType.Binary)
-                    {
-                        Main.Dispatch(() => BattleManager.Recieve(buffer.AsSpan(0, res.Count)));
+                        unchecked
+                        {
+                            PingMS = Stopwatch.ElapsedMilliseconds == 0 ? PingMS : (ushort)Stopwatch.ElapsedMilliseconds;
+                        }
+                        Stopwatch.Stop();
+
+                        if (res.MessageType == WebSocketMessageType.Binary)
+                        {
+                            Main.Dispatch(() => BattleManager.Recieve(buffer.AsSpan(0, res.Count)));
+                        }
+                        else if (res.MessageType == WebSocketMessageType.Text)
+                        {
+                            msgBuilder.Append(Encoding.UTF8.GetString(buffer, 0, res.Count));
+                        }
+                        else if (res.MessageType == WebSocketMessageType.Close || !LobbyManager.IsInLobby)
+                        {
+                            await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                            return;
+                        }
                     }
-                    else if (res.MessageType == WebSocketMessageType.Text)
+                    while (!res.EndOfMessage);
+
+                    // Executing the recieved text message
+                    if (msgBuilder.Length > 0)
                     {
-                        msgBuilder.Append(Encoding.UTF8.GetString(buffer, 0, res.Count));
-                    }
-                    else if (res.MessageType == WebSocketMessageType.Close || !LobbyManager.IsInLobby)
-                    {
-                        await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
-                        return;
+                        var message = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(msgBuilder.ToString());
+                        switch (message["Type"].GetString())
+                        {
+                            case "Sync":
+                                _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true);
+                                break;
+                            case "Chat":
+                                Main.Dispatch(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));
+                                break;
+                        }
                     }
                 }
-                while (!res.EndOfMessage);
-
-                // Executing the recieved text message
-                if (msgBuilder.Length > 0)
+                catch (Exception ex)
                 {
-                    var message = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(msgBuilder.ToString());
-                    switch (message["Type"].GetString())
-                    {
-                        case "Sync":
-                            _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true);
-                            break;
-                        case "Chat":
-                            Main.Dispatch(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));
-                            break;
-                    }
+                    Main.Log(ex);
                 }
             }
         }
@@ -364,7 +371,7 @@ namespace Multiplayer.Static
             {
                 var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
 
-                ServerVersion = content["Version"].GetString();
+                ServerVersion = new Version(content["Version"].GetString());
                 if (!Outdated)
                 {
                     var newToken = content["Token"].GetString();

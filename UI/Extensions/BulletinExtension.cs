@@ -65,7 +65,7 @@ namespace Multiplayer.UI.Extensions
 
         internal static void Create()
         {
-            var windowTitleGo = UIManager.MainFrame.transform.Find("TxtTittle").gameObject;
+            var windowTitleGo = GameObject.Instantiate(UIManager.MainFrame.transform.Find("TxtTittle").gameObject, UIManager.MainFrame.transform);
             windowTitleGo.name = "WindowTitle";
             windowTitleGo.SetActive(false);
 

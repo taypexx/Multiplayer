@@ -113,7 +113,7 @@ namespace Multiplayer.Patches
         private static HashSet<string> DisplayedPlayers = new();
 
         /// <summary>
-        /// Tells the server you are done with the chart
+        /// Tells the server that you are done with the chart.
         /// </summary>
         private static void FinishCurrentChart()
         {
@@ -142,6 +142,7 @@ namespace Multiplayer.Patches
 
             var positionList = localLobby.Players.ToList();
             positionList.Sort(localLobby.GoalComparison);
+            positionList.Reverse();
 
             Task.Run(async () =>
             {
@@ -158,7 +159,10 @@ namespace Multiplayer.Patches
                 }
                 Main.Dispatch(() =>
                 {
-                    var nextEntry = localLobby.Playlist[localLobby.CurrentPlaylistEntryIndex + 1];
+                    var nextIndex = localLobby.CurrentPlaylistEntryIndex + 1;
+                    if (nextIndex >= localLobby.Playlist.Count) return;
+
+                    var nextEntry = localLobby.Playlist[nextIndex];
                     var chartName = ChartManager.GetNiceChartName(nextEntry.MusicInfo, nextEntry.Difficulty);
                     if (localLobby.CurrentPlaylistEntryIndex + 1 < localLobby.Playlist.Count)
                     {
