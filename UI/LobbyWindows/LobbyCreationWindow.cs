@@ -115,7 +115,7 @@ namespace Multiplayer.UI.LobbyWindows
         {
             if (Utilities.IsValidString(NamePrompt.Result, Constants.NameCharactersMin, Constants.NameCharactersMax))
             {
-                NameField = NamePrompt.Result;
+                NameField = Filtering.Filter(NamePrompt.Result);
             } 
             else if (!NamePrompt.Result.IsNullOrWhitespace())
             {

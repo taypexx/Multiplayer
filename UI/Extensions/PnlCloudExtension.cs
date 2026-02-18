@@ -16,31 +16,6 @@ namespace Multiplayer.UI.Extensions
 
         private static Text PendingText;
 
-        internal static void StartIntermission()
-        {
-            if (!Main.IsUIScene || !UIManager.Initialized) return;
-
-            var baseRect = ImgBase.GetComponent<RectTransform>();
-            baseRect.anchoredPosition = new(0f, 250f);
-            baseRect.sizeDelta = new Vector2(350f, 250f);
-
-            var main = Utilities.CreateText(baseRect, "MainTxt");
-            var mainRect = main.GetComponent<RectTransform>();
-
-            mainRect.pivot = Vector2.one;
-            mainRect.anchorMin = mainRect.pivot;
-            mainRect.anchorMax = mainRect.pivot;
-
-            mainRect.anchoredPosition = new(-20f, 0f);
-            mainRect.sizeDelta = new();
-
-            var mainText = main.GetComponent<Text>();
-            mainText.fontSize = 32;
-            mainText.alignment = TextAnchor.UpperRight;
-            
-            // TODO: finish
-        }
-
         /// <summary>
         /// Enables the <see cref="PnlCloudMessage"/> so it sits there with the "Synchronizing" label.
         /// </summary>

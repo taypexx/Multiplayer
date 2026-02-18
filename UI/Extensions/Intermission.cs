@@ -16,71 +16,30 @@ namespace Multiplayer.UI.Extensions
     {
         internal static bool Active { get; private set; } = false;
         internal static Stopwatch Stopwatch { get; private set; } = new Stopwatch();
+
         private static int CurrentTopGirlID = -1;
         private static int CurrentTopElfinID = -1;
+        private static bool IsTopComboEquipped => CurrentTopGirlID == PlayerManager.LocalPlayer.MultiplayerStats.GirlIndex && CurrentTopElfinID == PlayerManager.LocalPlayer.MultiplayerStats.ElfinIndex;
 
-        private static Text TimerText;
-        private static GameObject BtnBack;
+        private static Tuple<string, Color, Color> ButtonPlayTuple = new(
+            Localization.Get("Intermission", "ButtonPlay").ToString(),
+            new(0f, 0.82f, 0.28f, 1f),
+            new(0.536f, 1f, 0.05f, 1f)
+        );
 
-        /// <summary>
-        /// Gets the name of a girl with the given <paramref name="girlId"/>.
-        /// </summary>
-        internal static string GetGirl(int girlId)
-        {
-            if (girlId < 0) return string.Empty;
+        private static Tuple<string, Color, Color> ButtonEquipTuple = new
+        (
+            Localization.Get("Intermission", "ButtonEquip").ToString(),
+            new(1f, 0.6f, 0f, 1f),
+            new(1f, 0.972f, 0f, 1f)
+        );
 
-            var configManager = Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance;
-            var character = configManager.GetJson("character", true)[girlId];
-
-            var characterType = configManager.GetConfigObject<DBConfigCharacter>()
-                .GetCharacterInfoByIndex(girlId)
-                .characterType;
-
-            return string.Equals(characterType, "Special")
-                ? character["characterName"].ToString()
-                : character["cosName"].ToString();
-        }
-
-        /// <summary>
-        /// Gets the name of a elfin with the given <paramref name="elfinId"/>.
-        /// </summary>
-        internal static string GetElfin(int elfinId)
-        {
-            if (elfinId < 0) return string.Empty;
-
-            return Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance.GetJson("elfin", true)[elfinId]["name"].ToString();
-        }
-
-        /// <summary>
-        /// Updates the top label.
-        /// </summary>
-        private static void Update()
-        {
-            if (!Active || TimerText == null || !LobbyManager.IsInLobby) return;
-
-            var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
-            var chartLabel = ChartManager.GetNiceChartName(entry.MusicInfo, entry.Difficulty);
-            var secondsLeft = Constants.IntermissionTimeMS / 1000 - Stopwatch.Elapsed.TotalSeconds;
-
-            string topGirl, topElfin;
-            if (CurrentTopGirlID >= 0 && CurrentTopElfinID >= 0)
-            {
-                topGirl = GetGirl(CurrentTopGirlID);
-                topElfin = GetElfin(CurrentTopElfinID);
-            }
-            else
-            {
-                topGirl = Localization.Get("Global", "Loading").ToString();
-                topElfin = topGirl;
-            }
-
-            TimerText.text = string.Format(
-                Localization.Get("Lobby", "IntermissionLabel").ToString(),
-                Constants.Yellow, chartLabel,
-                Constants.Blue, topGirl, topElfin,
-                Constants.Yellow, (int)secondsLeft
-            );
-        }
+        private static Tuple<string, Color, Color> ButtonEquippedTuple = new
+        (
+            Localization.Get("Intermission", "ButtonEquipped").ToString(),
+            new(0.505f, 0.3f, 0.715f, 1f),
+            new(0.59f, 0.429f, 0.75f, 1f)
+        );
 
         /// <summary>
         /// Gets the top rank of a <paramref name="entry"/> from either <see href="https://api.musedash.moe"/> or <see href="https://api.mdmc.moe"/>.
@@ -124,58 +83,85 @@ namespace Multiplayer.UI.Extensions
         }
 
         /// <summary>
-        /// Transforms the PnlMenu for the intermission.
+        /// Updates the top label.
         /// </summary>
-        private static void SetPnlMenu()
+        private static void UpdateNotification()
+        {
+            if (!Active || !LobbyManager.IsInLobby) return;
+
+            var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
+            var chartTitle = ChartManager.GetNiceChartName(entry.MusicInfo, entry.Difficulty);
+            var secondsLeft = (int)Math.Ceiling(Constants.IntermissionTimeMS / 1000 - Stopwatch.Elapsed.TotalSeconds);
+
+            string topGirl, topElfin;
+            if (CurrentTopGirlID >= 0 && CurrentTopElfinID >= 0)
+            {
+                topGirl = Utilities.GetGirl(CurrentTopGirlID);
+                topElfin = Utilities.GetElfin(CurrentTopElfinID);
+            }
+            else
+            {
+                topGirl = Localization.Get("Global", "Loading").ToString();
+                topElfin = topGirl;
+            }
+
+            SideNotification.Update(
+                String.Format(
+                    Localization.Get("Intermission", "Label").ToString(),
+                    Constants.Yellow, chartTitle,
+                    Constants.Blue, topGirl, topElfin,
+                    Constants.Yellow, secondsLeft
+                ),
+                ButtonPlayTuple,
+                IsTopComboEquipped ? ButtonEquippedTuple : ButtonEquipTuple
+            );
+        }
+
+        private static void EnableNotification()
         {
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
             UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
 
-            var pnlMenu = UIManager.PnlMenu.gameObject;
-            BtnBack = pnlMenu.transform.Find("MenuNavigation/BtnBack").gameObject;
-            BtnBack.SetActive(false);
-
-            var timerLabel = Utilities.CreateText(pnlMenu.transform.Find("MenuNavigation"), "TimerLabel");
-            var timerRect = timerLabel.GetComponent<RectTransform>();
-            timerRect.pivot = new(0f, 1f);
-            timerRect.anchorMin = timerRect.pivot;
-            timerRect.anchorMax = timerRect.pivot;
-            timerRect.anchoredPosition = new(32f, -16f);
-
-            TimerText = timerLabel.GetComponent<Text>();
-            TimerText.text = string.Empty;
-            TimerText.alignment = TextAnchor.UpperLeft;
-            TimerText.horizontalOverflow = HorizontalWrapMode.Overflow;
-            TimerText.fontSize = 28;
-
-            // Open PnlMenu
-            if (!pnlMenu.active) UIManager.PnlNavigation.OnOptionClicked();
-
-            // Open the character tab
-            var menuSelect = UIManager.PnlMenu.menuSelect;
-            menuSelect.SetOn(Il2CppAssets.Scripts.UI.MenuType.Role);
-
-            // Turn off buttons besides girl and elfin selection
-            foreach (var toggle in menuSelect.m_PcOptions)
-            {
-                if (toggle.name != "TglRole" && toggle.name != "TglElfin")
+            var buttonMain = new Tuple<string, Color, Color, Action>
+            (
+                Localization.Get("Intermission", "ButtonPlay").ToString(),
+                new(), new(),
+                new(() => 
                 {
-                    toggle.isOn = false;
-                    toggle.enabled = false;
-                    toggle.gameObject.SetActive(false);
-                }
-            }
+                    SoundManager.PlayClick();
+                    if (!Active) return;
+
+                    Active = false;
+                })
+            );
+            var buttonSecondary = new Tuple<string, Color, Color, Action>
+            (
+                Localization.Get("Intermission", "ButtonEquip").ToString(),
+                new(), new(),
+                new(() =>
+                {
+                    SoundManager.PlayClick();
+                    if (IsTopComboEquipped || !Active) return;
+
+                    DataHelper.selectedRoleIndex = CurrentTopGirlID;
+                    DataHelper.selectedElfinIndex = CurrentTopElfinID;
+
+                    UpdateNotification();
+                })
+            );
+
+            SideNotification.Popup(string.Empty, buttonMain, buttonSecondary);
         }
 
         /// <summary>
         /// Resets everything before entering the chart.
         /// </summary>
-        private static void UnsetPnlMenu()
+        private static void DisableNotification()
         {
             CurrentTopGirlID = -1;
             CurrentTopElfinID = -1;
 
-            UnityEngine.Object.Destroy(TimerText.gameObject);
+            SideNotification.Close();
             UIManager.MainLobbyDisplay.Destroy();
             UIManager.ChatLobbyDisplay.Destroy();
             PnlHomeExtension.Destroy();
@@ -211,6 +197,8 @@ namespace Multiplayer.UI.Extensions
             BattleHelper.GameBattleStart(new Il2CppSystem.Object());
         }
 
+
+
         /// <summary>
         /// Starts the intermission.
         /// </summary>
@@ -224,17 +212,17 @@ namespace Multiplayer.UI.Extensions
             _ = UpdateTopCombo(LobbyManager.LocalLobby.CurrentPlaylistEntry);
 
             Stopwatch.Restart();
-            Main.Dispatch(SetPnlMenu);
+            Main.Dispatch(EnableNotification);
 
-            while (Stopwatch.ElapsedMilliseconds < Constants.IntermissionTimeMS)
+            while (Stopwatch.ElapsedMilliseconds < Constants.IntermissionTimeMS && Active)
             {
-                Main.Dispatch(Update);
+                Main.Dispatch(UpdateNotification);
                 await Task.Delay(1000);
             }
             Stopwatch.Stop();
 
             UIManager.Debounce = false;
-            Main.Dispatch(UnsetPnlMenu);
+            Main.Dispatch(DisableNotification);
             Main.Dispatch(StartBattle);
             Active = false;
         }

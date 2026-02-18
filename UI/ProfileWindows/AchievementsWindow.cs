@@ -27,7 +27,7 @@ namespace Multiplayer.UI.ProfileWindows
                 foreach ((DateTime date, Achievement achievement) in player.MultiplayerStats.Achievements)
                 {
                     var color = Constants.AchievmentDifficultyColors[achievement.Difficulty];
-                    AddButton((LocalString)$"<color={color}>{achievement.Name}</color>", null, new(
+                    AddButton(achievement.Name, null, new(
                         $"<color={color}>({achievement.Difficulty.ToString()})</color>\n" +
                         $"{achievement.Description}\n\n" +
                         $"[ {Localization.Get("Achievements", "AchievedOn")} ]: <color={Constants.Yellow}>{date.ToLocalTime()}</color>"

@@ -156,6 +156,18 @@ namespace Multiplayer.UI.ProfileWindows
         }
 
         /// <summary>
+        /// Updates the <see cref="FriendsWindow"/> and opens it.
+        /// </summary>
+        private async Task OpenFriendRequestsWindow()
+        {
+            UIManager.Debounce = true;
+            await UIManager.FriendRequestsWindow.Update();
+            UIManager.Debounce = false;
+
+            Main.Dispatch(() => UIManager.FriendRequestsWindow.Window.Show());
+        }
+
+        /// <summary>
         /// Opens the <see href="https://musedash.moe"/> profile of the player in the browser.
         /// </summary>
         private void OpenMDMoe()
@@ -206,13 +218,14 @@ namespace Multiplayer.UI.ProfileWindows
                 (
                     $"{player.MultiplayerStats.Bio}\n\n" +
 
-                    $"[ LVL ]: <color=1eff00ff>{player.MultiplayerStats.Level}</color>\n" +
-                    $"[ RL ]: <color=1eff00ff>{player.MoeStats.RL}</color>\n" +
-                    $"[ ELO ]: <color=1eff00ff>{player.MultiplayerStats.ELO}</color>\n" +
-                    $"[ Rank ]: <color=fff700ff>{player.MultiplayerStats.Rank}</color>\n" +
-                    $"[ Records ]: <color=fff700ff>{player.TotalRecords}</color>\n" +
-                    $"[ APs ]: <color=fff700ff>{player.TotalAPs}</color>\n" +
-                    $"[ Average Accuracy ]: <color=fff700ff>{player.TotalAverageAccuracy}%</color>"
+                    $"[ LVL ]: <color={Constants.Green}>{player.MultiplayerStats.Level}</color>\n" +
+                    $"[ RL ]: <color={Constants.Green}>{player.MoeStats.RL}</color>\n" +
+                    "\n" +
+                    //$"[ ELO ]: <color=1eff00ff>{player.MultiplayerStats.ELO}</color>\n" +
+                    //$"[ Rank ]: <color=fff700ff>{player.MultiplayerStats.Rank}</color>\n" +
+                    $"[ Records ]: <color={Constants.Yellow}>{player.TotalRecords}</color>\n" +
+                    $"[ APs ]: <color={Constants.Yellow}>{player.TotalAPs}</color>\n" +
+                    $"[ Average Accuracy ]: <color={Constants.Yellow}>{player.TotalAverageAccuracy}%</color>"
                 );
                 AchievementsButton.Contents = StatsButton.Contents;
                 FriendsButton.Contents = StatsButton.Contents;
@@ -238,7 +251,6 @@ namespace Multiplayer.UI.ProfileWindows
                     FriendRequestsButton.Contents = StatsButton.Contents;
                 }
 
-                UIManager.FriendRequestsWindow.Update();
                 UIManager.AchievementsWindow.Update(player);
 
                 Title = (LocalString)player.MultiplayerStats.Name;
@@ -251,23 +263,36 @@ namespace Multiplayer.UI.ProfileWindows
         }
 
         /// <summary>
+        /// Calls every time <see cref="PnlHead"/> gets closed.
+        /// </summary>
+        internal void OnPnlHeadClose()
+        {
+            if (PlayerManager.LocalPlayer is null) return;
+
+            if (PnlHeadWasOpened)
+            {
+                PlayerManager.SyncProfile();
+                PnlHeadWasOpened = false;
+                Window.Show();
+            }
+        }
+
+        /// <summary>
         /// Calls every time the bio window gets closed.
         /// </summary>
         private async Task OnBioCompletion()
         {
-            if (BioWindow.Result.IsNullOrWhitespace()) goto Show;
-
-            if (BioWindow.Result.Length > Constants.BioCharactersMax)
+            if (!BioWindow.Result.IsNullOrWhitespace())
             {
-                PopupUtils.ShowInfo(String.Format(Localization.Get("ProfileWindow", "BioTooLong").ToString(), Constants.BioCharactersMax));
-                goto Show;
+                if (BioWindow.Result.Length <= Constants.BioCharactersMax)
+                {
+                    PlayerManager.LocalPlayer.MultiplayerStats.Bio = Filtering.Filter(BioWindow.Result);
+                    PlayerManager.SyncProfile();
+                    await Update(Player, false);
+                }
+                else PopupUtils.ShowInfo(String.Format(Localization.Get("ProfileWindow", "BioTooLong").ToString(), Constants.BioCharactersMax));
             }
 
-            PlayerManager.LocalPlayer.MultiplayerStats.Bio = BioWindow.Result;
-            PlayerManager.SyncProfile();
-            await Update(Player, false);
-
-            Show:
             Main.Dispatch(() => Window.Show());
         }
 
@@ -279,7 +304,7 @@ namespace Multiplayer.UI.ProfileWindows
 
                 var payload = new
                 {
-                    PlayerManager.LocalPlayer.Uid,
+                    PlayerManager.LocalPlayerUid,
                     Client.Token,
                     FriendUid = Player.Uid
                 };
@@ -292,10 +317,7 @@ namespace Multiplayer.UI.ProfileWindows
                     var actionDid = await response.Content.ReadFromJsonAsync<int>();
                     msg = FriendButtonResponses[FriendButtonState];
                 }
-                else
-                {
-                    msg = Localization.Get("Warning", "Unknown");
-                }
+                else msg = Localization.Get("Warning", "Unknown");
 
                 if (Player != PlayerManager.LocalPlayer)
                 {
@@ -303,14 +325,17 @@ namespace Multiplayer.UI.ProfileWindows
                 }
                 await Update(Player, true);
 
-                if (PnlHomeExtension.Visible) PnlHomeExtension.UpdateCurrentPage();
+                Main.Dispatch(() =>
+                {
+                    if (PnlHomeExtension.Visible) PnlHomeExtension.UpdateCurrentPage();
 
-                PopupUtils.ShowInfo(msg);
+                    PopupUtils.ShowInfo(msg);
 
-                UIManager.Debounce = false;
+                    UIManager.Debounce = false;
+                });
             }
 
-            Window.Show();
+            Main.Dispatch(() => Window.Show());
         }
 
         internal override void OnRefresh()
@@ -357,6 +382,7 @@ namespace Multiplayer.UI.ProfileWindows
                 }
             } 
             else if (button == FriendsButton) _ = OpenFriendsWindow();
+            else if (button == FriendRequestsButton) _ = OpenFriendRequestsWindow();
         }
 
         protected override void OnShow(BaseWindow window)

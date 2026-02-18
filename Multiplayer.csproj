@@ -73,6 +73,7 @@
     <EmbeddedResource Include="Assets\UI\RinRich.png" />
     <EmbeddedResource Include="Assets\UI\Banners\Settings.png" />
     <EmbeddedResource Include="Localization\English.json" />
+    <EmbeddedResource Include="Localization\ProfanityTrieList.txt" />
   </ItemGroup>
 
   <ItemGroup>

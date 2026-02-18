@@ -279,21 +279,6 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Calls every time <see cref="PnlHead"/> gets closed.
-        /// </summary>
-        internal static void OnPnlHeadClose()
-        {
-            if (PlayerManager.LocalPlayer is null) return;
-            PlayerManager.SyncProfile();
-
-            if (ProfileWindow.PnlHeadWasOpened)
-            {
-                ProfileWindow.Window.Show();
-                ProfileWindow.PnlHeadWasOpened = false;
-            }
-        }
-
-        /// <summary>
         /// Finds the <see cref="GameObject"/> for each vanilla panel and sets the fields.
         /// </summary>
         internal static void UpdateVanillaPanels()
@@ -330,6 +315,7 @@ namespace Multiplayer.Managers
             // Displays and extensions
 
             BulletinExtension.Create();
+            SideNotification.Create();
             PnlMenuExtension.Create();
             PnlCloudExtension.Create();
             PnlMessageExtension.Create();
@@ -351,7 +337,7 @@ namespace Multiplayer.Managers
             // Other
 
             ProfileWindow.CreateAvatarBox();
-            PnlHead.onClose += (Action)OnPnlHeadClose;
+            PnlHead.onClose += (Action)ProfileWindow.OnPnlHeadClose;
             PnlPreparationExtension.BindCustomPnlPreparationClick(PnlPreparation);
         }
 

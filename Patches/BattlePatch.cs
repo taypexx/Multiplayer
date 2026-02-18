@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.GameCore.Managers;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Il2CppAssets.Scripts.UI.Panels;
 using Multiplayer.Data.Players;
@@ -142,7 +143,6 @@ namespace Multiplayer.Patches
 
             var positionList = localLobby.Players.ToList();
             positionList.Sort(localLobby.GoalComparison);
-            positionList.Reverse();
 
             Task.Run(async () =>
             {
@@ -209,6 +209,12 @@ namespace Multiplayer.Patches
             Main.Dispatch(SetVictoryButtons);
 
             BattleManager.SyncStop();
+
+            var messageManager = SingletonMonoBehaviour<MessageManager>.instance;
+            while (messageManager.messages.Count > 0 || PnlMessageExtension.Visible)
+            {
+                await Task.Delay(Constants.AwaitBattleInterval);
+            }
             Main.Dispatch(ShowPlayResults);
         }
 

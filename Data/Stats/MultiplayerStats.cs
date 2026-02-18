@@ -57,8 +57,9 @@ namespace Multiplayer.Data.Stats
         }
 
         public bool FriendsCached { get; private set; }
+        public bool FriendRequestsCached { get; private set; }
         public HashSet<string> Friends { get; private set; }
-        public Dictionary<string, string> FriendRequests { get; private set; }
+        public HashSet<string> FriendRequests { get; private set; }
         public Dictionary<DateTime, Achievement> Achievements { get; internal set; }
 
         public ushort ELO { get; private set; }
@@ -80,6 +81,7 @@ namespace Multiplayer.Data.Stats
             FavElfinIndex = -2;
 
             FriendsCached = false;
+            FriendRequestsCached = false;
             Friends = new();
             FriendRequests = new();
             Achievements = new();
@@ -108,7 +110,7 @@ namespace Multiplayer.Data.Stats
             FriendRequests.Clear();
             try
             {
-                FriendRequests = JsonSerializer.Deserialize<Dictionary<string, string>>(updatedData["FriendRequests"]);
+                FriendRequests = JsonSerializer.Deserialize<HashSet<string>>(updatedData["FriendRequests"]);
             }
             catch { }
 
@@ -162,6 +164,18 @@ namespace Multiplayer.Data.Stats
                 await PlayerManager.GetPlayer(friendUid);
             }
             FriendsCached = true;
+        }
+
+        /// <summary>
+        /// Caches every <see cref="Data.Players.Player"/> from friend request.
+        /// </summary>
+        internal async Task CacheFriendRequests()
+        {
+            foreach (string otherUid in FriendRequests)
+            {
+                await PlayerManager.GetPlayer(otherUid);
+            }
+            FriendRequestsCached = true;
         }
     }
 }

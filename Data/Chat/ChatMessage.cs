@@ -6,7 +6,16 @@ namespace Multiplayer.Data.Chat
 {
     public class ChatMessage
     {
-        public string Message { get; set; }
+        public string Message { 
+            get; 
+            set {
+                if (Settings.Config.FilterChatMessages)
+                {
+                    field = Filtering.Filter(value);
+                }
+                else field = value;
+            } 
+        }
         public string AuthorName { get; set; }
         public string AuthorUid { get; set; }
         public string ExtraData { get; set; }

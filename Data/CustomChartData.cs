@@ -31,7 +31,7 @@ namespace Multiplayer.Data
             try
             {
                 if (!Album.Sheets.ContainsKey(2)) return;
-                var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + Album.Sheets[2].Md5, true, false, true);
+                using var response = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + Album.Sheets[2].Md5, true, false, true);
 
                 // We check for the 404 specifically, because the server might be down or anything.
                 if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)

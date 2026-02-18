@@ -24,6 +24,8 @@ namespace Multiplayer.Static
         } 
         = true;
 
+        internal bool FilterChatMessages { get; set; } = true;
+
         internal bool EnableShortcuts { 
             get; set 
             {

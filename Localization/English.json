@@ -14,7 +14,8 @@
   },
   "SettingsWindow": {
     "Title": "Settings",
-    "EnableChat": "Enable the lobby chat (no text filtering)",
+    "EnableChat": "Enable the lobby chat",
+    "FilterChatMessages": "Hide any curse words in the chat",
     "ShowNavigationButtons": "Show multiplayer buttons on the navigation panel",
     "EnableShortcuts": "Enable shortcuts to quickly open multiplayer tabs",
     "FavGirlMode": "Display fav girls instead of equipped combinations on the home page when enabled",
@@ -69,7 +70,8 @@
     "LoginRequired": "Login is required to continue. Proceed to the authorization page?",
     "LowLevel": "Reach LVL {0} to unlock multiplayer!",
     "NoInternet": "You are offline. Connect to the internet to play multiplayer!",
-    "WebsocketFail": "Lost connecting with the lobby, please try again later."
+    "WebsocketFail": "Lost connection with the lobby, please try again later.",
+    "LogoutUnavailable": "You must leave your lobby in order to log out of your account."
   },
   "PnlCloudMessage": {
     "Default": "Synchronizing",
@@ -244,7 +246,12 @@
     "NoLobby": "You are not in lobby",
     "SleepwalkerUsed": "Cannot start - {0} is using sleepwalker",
     "SleepwalkerUsedLocal": "You must unequip sleepwalker to proceed",
-    "NotHost": "Only host can start the game",
-    "IntermissionLabel": "Coming up: <color=#{0}>{1}</color>   Top combo: <color=#{2}>{3} / {4}</color>   Time left: <color=#{5}>{6}s</color>"
+    "NotHost": "Only host can start the game"
+  },
+  "Intermission": {
+    "ButtonPlay": "PLAY",
+    "ButtonEquip": "EQUIP",
+    "ButtonEquipped": "EQUIPPED",
+    "Label": "Coming up: <color=#{0}>{1}</color>\nTop combo: <color=#{2}>{3} / {4}</color>\nTime left: <color=#{5}>{6}s</color>"
   }
 }

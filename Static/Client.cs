@@ -88,7 +88,7 @@ namespace Multiplayer.Static
                         }
                         else if (res.MessageType == WebSocketMessageType.Close || !LobbyManager.IsInLobby)
                         {
-                            await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                            if (WebSocket.State != WebSocketState.Closed) await WebsocketClose();
                             return;
                         }
                     }
@@ -121,8 +121,9 @@ namespace Multiplayer.Static
         /// </summary>
         internal static async Task WebsocketStart()
         {
-            if (!LobbyManager.IsInLobby || WebSocket.State == WebSocketState.Open) return;
+            if (!LobbyManager.IsInLobby || (WebSocket != null && WebSocket.State == WebSocketState.Open)) return;
 
+            WebSocket = new();
             WebSocket.Options.SetRequestHeader("Authorization", $"Basic {PlayerManager.LocalPlayerUid}#{Token}");
 
             Main.Log("Connecting to the Websocket...");
@@ -203,6 +204,8 @@ namespace Multiplayer.Static
             if (recordPing) Stopwatch.Restart();
             await WebSocket.SendAsync(bytes, WebSocketMessageType.Binary, true, CancellationToken.None);
         }
+
+        internal static async Task WebsocketClose() => await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
 
         /// <summary>
         /// Performs an <see langword="async"/> GET request.
@@ -468,8 +471,6 @@ namespace Multiplayer.Static
 
             Udp = new();
             Udp.Client.ReceiveTimeout = Constants.BattleUpdateTimeoutMS;
-
-            WebSocket = new();
 
             if (File.Exists(TokenPath)) Token = Cipher.Decrypt(File.ReadAllText(TokenPath), Constants.TokenCipherShift);
         }

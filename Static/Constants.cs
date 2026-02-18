@@ -9,7 +9,7 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
-        public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty, Medeyah";
+        public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty, Medeyah, Slawter, Fran艾林";
         public const string Version = "0.1.0";
         public static readonly Version Version_ = new Version(Version);
 
@@ -35,7 +35,7 @@ namespace Multiplayer.Static
 
         public const int ModUnlockLevel = 100;
         public const int SleepwalkerRoleIndex = 2;
-        public const int IntermissionTimeMS = 20000;
+        public const int IntermissionTimeMS = 30000;
 
         public const int ChatMessageCharactersMax = 256;
         public const int ChatMessageHistorySize = 48;

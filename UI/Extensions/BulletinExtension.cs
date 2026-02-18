@@ -68,6 +68,7 @@ namespace Multiplayer.UI.Extensions
             var windowTitleGo = GameObject.Instantiate(UIManager.MainFrame.transform.Find("TxtTittle").gameObject, UIManager.MainFrame.transform);
             windowTitleGo.name = "WindowTitle";
             windowTitleGo.SetActive(false);
+            Component.Destroy(windowTitleGo.GetComponent<Il2CppAssets.Scripts.PeroTools.GeneralLocalization.Localization>());
 
             var titleRect = windowTitleGo.GetComponent<RectTransform>();
             titleRect.pivot = new(0.5f, 1f);
@@ -76,6 +77,7 @@ namespace Multiplayer.UI.Extensions
             titleRect.anchoredPosition = new(0f, -170f);
 
             WindowTitle = windowTitleGo.GetComponent<Text>();
+            WindowTitle.font = Utilities.NormalFont;
             WindowTitle.text = Localization.Get("MainMenu", "Multiplayer").ToString();
 
             WindowBackButton = CreateTopButton(AssetManager.GetImageAsset("UI.Back.png").Sprite, new(40f, 40f), (UnityAction)new Action(() =>

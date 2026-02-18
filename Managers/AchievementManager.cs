@@ -1,12 +1,12 @@
-﻿using Il2CppAssets.Scripts.PeroTools.Commons;
-using Multiplayer.Data.Players;
+﻿using Multiplayer.Data.Players;
 using Multiplayer.UI.Extensions;
-using UnityEngine.UI;
 
 namespace Multiplayer.Managers
 {
     internal static class AchievementManager
     {
+        internal static bool Initialized { get; private set; } = false;
+
         internal static Dictionary<int,Achievement> Achievements { get; private set; }
         private static Queue<Achievement> QueuedAchievements;
 
@@ -66,6 +66,7 @@ namespace Multiplayer.Managers
 
         internal static void Init()
         {
+            if (Initialized) return;
             QueuedAchievements = new();
 
             Achievements = new()
@@ -73,6 +74,8 @@ namespace Multiplayer.Managers
                 [0] = new("Welcome!", AchievementDifficulty.Easy),
                 [1] = new("Autoplay.dll", AchievementDifficulty.Hard)
             };
+
+            Initialized = true;
         }
     }
 }

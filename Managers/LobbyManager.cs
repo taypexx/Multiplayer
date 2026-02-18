@@ -155,7 +155,7 @@ namespace Multiplayer.Managers
             }
 
             bool success = result == 0;
-            if (success)
+            if (success && !LocalLobby.HasInPlaylist(entry))
             {
                 LocalLobby.Playlist.Add(new(musicInfo, difficulty, entry));
                 Main.Dispatch(() => 
@@ -392,6 +392,7 @@ namespace Multiplayer.Managers
         {
             var prevLobby = LocalLobby;
             LocalLobby = null;
+            _ = Client.WebsocketClose();
             IsAutoUpdating = false;
 
             Main.Dispatch(() =>

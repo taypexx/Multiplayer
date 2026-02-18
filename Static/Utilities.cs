@@ -1,4 +1,6 @@
-﻿using Il2CppSirenix.Serialization.Utilities;
+﻿using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.PeroTools.Commons;
+using Il2CppSirenix.Serialization.Utilities;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -9,6 +11,35 @@ namespace Multiplayer.Static
     public static class Utilities
     {
         public static Font NormalFont = Addressables.LoadAssetAsync<Font>("Normal").WaitForCompletion();
+
+        /// <summary>
+        /// Gets the name of a girl with the given <paramref name="girlId"/>.
+        /// </summary>
+        internal static string GetGirl(int girlId)
+        {
+            if (girlId < 0) return string.Empty;
+
+            var configManager = Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance;
+            var character = configManager.GetJson("character", true)[girlId];
+
+            var characterType = configManager.GetConfigObject<DBConfigCharacter>()
+                .GetCharacterInfoByIndex(girlId)
+                .characterType;
+
+            return string.Equals(characterType, "Special")
+                ? character["characterName"].ToString()
+                : character["cosName"].ToString();
+        }
+
+        /// <summary>
+        /// Gets the name of a elfin with the given <paramref name="elfinId"/>.
+        /// </summary>
+        internal static string GetElfin(int elfinId)
+        {
+            if (elfinId < 0) return string.Empty;
+
+            return Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance.GetJson("elfin", true)[elfinId]["name"].ToString();
+        }
 
         /// <summary>
         /// Rounds the <paramref name="value"/> to 2 decimal places.
@@ -48,7 +79,7 @@ namespace Multiplayer.Static
             gameObject.transform.SetParent(parent, true);
             gameObject.transform.localScale = Vector3.one;
 
-            var text = gameObject.GetComponent<Text>() ?? gameObject.AddComponent<Text>();
+            var text = gameObject.AddComponent<Text>();
             text.text = name;
             text.font = NormalFont;
 

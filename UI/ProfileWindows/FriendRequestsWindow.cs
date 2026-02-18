@@ -1,4 +1,5 @@
 ﻿using LocalizeLib;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -9,40 +10,49 @@ namespace Multiplayer.UI.ProfileWindows
 {
     internal sealed class FriendRequestsWindow : BaseMultiplayerWindow
     {
-        private Dictionary<ForumObject, string> ButtonsUids;
+        private Dictionary<ForumObject, Player> ButtonsPlayers;
 
         internal FriendRequestsWindow() : base(Localization.Get("ProfileWindow", "FriendRequests"), UIManager.ProfileWindow, "Friends.png")
         {
-            ButtonsUids = new();
+            ButtonsPlayers = new();
         }
 
         /// <summary>
         /// Updates the window to show friend requests of a local player.
         /// </summary>
-        internal void Update()
+        internal async Task Update()
         {
-            RemoveAllButtons();
-            ButtonsUids.Clear();
-
             var localStats = PlayerManager.LocalPlayer.MultiplayerStats;
-            if (localStats.FriendRequests.Count > 0)
+            if (!localStats.FriendRequestsCached)
             {
-                foreach ((string playerUid, string playerName) in localStats.FriendRequests)
-                {
-                    ForumObject button = AddButton((LocalString)playerName);
-                    ButtonsUids.Add(button, playerUid);
-                }
+                await localStats.CacheFriendRequests();
             }
-            else AddEmptyButton(Localization.Get("ProfileWindow", "EmptyFriendRequests"));
+
+            Main.Dispatch(() =>
+            {
+                RemoveAllButtons();
+                ButtonsPlayers.Clear();
+
+                if (localStats.FriendRequests.Count > 0)
+                {
+                    foreach (string playerUid in localStats.FriendRequests)
+                    {
+                        Player otherPlayer = PlayerManager.GetCachedPlayer(playerUid);
+                        ForumObject button = AddButton((LocalString)otherPlayer.MultiplayerStats.Name);
+                        ButtonsPlayers.Add(button, otherPlayer);
+                    }
+                }
+                else AddEmptyButton(Localization.Get("ProfileWindow", "EmptyFriendRequests"));
+            });
         }
 
         protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
             base.OnButtonClick(window, objectIndex);
 
-            if (ButtonsUids.TryGetValue(Window.ForumObjects[objectIndex], out string playerUid))
+            if (ButtonsPlayers.TryGetValue(Window.ForumObjects[objectIndex], out Player otherPlayer))
             {
-                _ = UIManager.OpenProfileWindow(playerUid);
+                _ = UIManager.OpenProfileWindow(otherPlayer);
             }
         }
     }

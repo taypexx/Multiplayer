@@ -6,8 +6,9 @@ namespace Multiplayer.Static
 {
     internal static class Localization
     {
+        private static readonly LocalString Empty = new();
         private static Dictionary<string, Dictionary<string, LocalString>> Strings = new();
-        private static LocalString Empty = new();
+
         private static List<string> Languages = new() { "English", "ChineseS", "ChineseT", "Japanese", "Korean" };
         internal static int LanguageIndex => Languages.IndexOf(Utils.GetLangString()) + 1;
 
@@ -29,7 +30,7 @@ namespace Multiplayer.Static
                 string localizationJson = AssetManager.GetStringAsset($"Localization.{language}.json");
                 if (localizationJson is null)
                 {
-                    Main.Log($"Failed to load {language} localization!", Main.LogType.Error);
+                    Main.Log($"{language} localization was not found, skipping.", Main.LogType.Warning);
                     continue;
                 }
 
@@ -60,6 +61,17 @@ namespace Multiplayer.Static
                     }
                 }
             }
+
+            var profanityFile = AssetManager.GetStringAsset("Localization.ProfanityTrieList.txt");
+
+            if (profanityFile != null)
+            {
+                foreach (var line in profanityFile.Split(' ', '\n'))
+                {
+                    Filtering.AddCurse(line.Trim());
+                }
+            }
+            else Main.Log("Profanity list was not found.", Main.LogType.Warning);
         }
     }
 }

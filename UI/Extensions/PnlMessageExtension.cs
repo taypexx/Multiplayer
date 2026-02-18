@@ -8,8 +8,8 @@ namespace Multiplayer.UI.Extensions
     internal static class PnlMessageExtension
     {
         private static PnlMessage PnlMessage;
-        private static bool Visible = PnlMessage != null && PnlMessage.gameObject.active;
         private static TimeSpan CellDelay = TimeSpan.FromMilliseconds(300);
+        internal static bool Visible = PnlMessage != null && PnlMessage.gameObject.active;
 
         private static void AddEntry(string text, bool checkmarkIcon = true, Sprite icon = null)
         {
