@@ -51,6 +51,10 @@
     <None Remove="Assets\UI\Profile.png" />
     <None Remove="Assets\UI\Refresh.png" />
     <None Remove="Assets\UI\Settings.png" />
+    <None Remove="Assets\UI\Statuses\InBattle.png" />
+    <None Remove="Assets\UI\Statuses\InLobby.png" />
+    <None Remove="Assets\UI\Statuses\Offline.png" />
+    <None Remove="Assets\UI\Statuses\Online.png" />
     <None Remove="Localization\English.json" />
   </ItemGroup>
 
@@ -72,6 +76,10 @@
     <EmbeddedResource Include="Assets\UI\Refresh.png" />
     <EmbeddedResource Include="Assets\UI\RinRich.png" />
     <EmbeddedResource Include="Assets\UI\Banners\Settings.png" />
+    <EmbeddedResource Include="Assets\UI\Statuses\InBattle.png" />
+    <EmbeddedResource Include="Assets\UI\Statuses\InLobby.png" />
+    <EmbeddedResource Include="Assets\UI\Statuses\Offline.png" />
+    <EmbeddedResource Include="Assets\UI\Statuses\Online.png" />
     <EmbeddedResource Include="Localization\English.json" />
     <EmbeddedResource Include="Localization\ProfanityTrieList.txt" />
   </ItemGroup>

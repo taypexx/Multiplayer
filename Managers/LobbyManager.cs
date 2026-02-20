@@ -488,7 +488,7 @@ namespace Multiplayer.Managers
         /// <param name="lobby"><see cref="Lobby"/> to remove.</param>
         internal static void ClearLobbyFromCache(Lobby lobby)
         {
-            if (!CachedLobbies.ContainsKey(lobby.Id)) return;
+            if (lobby == null || !CachedLobbies.ContainsKey(lobby.Id)) return;
 
             CachedLobbies.Remove(lobby.Id);
         }
@@ -501,7 +501,7 @@ namespace Multiplayer.Managers
             DateTime current;
             while (Client.Connected)
             {
-                await Task.Delay(Constants.CacheCheckInterval);
+                await Task.Delay(Constants.CacheCheckIntervalMS);
                 current = DateTime.Now;
 
                 foreach (Lobby lobby in CachedLobbies.Values)

@@ -3,6 +3,7 @@ using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppSirenix.Serialization.Utilities;
 using LocalizeLib;
 using Multiplayer.Data.Players;
+using Multiplayer.Data.Stats;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -40,6 +41,8 @@ namespace Multiplayer.UI.ProfileWindows
         internal bool PnlHeadWasOpened = false;
         private GameObject AvatarBox;
         private HeadItem AvatarHeadItem;
+        private Image AvatarStatus;
+        private Dictionary<PlayerStatus, Sprite> AvatarStatusSprites;
 
         private InputWindow BioWindow;
 
@@ -48,6 +51,14 @@ namespace Multiplayer.UI.ProfileWindows
 
         internal ProfileWindow() : base(Localization.Get("ProfileWindow", "Title"), UIManager.MainMenu, "Profile.png")
         {
+            AvatarStatusSprites = new()
+            {
+                [PlayerStatus.Offline] = AssetManager.GetImageAsset("UI.Statuses.Offline.png").Sprite,
+                [PlayerStatus.Online] = AssetManager.GetImageAsset("UI.Statuses.Online.png").Sprite,
+                [PlayerStatus.InLobby] = AssetManager.GetImageAsset("UI.Statuses.InLobby.png").Sprite,
+                [PlayerStatus.InBattle] = AssetManager.GetImageAsset("UI.Statuses.InBattle.png").Sprite,
+            };
+
             FriendButtonTitles = new()
             {
                 [0] = Localization.Get("ProfileWindow", "DecideFriendRequest"),
@@ -125,6 +136,14 @@ namespace Multiplayer.UI.ProfileWindows
 
             AvatarHeadItem = AvatarBox.GetComponent<HeadItem>();
             AvatarHeadItem.m_ImgLock.gameObject.SetActive(false);
+
+            AvatarStatus = AvatarBox.transform.Find("ImgRedot/Img").GetComponent<Image>();
+            var statusRect = AvatarStatus.transform.parent.GetComponent<RectTransform>();
+            statusRect.pivot = new(1f, 0f);
+            statusRect.anchorMin = statusRect.pivot;
+            statusRect.anchorMax = statusRect.pivot;
+            statusRect.anchoredPosition = new(-10f, 10f);
+            statusRect.gameObject.SetActive(true);
         }
 
         /// <summary>
@@ -255,6 +274,7 @@ namespace Multiplayer.UI.ProfileWindows
 
                 Title = (LocalString)player.MultiplayerStats.Name;
                 AvatarHeadItem.m_ImgHead.sprite = PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
+                AvatarStatus.sprite = AvatarStatusSprites[player.MultiplayerStats.Status];
 
                 FriendActionButton.Titles = FriendButtonTitles[FriendButtonState];
                 FriendRequestPrompt.Title = (LocalString)player.MultiplayerStats.Name;
@@ -304,8 +324,7 @@ namespace Multiplayer.UI.ProfileWindows
 
                 var payload = new
                 {
-                    PlayerManager.LocalPlayerUid,
-                    Client.Token,
+                    Uid = PlayerManager.LocalPlayerUid,
                     FriendUid = Player.Uid
                 };
 

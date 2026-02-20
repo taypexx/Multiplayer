@@ -253,5 +253,10 @@
     "ButtonEquip": "EQUIP",
     "ButtonEquipped": "EQUIPPED",
     "Label": "Coming up: <color=#{0}>{1}</color>\nTop combo: <color=#{2}>{3} / {4}</color>\nTime left: <color=#{5}>{6}s</color>"
+  },
+  "Invite": {
+    "Message": "<color={0}>{1}</color>\nis inviting you to join\n<color={2}>{3}</color>",
+    "Join": "JOIN",
+    "Ignore": "IGNORE"
   }
 }

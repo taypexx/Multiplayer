@@ -66,17 +66,19 @@ namespace Multiplayer.Managers
         {
             if (!Client.Connected) return;
 
+            var localStats = LocalPlayer.MultiplayerStats;
             var payload = new
             {
                 Uid = LocalPlayerUid,
-                Name = LocalPlayer.MultiplayerStats.Name,
-                AvatarName = LocalPlayer.MultiplayerStats.AvatarName,
-                Bio = LocalPlayer.MultiplayerStats.Bio,
-                Level = LocalPlayer.MultiplayerStats.Level,
-                GirlIndex = LocalPlayer.MultiplayerStats.GirlIndex,
-                ElfinIndex = LocalPlayer.MultiplayerStats.ElfinIndex,
-                FavGirlIndex = LocalPlayer.MultiplayerStats.FavGirlIndex,
-                FavElfinIndex = LocalPlayer.MultiplayerStats.FavElfinIndex
+                Status = localStats.Status,
+                Name = localStats.Name,
+                AvatarName = localStats.AvatarName,
+                Bio = localStats.Bio,
+                Level = localStats.Level,
+                GirlIndex = localStats.GirlIndex,
+                ElfinIndex = localStats.ElfinIndex,
+                FavGirlIndex = localStats.FavGirlIndex,
+                FavElfinIndex = localStats.FavElfinIndex
             };
             _ = Client.PostAsync("updatePlayer", payload);
         }
@@ -175,7 +177,7 @@ namespace Multiplayer.Managers
         /// <param name="player"><see cref="Player"/> which cache will be cleared.</param>
         private static void ClearPlayerFromCache(Player player)
         {
-            if (!CachedPlayers.ContainsKey(player.Uid)) return;
+            if (player == null || !CachedPlayers.ContainsKey(player.Uid)) return;
 
             CachedPlayers.Remove(player.Uid);
         }
@@ -188,7 +190,7 @@ namespace Multiplayer.Managers
             DateTime current;
             while (Client.Connected)
             {
-                await Task.Delay(Constants.CacheCheckInterval);
+                await Task.Delay(Constants.CacheCheckIntervalMS);
                 current = DateTime.Now;
 
                 foreach (Player player in CachedPlayers.Values)

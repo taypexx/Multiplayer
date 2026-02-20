@@ -8,15 +8,29 @@ using System.Reflection;
 
 namespace Multiplayer.Data.Stats
 {
+    public enum PlayerStatus : byte
+    {
+        Offline, Online, InLobby, InBattle
+    }
+
     public class MultiplayerStats
     {
         public Player Player { get; private set; }
+
+        public PlayerStatus Status {
+            get => Player == PlayerManager.LocalPlayer ? (LobbyManager.IsInLobby ? (Main.IsUIScene ? PlayerStatus.InLobby : PlayerStatus.InBattle) : PlayerStatus.Online) : field;
+            private set; 
+        }
+
         public string Name { get; private set; }
+
         public string AvatarName {
             get => Player == PlayerManager.LocalPlayer ? "head_" + DataHelper.selectedHeadIndex.ToString() : field;
             private set; 
         }
+
         public string Bio { get; internal set; }
+
         public int Level { 
             get => Player == PlayerManager.LocalPlayer ? DataHelper.Level : field;
             private set; 
@@ -69,6 +83,7 @@ namespace Multiplayer.Data.Stats
         public MultiplayerStats(Player player)
         {
             Player = player;
+            Status = PlayerStatus.Offline;
             Name = PlayerManager.LocalPlayerName ?? player.Uid;
             AvatarName = "head_0";
             Bio = "This player did not set their bio.";
@@ -96,6 +111,7 @@ namespace Multiplayer.Data.Stats
         /// <param name="updatedData">JSON dictionary containing fields as keys and their values.</param>
         internal void UpdateFields(Dictionary<string, JsonElement> updatedData)
         {
+            Status = (PlayerStatus)updatedData["Status"].GetByte();
             Name = updatedData["Name"].GetString();
             AvatarName = updatedData["AvatarName"].GetString();
             Bio = updatedData["Bio"].GetString();

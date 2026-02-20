@@ -189,7 +189,7 @@ namespace Multiplayer.UI.Extensions
                 // TODO: figure this out
             }
 
-            UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
+            UIManager.JumpToChart(entry.MusicInfo.uid);
             GlobalDataBase.dbMusicTag.selectedDiffTglIndex = entry.Difficulty == 4 ? 3 : entry.Difficulty;
             GlobalDataBase.dbMusicTag.pnlSelectMusicUid = entry.MusicInfo.uid;
 
@@ -217,7 +217,7 @@ namespace Multiplayer.UI.Extensions
             while (Stopwatch.ElapsedMilliseconds < Constants.IntermissionTimeMS && Active)
             {
                 Main.Dispatch(UpdateNotification);
-                await Task.Delay(1000);
+                await Task.Delay(500);
             }
             Stopwatch.Stop();
 

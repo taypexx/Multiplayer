@@ -135,7 +135,7 @@ namespace Multiplayer.UI.Displays
         internal override void Destroy()
         {
             base.Destroy();
-            TxtStageDesigner.SetActive(true);
+            if (TxtStageDesigner != null) TxtStageDesigner.SetActive(true);
         }
     }
 }

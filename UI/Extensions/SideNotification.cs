@@ -2,6 +2,7 @@
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -91,7 +92,7 @@ namespace Multiplayer.UI.Extensions
             Notification = GameObject.Instantiate(UIManager.PnlCloudMessage, UIManager.PnlCloudMessage.transform.parent);
             Notification.name = "MultiplayerSideNotification";
             Notification.SetActive(false);
-            Component.Destroy(Notification.GetComponent<Canvas>());
+            Notification.AddComponent<GraphicRaycaster>();
 
             ImgBase = Notification.transform.Find("ImgBase").gameObject;
 
@@ -103,12 +104,13 @@ namespace Multiplayer.UI.Extensions
             messageBase.pivot = new(0.5f, 1f);
             messageBase.anchorMin = messageBase.pivot;
             messageBase.anchorMax = messageBase.pivot;
+            messageBase.gameObject.SetActive(true);
 
             Message = messageBase.Find("TxtSynchronizing").GetComponent<Text>();
             Message.alignment = TextAnchor.UpperRight;
             Message.verticalOverflow = VerticalWrapMode.Overflow; // 4 lines max
 
-            var sprRoundedSquare = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole/Properties/BtnApply/ImgInUse").GetComponent<Image>().sprite;
+            var sprRoundedSquare = Addressables.LoadAssetAsync<Sprite>("SprRoundedsquare").WaitForCompletion();//GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole/Properties/BtnApply/ImgInUse").GetComponent<Image>().sprite;
             ButtonMain = new GameObject("BtnMain");
 
             var buttonMainRect = ButtonMain.AddComponent<RectTransform>();

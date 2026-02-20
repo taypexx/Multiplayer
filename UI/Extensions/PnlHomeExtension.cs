@@ -1,5 +1,6 @@
 ﻿using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.PeroTools.Commons;
 using Il2CppAssets.Scripts.PeroTools.Nice.Events;
 using Il2CppAssets.Scripts.UI;
 using Il2CppAssets.Scripts.UI.Panels;
@@ -158,9 +159,20 @@ namespace Multiplayer.UI.Extensions
             if (museShow == null) return;
 
             var charExpress = museShow.transform.Find("BtnInteraction").GetComponent<Il2CppAssets.Scripts.UI.Controls.CharacterExpression>();
+            if (charExpress.expressionContainer.m_Expressions == null)
+            {
+                // Initialize expressions in case they are not
+                charExpress.expressionContainer.SetExpression(
+                    Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance
+                        .GetConfigObject<DBConfigCharacter>()
+                        .GetCharacterInfoByIndex(CurrentPage.IndexOf(player) == 0 ? LeftGirlIndex : RightGirlIndex)
+                );
+            }
+
             var express = ExpressionDeterminer.Determine(charExpress.expressionContainer, msg);
             if (express != null)
             {
+                // Play an expression
                 charExpress.m_CharacterApply.PlayCharacterApply(express.animName, null);
             }
 
@@ -170,6 +182,7 @@ namespace Multiplayer.UI.Extensions
             bubble.gameObject.SetActive(true);
             bubble.SetTalkTxt(msg);
 
+            // Calculate duration of the message
             var msgDurationMs = Math.Clamp(
                 msg.Split(" ").Length * 500 + 800
                 + msg.Count(c => c == ',') * 200
@@ -314,6 +327,7 @@ namespace Multiplayer.UI.Extensions
             if (leftPresent)
             {
                 Player player = CurrentPage[0];
+                LeftName.text = GetName(player);
 
                 var girlIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
                 if (girlIndex != LeftGirlIndex)
@@ -328,8 +342,6 @@ namespace Multiplayer.UI.Extensions
                     ReplaceElfin(LeftElfinShow, elfinIndex);
                     LeftElfinIndex = elfinIndex;
                 }
-
-                LeftName.text = GetName(player);
             }
             else
             {
@@ -340,6 +352,7 @@ namespace Multiplayer.UI.Extensions
             if (rightPresent)
             {
                 Player player = CurrentPage[1];
+                RightName.text = GetName(player);
 
                 var girlIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
                 if (girlIndex != RightGirlIndex)
@@ -354,8 +367,6 @@ namespace Multiplayer.UI.Extensions
                     ReplaceElfin(RightElfinShow, elfinIndex);
                     RightElfinIndex = elfinIndex;
                 }
-
-                RightName.text = GetName(player);
             }
             else
             {
@@ -481,6 +492,9 @@ namespace Multiplayer.UI.Extensions
 
             var leftComp = LeftMuseShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject.GetComponent<MuseShow>();
             var rightComp = RightMuseShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject.GetComponent<MuseShow>();
+
+            leftComp.gameObject.SetActive(true);
+            rightComp.gameObject.SetActive(true);
 
             leftComp.m_MuseShow = LeftMuseShow;
             rightComp.m_MuseShow = RightMuseShow;

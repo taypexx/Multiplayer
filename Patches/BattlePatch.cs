@@ -51,7 +51,7 @@ namespace Multiplayer.Patches
                     AwaitingForReady = false; 
                     return; 
                 }
-                await Task.Delay(Constants.AwaitBattleInterval);
+                await Task.Delay(Constants.AwaitBattleIntervalMS);
             }
 
             AwaitingForReady = false;
@@ -203,17 +203,18 @@ namespace Multiplayer.Patches
         {
             while (LobbyManager.IsInLobby && !LobbyManager.LocalLobby.EveryoneFinished)
             {
-                await Task.Delay(Constants.AwaitBattleInterval);
+                await Task.Delay(Constants.AwaitBattleIntervalMS);
             }
 
             Main.Dispatch(SetVictoryButtons);
 
             BattleManager.SyncStop();
 
-            var messageManager = SingletonMonoBehaviour<MessageManager>.instance;
-            while (messageManager.messages.Count > 0 || PnlMessageExtension.Visible)
+            // TODO: check stage achievements count only
+            //var messageManager = SingletonMonoBehaviour<MessageManager>.instance;
+            while (/*messageManager.messages.Count > 0 ||*/ PnlMessageExtension.Visible)
             {
-                await Task.Delay(Constants.AwaitBattleInterval);
+                await Task.Delay(Constants.AwaitBattleIntervalMS);
             }
             Main.Dispatch(ShowPlayResults);
         }
