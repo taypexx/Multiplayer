@@ -411,15 +411,16 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static async Task UpdatePublicLobbies()
         {
-            var response = await Client.GetAsync("getLobbies");
+            var response = await Client.GetAsync("getLobbies", false, false);
             if (response == null) return;
 
             try
             {
-                var lobbies = await response.Content.ReadFromJsonAsync<Dictionary<int, JsonElement>>();
-                foreach ((int id, var body) in lobbies)
+                var lobbies = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+                foreach ((string id_, var body) in lobbies)
                 {
-                    if (LocalLobby.Id == id) continue;
+                    var id = int.Parse(id_);
+                    if (IsInLobby && LocalLobby.Id == id) continue;
 
                     Lobby lobby = GetCachedLobby(id);
                     if (lobby == null)
@@ -430,7 +431,7 @@ namespace Multiplayer.Managers
                     await lobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body));
                 }
             }
-            catch {}
+            catch { return; }
         }
 
         /// <summary>
@@ -508,8 +509,7 @@ namespace Multiplayer.Managers
                 {
                     if (current - lobby.LastUpdated >= Constants.LobbyCacheExpiration && lobby != LocalLobby)
                     {
-                        // Uncomment this whenever you feel like it won't break anything
-                        //ClearLobbyFromCache(lobby);
+                        ClearLobbyFromCache(lobby);
                     }
                 }
             }

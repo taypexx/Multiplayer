@@ -109,7 +109,7 @@ namespace Multiplayer.UI.Extensions
                 String.Format(
                     Localization.Get("Intermission", "Label").ToString(),
                     Constants.Yellow, chartTitle,
-                    Constants.Blue, topGirl, topElfin,
+                    Constants.Pink, topGirl, topElfin,
                     Constants.Yellow, secondsLeft
                 ),
                 ButtonPlayTuple,

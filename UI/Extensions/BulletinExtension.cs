@@ -56,6 +56,7 @@ namespace Multiplayer.UI.Extensions
 
             var btnIcon = btnIconGo.AddComponent<Image>();
             btnIcon.sprite = sprite;
+            btnIcon.color = new(0.737f, 0.494f, 1f, 1f);
 
             var btn = btnGo.AddComponent<Button>();
             btn.onClick.AddListener(action);

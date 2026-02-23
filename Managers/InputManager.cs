@@ -36,7 +36,7 @@ namespace Multiplayer.Managers
             }
 
             // Ping switch
-            bool pingModeToggled = Input.GetKey(Constants.BattleDisplayKeyCode);
+            bool pingModeToggled = Input.GetKey(Constants.PingKeyCode);
             if (InputEnabled && PingMode != pingModeToggled)
             {
                 PingMode = pingModeToggled;
@@ -61,7 +61,7 @@ namespace Multiplayer.Managers
                 var inputField = UIManager.ChatLobbyDisplay.InputField;
 
                 // Focusing on chat
-                if (Input.GetKeyDown(Constants.ChatFocusKeyCode) && Settings.Config.EnableShortcuts && InputEnabled)
+                if (Input.GetKeyDown(Constants.ChatFocusKeyCode) && InputEnabled)
                 {
                     UIManager.ChatLobbyDisplay.ResetMessageHistoryIndex();
 
@@ -93,23 +93,6 @@ namespace Multiplayer.Managers
                     {
                         UIManager.ChatLobbyDisplay.BrowseMessageHistory(false);
                     }
-                }
-            }
-
-            // General shortcuts
-            if (InputEnabled && Settings.Config.EnableShortcuts && UIManager.MainFrame != null && !UIManager.MainFrame.active)
-            {
-                if (Input.GetKeyDown(Constants.MainMenuOpenKeyCode))
-                {
-                    UIManager.MainNavButton.ButtonAction.Invoke();
-                }
-                else if (Input.GetKeyDown(Constants.LobbyOpenKeyCode))
-                {
-                    UIManager.LobbyNavButton.ButtonAction.Invoke();
-                }
-                else if (Input.GetKeyDown(Constants.PlaylistOpenKeyCode))
-                {
-                    UIManager.PlaylistNavButton.ButtonAction.Invoke();
                 }
             }
         }

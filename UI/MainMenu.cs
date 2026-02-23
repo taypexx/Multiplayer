@@ -14,24 +14,32 @@ namespace Multiplayer.UI
     internal sealed class MainMenu : BaseMultiplayerWindow
     {
         private ForumObject MyProfileButton;
+        private ForumObject SearchPlayerButton;
         private ForumObject LobbiesButton;
         private ForumObject CompetitiveButton;
         private ForumObject SettingsButton;
         private ForumObject FAQButton;
         private ForumObject CreditsButton;
 
+        private InputWindow SearchPlayerPrompt;
+
         private static LocalString MainDescription;
         private static LocalString Credits;
 
         internal MainMenu() : base(Localization.Get("MainMenu", "Title"), null, "MainMenu.png")
         {
+            SearchPlayerPrompt = new();
+            SearchPlayerPrompt.AutoReset = true;
+            SearchPlayerPrompt.OnCompletion += (BaseWindow w) => _ = OnPlayerSearch();
+
             MainDescription = Localization.Get("MainMenu", "Description");
-            Credits = new(string.Format("———| DEVELOPMENT |———\n\n<color=f542adff>taypexx</color> — Mod & backend development\n<color=f542adff>7OU</color> — Backend development\n<color=1eff00ff>PBalint817</color> — Additional libraries\n<color=fff700ff>???</color> — Traditional Chinese translation\n<color=fff700ff>???</color> — Simplified Chinese translation\n<color=fff700ff>???</color> — Korean translation\n<color=fff700ff>???</color> — Japanese translation\n\n———| TESTER TEAM |———\n\n{0}",Constants.Testers));
+            Credits = new(Constants.Credits);
         }
 
         internal void CreateButtons()
         {
             MyProfileButton = AddButton(Localization.Get("MainMenu", "MyProfile"), null, MainDescription);
+            SearchPlayerButton = AddButton(Localization.Get("MainMenu", "SearchPlayer"), SearchPlayerPrompt, MainDescription);
             LobbiesButton = AddButton(Localization.Get("MainMenu","Lobbies"), null, MainDescription);
             CompetitiveButton = AddButton(Localization.Get("MainMenu", "Competitive"), null, MainDescription);
             SettingsButton = AddButton(Localization.Get("MainMenu", "Settings"), UIManager.SettingsWindow, MainDescription);
@@ -68,6 +76,22 @@ namespace Multiplayer.UI
                 }
             }
             else _ = Client.Connect();
+        }
+
+        private async Task OnPlayerSearch()
+        {
+            var query = SearchPlayerPrompt.Result;
+            if (Utilities.IsValidString(query, Constants.NameCharactersMin, 48))
+            {
+                var player = await PlayerManager.GetPlayerByQuery(query);
+                if (player != null)
+                {
+                    await UIManager.OpenProfileWindow(player, false);
+                    return;
+                }
+                else PopupUtils.ShowInfo(Localization.Get("MainMenu", "PlayerNotFound"));
+            }
+            Window.Show();
         }
 
         protected override void OnShow(BaseWindow window)

@@ -34,16 +34,6 @@ namespace Multiplayer.UI.Displays
         }
 
         /// <summary>
-        /// Updates the contents of the placeholder text.
-        /// </summary>
-        /// <param name="keyEnabled">Whether the chat open key is available.</param>
-        internal void UpdatePlaceholder(bool keyEnabled)
-        {
-            if (PlaceholderText == null) return;
-            PlaceholderText.text = Localization.Get("SystemChatMessages", keyEnabled ? "ChatPlaceholderText" : "ChatPlaceholderTextNoKey").ToString();
-        }
-
-        /// <summary>
         /// Sets the text of the <see cref="InputField"/> to the message found in history.
         /// </summary>
         /// <param name="up">Whether to check the previous or next message in history.</param>
@@ -125,7 +115,7 @@ namespace Multiplayer.UI.Displays
             PlaceholderText.raycastTarget = false;
             PlaceholderText.horizontalOverflow = HorizontalWrapMode.Overflow;
             PlaceholderText.color = new(1f, 1f, 1f, 0.7f);
-            UpdatePlaceholder(Settings.Config.EnableShortcuts);
+            PlaceholderText.text = Localization.Get("SystemChatMessages", "ChatPlaceholderText").ToString();
             InputField.placeholder = PlaceholderText;
 
             // Disable text designer because it overlaps and looks fucking ugly

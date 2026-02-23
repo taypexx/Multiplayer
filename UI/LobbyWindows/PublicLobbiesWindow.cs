@@ -5,8 +5,6 @@ using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
 using PopupLib.UI.Components;
 using PopupLib.UI.Windows.Interfaces;
-using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace Multiplayer.UI.LobbyWindows
 {

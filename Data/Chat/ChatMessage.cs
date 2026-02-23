@@ -9,6 +9,7 @@ namespace Multiplayer.Data.Chat
         public string Message { 
             get; 
             set {
+                value = value.TrimEnd('\n','\r');
                 if (Settings.Config.FilterChatMessages)
                 {
                     field = Filtering.Filter(value);
@@ -16,7 +17,7 @@ namespace Multiplayer.Data.Chat
                 else field = value;
             } 
         }
-        public string AuthorName { get; set; }
+        public string AuthorName { get; set { field = value.Trim('\n','\r'); } }
         public string AuthorUid { get; set; }
         public string ExtraData { get; set; }
         internal bool IsSystemMessage => AuthorName != null && AuthorName.ToLower() == "system";

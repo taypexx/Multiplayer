@@ -9,9 +9,19 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
-        public const string Testers = "ame, MADGUY, IgnisclowVT, PBalint817, WallKitty, Medeyah, Slawter, Fran艾林";
         public const string Version = "0.1.0";
         public static readonly Version Version_ = new Version(Version);
+
+        public const string Credits = "[ DEVELOPMENT ]\n\n" +
+            "<color=f542adff>taypexx</color> — Mod & backend development\n" +
+            "<color=f542adff>7OU</color> — Backend development\n" +
+            "<color=1eff00ff>PBalint817</color> — Additional libraries\n" +
+            "<color=fff700ff>Bubu</color> — Traditional Chinese translation\n" +
+            "<color=fff700ff>???</color> — Simplified Chinese translation\n" +
+            "<color=fff700ff>???</color> — Korean translation\n" +
+            "<color=fff700ff>???</color> — Japanese translation\n\n" +
+            "[ TESTER TEAM ]\n\n" +
+            "Slawter, Medeyah, PBalint817, WallKitty, Nickicchi, Bubu, Fran艾林, ame, shezza, wylh, kariya_07, Fang, AutoGamer, MADGUY, IgnisclowVT";
 
         internal const int PortHTTP = 9095;
         internal const int PortWebsocket = 443;
@@ -24,10 +34,7 @@ namespace Multiplayer.Static
         internal const string ServerHTTPScheme = "https";
         internal const string ServerAddress = "mdmp.online";
 
-        public const KeyCode BattleDisplayKeyCode = KeyCode.LeftShift;
-        public const KeyCode MainMenuOpenKeyCode = KeyCode.M;
-        public const KeyCode LobbyOpenKeyCode = KeyCode.L;
-        public const KeyCode PlaylistOpenKeyCode = KeyCode.P;
+        public const KeyCode PingKeyCode = KeyCode.LeftShift;
         public const KeyCode ChatFocusKeyCode = KeyCode.Slash;
         public const KeyCode ChatSendKeyCode = KeyCode.Return;
 
@@ -41,7 +48,7 @@ namespace Multiplayer.Static
         public const int ChatMessageHistorySize = 48;
         public const int BioCharactersMax = 48;
         public const int PlayersMin = 2;
-        public const int PlayersMax = 8;
+        public const int PlayersMax = 10;
         public const int NameCharactersMin = 3;
         public const int NameCharactersMax = 16;
         public const int PasswordCharactersMin = 4;
@@ -66,7 +73,7 @@ namespace Multiplayer.Static
         public const string Yellow = "fff700ff";
         public const string Green = "1eff00ff";
         public const string Blue = "4564ffff";
-        public const string Pink = "bc42f5ff";
+        public const string Pink = "fb24ffff";
 
         public static Dictionary<LobbyGoal, string> GoalColors = new()
         {

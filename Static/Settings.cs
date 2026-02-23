@@ -26,15 +26,6 @@ namespace Multiplayer.Static
 
         internal bool FilterChatMessages { get; set; } = true;
 
-        internal bool EnableShortcuts { 
-            get; set 
-            {
-                if (UIManager.ChatLobbyDisplay != null) UIManager.ChatLobbyDisplay.UpdatePlaceholder(value);
-                field = value;
-            }
-        } 
-        = false;
-
         internal bool FavGirlMode { 
             get; set 
             {

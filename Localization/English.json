@@ -98,13 +98,15 @@
     "Connecting": "Connecting to the server...",
     "LocalPlayerBanned": "You have been banned from multiplayer servers. If you wish to appeal please contact @cvle. or @taypexx in discord.",
     "MyProfile": "My Profile",
+    "SearchPlayer": "Search Player",
     "Lobbies": "Lobbies",
     "MyLobby": "My Lobby",
     "Competitive": "Competitive",
     "Settings": "Settings",
     "FAQ": "FAQ",
     "CreditsTitle": "Credits",
-    "IncorrectCode": "Incorrect code!"
+    "IncorrectCode": "Incorrect code!",
+    "PlayerNotFound": "Player not found"
   },
   "ProfileWindow": {
     "Title": "Profile",
@@ -236,7 +238,7 @@
     "PlaylistButton": "— Playlist —",
     "Play": "— Play —",
     "PlaylistTitle": "Playlist",
-    "PlaylistDescription": "[ Playlist Size ]: <color={0}>{1}/{2}</color>\n\nTo add a chart to the playlist open it and click the corresponding button.\n\nIf anybody has a chart that they hided, no one will be able to add it to the playlist.",
+    "PlaylistDescription": "[ Playlist Size ]: <color={0}>{1}/{2}</color>\n\nTo add a chart to the playlist open it and click the corresponding button.\n\nIf anybody has a chart that they hid, no one will be able to add it to the playlist.",
     "PlaylistEmpty": "Playlist is empty!",
     "Starting": "Starting the game...",
     "HiddensLocked": "Cannot hide/unhide charts in lobby!",

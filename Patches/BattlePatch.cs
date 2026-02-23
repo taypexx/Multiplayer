@@ -4,6 +4,7 @@ using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.GameCore.Managers;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Il2CppAssets.Scripts.UI.Panels;
+using Il2CppSystem.Runtime.InteropServices;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -19,6 +20,7 @@ namespace Multiplayer.Patches
     internal static class BattlePatch
     {
         private static bool AwaitingForReady = false;
+        private static bool CanExitRegardless = false;
         private static bool HasFailed = false;
         private static bool Started = false;
 
@@ -29,6 +31,7 @@ namespace Multiplayer.Patches
         {
             HasFailed = false;
             Started = false;
+            CanExitRegardless = false;
 
             if (!LobbyManager.IsInLobby) return;
 
@@ -141,20 +144,18 @@ namespace Multiplayer.Patches
                 sprites[i] = gradeObjects[i].GetComponent<Image>().sprite;
             }
 
-            var positionList = localLobby.Players.ToList();
+            var positionList = localLobby.GetPlayerList();
             positionList.Sort(localLobby.GoalComparison);
+            positionList.Reverse();
 
             Task.Run(async () =>
             {
-                foreach (var playerUid in positionList)
+                foreach (var player in positionList)
                 {
-                    if (!DisplayedPlayers.Contains(playerUid) && !localLobby.ReadyPlayers.Contains(playerUid))
+                    if (!DisplayedPlayers.Contains(player.Uid) && !localLobby.ReadyPlayers.Contains(player.Uid))
                     {
-                        var player = PlayerManager.GetCachedPlayer(playerUid);
-                        if (player is null) continue;
-
-                        DisplayedPlayers.Add(playerUid);
-                        await PnlMessageExtension.AddOne($"{positionList.Count - positionList.IndexOf(playerUid)}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", false, sprites[(int)player.BattleStats.Grade]);
+                        DisplayedPlayers.Add(player.Uid);
+                        await PnlMessageExtension.AddOne($"{positionList.Count - positionList.IndexOf(player)}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", false, sprites[(int)player.BattleStats.Grade]);
                     }
                 }
                 Main.Dispatch(() =>
@@ -205,6 +206,7 @@ namespace Multiplayer.Patches
             {
                 await Task.Delay(Constants.AwaitBattleIntervalMS);
             }
+            CanExitRegardless = true;
 
             Main.Dispatch(SetVictoryButtons);
 
@@ -306,7 +308,7 @@ namespace Multiplayer.Patches
         {
             private static bool Prefix()
             {
-                return !LobbyManager.IsInLobby || LobbyManager.LocalLobby.EveryoneFinished || HasFailed;
+                return !LobbyManager.IsInLobby || LobbyManager.LocalLobby.EveryoneFinished || HasFailed || CanExitRegardless;
             }
 
             private static void Postfix()

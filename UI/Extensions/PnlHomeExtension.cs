@@ -19,9 +19,7 @@ namespace Multiplayer.UI.Extensions
     {
         private static GameObject PnlHome;
         private static PnlRole PnlRole;
-        private static PnlElfin PnlElfin;
         private static SelectableFancyPanel GirlFancyPanel;
-        private static SelectableFancyPanel ElfinFancyPanel;
 
         internal static bool Visible => Main.IsUIScene && Enabled && (PnlHome?.active ?? false);
         internal static bool Enabled { get; private set; } = false;
@@ -34,18 +32,12 @@ namespace Multiplayer.UI.Extensions
         private static int LeftGirlIndex = -1;
         private static int RightGirlIndex = -1;
 
-        private static int LeftElfinIndex = -3;
-        private static int RightElfinIndex = -3;
-
         private static GameObject OriginalMuseShow;
         private static GameObject OriginalElfinShow;
         private static GameObject OriginalButton;
 
         private static Vector3 OriginalMusePosition;
         private static Vector3 OriginalMuseScale;
-
-        private static Vector3 OriginalElfinPosition;
-        private static Vector3 OriginalElfinScale;
 
         private static GameObject MiddleMuseShow;
         private static GameObject LeftMuseShow;
@@ -107,17 +99,6 @@ namespace Multiplayer.UI.Extensions
         private static Vector3 LeftButtonScale = new(-ButtonSize, ButtonSize, ButtonSize);
         private static Vector3 RightButtonScale = new(ButtonSize, ButtonSize, ButtonSize);
 
-        private static GameObject MiddleElfinShow;
-        private static GameObject LeftElfinShow;
-        private static GameObject RightElfinShow;
-
-        private static Vector3 MiddleElfinPosition = new(2.5f, 1.5f, 100f);
-        private static Vector3 LeftElfinPosition = MiddleElfinPosition + new Vector3(-1 * (MuseShowGap + 0.5f), -0.5f, 0f);
-        private static Vector3 RightElfinPosition = MiddleElfinPosition + new Vector3(MuseShowGap - 0.5f, -0.5f, 0f);
-
-        private static Vector3 MiddleElfinScale = new(-1.5f, 1.5f, 1.5f);
-        private static Vector3 SideElfinScale = new(-1.2f, 1.2f, 1.2f);
-
         private static CancellationTokenSource PlayerSpeakCTS;
 
         /// <summary>
@@ -158,23 +139,29 @@ namespace Multiplayer.UI.Extensions
             };
             if (museShow == null) return;
 
-            var charExpress = museShow.transform.Find("BtnInteraction").GetComponent<Il2CppAssets.Scripts.UI.Controls.CharacterExpression>();
-            if (charExpress.expressionContainer.m_Expressions == null)
+            try
             {
-                // Initialize expressions in case they are not
-                charExpress.expressionContainer.SetExpression(
-                    Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance
-                        .GetConfigObject<DBConfigCharacter>()
-                        .GetCharacterInfoByIndex(CurrentPage.IndexOf(player) == 0 ? LeftGirlIndex : RightGirlIndex)
-                );
-            }
+                var charExpress = museShow.transform.Find("BtnInteraction").GetComponent<Il2CppAssets.Scripts.UI.Controls.CharacterExpression>();
+                /*
+                if (charExpress != null && charExpress.expressionContainer.m_Expressions == null)
+                {
+                    // Initialize expressions in case they are not
+                    charExpress.expressionContainer.SetExpression(
+                        Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance
+                            .GetConfigObject<DBConfigCharacter>()
+                            .GetCharacterInfoByIndex(CurrentPage.IndexOf(player) == 0 ? LeftGirlIndex : RightGirlIndex)
+                    );
+                }
+                */
 
-            var express = ExpressionDeterminer.Determine(charExpress.expressionContainer, msg);
-            if (express != null)
-            {
-                // Play an expression
-                charExpress.m_CharacterApply.PlayCharacterApply(express.animName, null);
+                var express = ExpressionDeterminer.Determine(charExpress.expressionContainer, msg);
+                if (express != null)
+                {
+                    // Play an expression
+                    charExpress.m_CharacterApply.PlayCharacterApply(express.animName, null);
+                }
             }
+            catch { }
 
             var bubble = museShow.transform.Find("FirstTwnTalkBubble").gameObject.GetComponent<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble>();
             if (bubble == null) return;
@@ -225,59 +212,6 @@ namespace Multiplayer.UI.Extensions
             var newShow = UnityEngine.Object.Instantiate(charApply.gameObject, prefab.transform);
             newShow.GetComponent<MeshRenderer>().sortingOrder = 0;
             museShowComponent.m_MuseShow = newShow;
-        }
-
-        /// <summary>
-        /// Replaces the elfin model.
-        /// </summary>
-        private static void ReplaceElfin(GameObject elfinShow, int elfinIndex)
-        {
-            if (ElfinFancyPanel is null || elfinShow == OriginalElfinShow) return;
-
-            try
-            {
-                var elfinVisible = elfinIndex >= 0;
-                elfinShow.SetActive(elfinVisible);
-                if (!elfinVisible) return;
-
-                for (int i = 0; i < elfinShow.transform.childCount; i++)
-                {
-                    UnityEngine.Object.Destroy(elfinShow.transform.GetChild(i).gameObject);
-                }
-
-                var orderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(elfinIndex).order - 1;
-                var scrollView = ElfinFancyPanel.m_FancyScrollView;
-                scrollView.ScrollToDataIndex(orderIndex, 0, true);
-
-                var cell = scrollView.GetCell(orderIndex);
-                bool destroyCellAfter = false;
-                if (cell == null)
-                {
-                    cell = scrollView.CreateNewCell(orderIndex);
-                    cell.Init();
-                    cell.UpdateData(orderIndex);
-                    cell.SetVisible(elfinVisible);
-                    destroyCellAfter = true;
-                }
-
-                var newPrefab = UnityEngine.Object.Instantiate(cell.gameObject.transform.GetChild(0).gameObject, elfinShow.transform);
-
-                // Destroy the neon egg label
-                if (elfinIndex == 10)
-                {
-                    UnityEngine.Object.Destroy(newPrefab.transform.Find("SpecialElfinName").GetComponent<Image>());
-                    UnityEngine.Object.Destroy(newPrefab.transform.Find("SpecialElfinName/TxtSpecialElfinName").gameObject);
-                }
-
-                if (destroyCellAfter) UnityEngine.Object.Destroy(cell);
-
-                var curOrderIndex = PnlElfin.m_ConfigElfin.GetElfinInfoByIndex(DataHelper.selectedElfinIndex).order - 1;
-                scrollView.ScrollToDataIndex(curOrderIndex, 0, true);
-
-                LeftElfinShow.transform.position = LeftElfinPosition;
-                RightElfinShow.transform.position = RightElfinPosition;
-            }
-            catch { }
         }
 
         private static string GetName(Player player)
@@ -335,19 +269,8 @@ namespace Multiplayer.UI.Extensions
                     ReplaceGirl(LeftMuseShow, girlIndex);
                     LeftGirlIndex = girlIndex;
                 }
-
-                var elfinIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavElfinIndex >= 0 ? player.MultiplayerStats.FavElfinIndex : player.MultiplayerStats.ElfinIndex;
-                if (elfinIndex != LeftElfinIndex && Settings.Config.ShowOtherElfins)
-                {
-                    ReplaceElfin(LeftElfinShow, elfinIndex);
-                    LeftElfinIndex = elfinIndex;
-                }
             }
-            else
-            {
-                LeftGirlIndex = -1;
-                LeftElfinIndex = -1;
-            }
+            else LeftGirlIndex = -1;
 
             if (rightPresent)
             {
@@ -360,19 +283,8 @@ namespace Multiplayer.UI.Extensions
                     ReplaceGirl(RightMuseShow, girlIndex);
                     RightGirlIndex = girlIndex;
                 }
-
-                var elfinIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavElfinIndex >= 0 ? player.MultiplayerStats.FavElfinIndex : player.MultiplayerStats.ElfinIndex;
-                if (elfinIndex != RightElfinIndex && Settings.Config.ShowOtherElfins)
-                {
-                    ReplaceElfin(RightElfinShow, elfinIndex);
-                    RightElfinIndex = elfinIndex;
-                }
             }
-            else
-            {
-                RightGirlIndex = -1;
-                RightElfinIndex = -1;
-            }
+            else RightGirlIndex = -1;
         }
 
         /// <summary>
@@ -425,8 +337,6 @@ namespace Multiplayer.UI.Extensions
             LeftMuseShow.SetActive(enabled);
             LeftNameLabel.SetActive(enabled);
             LeftInfoLabel.SetActive(enabled);
-
-            LeftElfinShow.SetActive(enabled && Settings.Config.ShowOtherElfins);
         }
 
         /// <summary>
@@ -439,8 +349,6 @@ namespace Multiplayer.UI.Extensions
             RightMuseShow.SetActive(enabled);
             RightNameLabel.SetActive(enabled);
             RightInfoLabel.SetActive(enabled);
-
-            RightElfinShow.SetActive(enabled && Settings.Config.ShowOtherElfins);
         }
 
         /// <summary>
@@ -452,9 +360,7 @@ namespace Multiplayer.UI.Extensions
 
             PnlHome = GameObject.Find("UI/Standerd/PnlHome");
             PnlRole = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole").GetComponent<PnlRole>();
-            PnlElfin = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlElfin").GetComponent<PnlElfin>();
             GirlFancyPanel = PnlRole.fancyPanel;
-            ElfinFancyPanel = PnlElfin.fancyPanel;
 
             OriginalMuseShow = GameObject.Find("UI/Standerd/PnlHome/MuseShow");
             OriginalElfinShow = GameObject.Find("UI/Standerd/PnlHome/ElfinShow");
@@ -477,8 +383,7 @@ namespace Multiplayer.UI.Extensions
             OriginalMusePosition = OriginalMuseShow.transform.position;
             OriginalMuseScale = OriginalMuseShow.transform.localScale;
 
-            OriginalElfinPosition = OriginalElfinShow.transform.position;
-            OriginalElfinScale = OriginalElfinShow.transform.localScale;
+            OriginalElfinShow.SetActive(false);
 
             Pages = new();
             CurrentPageIndex = 0;
@@ -597,27 +502,6 @@ namespace Multiplayer.UI.Extensions
             MiddleName.text = PlayerManager.LocalPlayer.MultiplayerStats.Name;
             MiddleInfo.text = string.Format(InfoFormat, PlayerManager.LocalPlayer.MoeStats.RL);
 
-            MiddleElfinShow = OriginalElfinShow;
-            LeftElfinShow = UnityEngine.Object.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
-            RightElfinShow = UnityEngine.Object.Instantiate(MiddleElfinShow, MiddleElfinShow.transform.parent);
-
-            UnityEngine.Object.Destroy(LeftElfinShow.GetComponent<OnActivate>());
-            UnityEngine.Object.Destroy(RightElfinShow.GetComponent<OnActivate>());
-
-            UnityEngine.Object.Destroy(LeftElfinShow.GetComponent<DesElfinIfLessThanZero>());
-            UnityEngine.Object.Destroy(RightElfinShow.GetComponent<DesElfinIfLessThanZero>());
-
-            LeftElfinShow.name = "LeftElfinShow";
-            RightElfinShow.name = "RightElfinShow";
-
-            MiddleElfinShow.transform.position = MiddleElfinPosition;
-            LeftElfinShow.transform.position = LeftElfinPosition;
-            RightElfinShow.transform.position = RightElfinPosition;
-
-            MiddleElfinShow.transform.localScale = MiddleElfinScale;
-            LeftElfinShow.transform.localScale = SideElfinScale;
-            RightElfinShow.transform.localScale = SideElfinScale;
-
             Enabled = true;
             UpdateAllPages();
         }
@@ -641,9 +525,6 @@ namespace Multiplayer.UI.Extensions
                 OriginalMuseShow.transform.position = OriginalMusePosition;
                 OriginalMuseShow.transform.localScale = OriginalMuseScale;
 
-                OriginalElfinShow.transform.position = OriginalElfinPosition;
-                OriginalElfinShow.transform.localScale = OriginalElfinScale;
-
                 MiddleMuseShow = null;
                 UnityEngine.Object.Destroy(LeftMuseShow);
                 UnityEngine.Object.Destroy(RightMuseShow);
@@ -655,10 +536,6 @@ namespace Multiplayer.UI.Extensions
                 UnityEngine.Object.Destroy(MiddleInfoLabel);
                 UnityEngine.Object.Destroy(LeftInfoLabel);
                 UnityEngine.Object.Destroy(RightInfoLabel);
-
-                MiddleElfinShow = null;
-                UnityEngine.Object.Destroy(LeftElfinShow);
-                UnityEngine.Object.Destroy(RightElfinShow);
 
                 UnityEngine.Object.Destroy(LeftButton);
                 UnityEngine.Object.Destroy(RightButton);

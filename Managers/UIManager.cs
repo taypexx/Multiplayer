@@ -256,7 +256,7 @@ namespace Multiplayer.Managers
             }
             if (PageHome.gameObject.active)
             {
-                PageHome.transform.Find("Bottom/Btn").GetComponent<Button>().onClick.Invoke();
+                PageHome.m_BtnEnter.onClick.Invoke();
             }
             if (PnlPreparation.gameObject.active)
             {

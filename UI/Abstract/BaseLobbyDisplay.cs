@@ -261,8 +261,8 @@ namespace Multiplayer.UI.Abstract
             popupText.text = text;
 
             var rect = popup.GetComponent<RectTransform>();
-            rect.anchoredPosition = new Vector2(owner.preferredWidth + 10f, 0f);
-            rect.DOMoveX(50f, 1.5f).SetRelative().SetEase(Ease.InOutSine).OnComplete((Action)(() => GameObject.Destroy(popup)));
+            rect.anchoredPosition += new Vector2(owner.preferredWidth + 10f, 0f);
+            rect.DOMoveX(50f, 1.5f).SetRelative().SetEase(Ease.OutSine).OnComplete((Action)(() => GameObject.Destroy(popup)));
 
             //DOTween.ToAlpha(new(Marshal.GetFunctionPointerForDelegate(() => popupText.color)), new(Marshal.GetFunctionPointerForDelegate(x => popupText.color = x)), 0f, 1.5f);
         }

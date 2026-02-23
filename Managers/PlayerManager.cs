@@ -1,6 +1,8 @@
 ﻿using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
 using Multiplayer.Static;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Multiplayer.Managers
 {
@@ -154,8 +156,39 @@ namespace Multiplayer.Managers
             
             // If not cached
             player = new(uid);
-            CachedPlayers.Add(player.Uid, player);
+            CachedPlayers.Add(uid, player);
             await player.Update(true);
+
+            return player;
+        }
+
+        internal static async Task<Player> GetPlayerByQuery(string query)
+        {
+            if (!Client.Connected) return null;
+
+            Player player = GetCachedPlayer(query);
+            if (player != null) return player;
+
+            // If query is not uid (or it's not cached)
+            var response = await Client.PostAsync("getPlayer", new
+            {
+                Query = query
+            });
+            if (response is null) return null;
+
+            var playerData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+            var uid = playerData["Uid"].GetString();
+
+            player = GetCachedPlayer(uid);
+            if (player == null)
+            {
+                // If not cached at all
+                player = new(uid);
+                await player.MoeStats.Update();
+                await player.HQStats.Update();
+                CachedPlayers.Add(uid, player);
+            }
+            player.MultiplayerStats.UpdateFields(playerData);
 
             return player;
         }
@@ -195,13 +228,12 @@ namespace Multiplayer.Managers
 
                 foreach (Player player in CachedPlayers.Values)
                 {
-                    if (current - player.LastUpdated >= Constants.PlayerCacheExpiration && player != LocalPlayer)
+                    if (player != LocalPlayer && current - player.LastUpdated >= Constants.PlayerCacheExpiration)
                     {
-                        // We don't need to clear our mates
-                        if (LobbyManager.IsInLobby && LobbyManager.LocalLobby.IsMember(player)) continue;
+                        // We don't need to clear our mates/lobby members
+                        if (LocalPlayer.AreFriends(player) || (LobbyManager.IsInLobby && LobbyManager.LocalLobby.IsMember(player))) continue;
 
-                        // Uncomment whenever you feel like it won't break anything
-                        //ClearPlayerFromCache(player);
+                        ClearPlayerFromCache(player);
                     }
                 }
             }
@@ -215,6 +247,7 @@ namespace Multiplayer.Managers
             LocalPlayerHiddens = new();
             LocalPlayer = await GetPlayer(LocalPlayerUid);
 
+            SyncProfile();
             SyncHiddens();
             SyncCustoms();
             _ = CacheCleaner();

@@ -234,7 +234,7 @@ namespace Multiplayer.Static
                 {
                     Main.Log($"[{(int)response.StatusCode}] GET request failed: {await response.Content.ReadAsStringAsync()}", Main.LogType.Error);
 
-                    if (!isFullPath && (response.StatusCode == HttpStatusCode.BadGateway || response.StatusCode == HttpStatusCode.GatewayTimeout))
+                    if (!isFullPath && (response.StatusCode == HttpStatusCode.BadGateway || response.StatusCode == HttpStatusCode.GatewayTimeout || response.StatusCode == HttpStatusCode.Unauthorized))
                     {
                         Disconnect(true);
                     }
@@ -280,7 +280,7 @@ namespace Multiplayer.Static
                 {
                     Main.Log($"[{(int)response.StatusCode}] POST request failed: {await response.Content.ReadAsStringAsync()}", Main.LogType.Error);
 
-                    if (!isFullPath && (response.StatusCode == HttpStatusCode.BadGateway || response.StatusCode == HttpStatusCode.GatewayTimeout))
+                    if (!isFullPath && (response.StatusCode == HttpStatusCode.BadGateway || response.StatusCode == HttpStatusCode.GatewayTimeout || response.StatusCode == HttpStatusCode.Unauthorized))
                     {
                         Disconnect(true);
                     }

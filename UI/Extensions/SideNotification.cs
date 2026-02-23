@@ -139,7 +139,7 @@ namespace Multiplayer.UI.Extensions
             ButtonMainText = buttonMainTextGo.AddComponent<Text>();
             ButtonMainText.alignment = TextAnchor.MiddleCenter;
             ButtonMainText.text = "Button";
-            ButtonMainText.fontSize = 24;
+            ButtonMainText.fontSize = 28;
             ButtonMainText.horizontalOverflow = HorizontalWrapMode.Overflow;
             ButtonMainText.font = Utilities.NormalFont;
 
@@ -154,6 +154,9 @@ namespace Multiplayer.UI.Extensions
 
             GameObject.Destroy(ImgBase.transform.Find("Synchronizing/TxtSynchronizing/ImgSynchronizing").gameObject);
             GameObject.Destroy(ImgBase.transform.Find("SynchronizingFail").gameObject);
+
+            Component.Destroy(messageBase.GetComponent<OnCustomEvent>());
+            Component.Destroy(CloseObject.GetComponent<OnCustomEvent>());
         }
     }
 }

@@ -161,7 +161,6 @@ namespace Multiplayer.Data.Stats
         {
             var response = await Client.PostAsync("getPlayer", new
             {
-                Uid = PlayerManager.LocalPlayerUid ?? Player.Uid,
                 TargetUid = Player.Uid,
                 Name = PlayerManager.LocalPlayerName
             });
@@ -171,7 +170,7 @@ namespace Multiplayer.Data.Stats
         }
 
         /// <summary>
-        /// Caches every <see cref="Data.Players.Player"/> from friends.
+        /// Caches every <see cref="Players.Player"/> from friends.
         /// </summary>
         internal async Task CacheFriends()
         {
@@ -183,7 +182,7 @@ namespace Multiplayer.Data.Stats
         }
 
         /// <summary>
-        /// Caches every <see cref="Data.Players.Player"/> from friend request.
+        /// Caches every <see cref="Players.Player"/> from friend request.
         /// </summary>
         internal async Task CacheFriendRequests()
         {

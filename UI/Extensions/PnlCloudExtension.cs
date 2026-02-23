@@ -58,6 +58,10 @@ namespace Multiplayer.UI.Extensions
             CompletedMsg = ImgBase.transform.Find("SynchronizingCompleted").gameObject;
             FailMsg = ImgBase.transform.Find("SynchronizingFail").gameObject;
 
+            Component.Destroy(PendingMsg.GetComponent<OnCustomEvent>());
+            Component.Destroy(CompletedMsg.GetComponent<OnCustomEvent>());
+            Component.Destroy(FailMsg.GetComponent<OnCustomEvent>());
+
             PendingText = PendingMsg.transform.Find("TxtSynchronizing").GetComponent<Text>();
             Component.Destroy(PendingText.GetComponent<Il2CppAssets.Scripts.PeroTools.GeneralLocalization.Localization>());
             Component.Destroy(PendingMsg.GetComponent<OnCustomEvent>());

@@ -80,6 +80,7 @@
     <EmbeddedResource Include="Assets\UI\Statuses\InLobby.png" />
     <EmbeddedResource Include="Assets\UI\Statuses\Offline.png" />
     <EmbeddedResource Include="Assets\UI\Statuses\Online.png" />
+    <EmbeddedResource Include="Localization\ChineseT.json" />
     <EmbeddedResource Include="Localization\English.json" />
     <EmbeddedResource Include="Localization\ProfanityTrieList.txt" />
   </ItemGroup>

@@ -78,6 +78,18 @@ namespace Multiplayer.Data.Lobbies
             return Players.Contains(player.Uid);
         }
 
+        internal List<Player> GetPlayerList()
+        {
+            var list = new List<Player>();
+            foreach (var playerUid in Players)
+            {
+                var player = PlayerManager.GetCachedPlayer(playerUid);
+                if (player == null) continue;
+                list.Add(player);
+            }
+            return list;
+        }
+
         internal string GetBattleInfo(Player player)
         {
             var battleInfo = string.Empty;
