@@ -35,8 +35,6 @@ namespace Multiplayer.Static
         } 
         = false;
 
-        internal bool ShowOtherElfins { get; set; } = true;
-
         internal bool DisplayLobbyStatus { get; set; } = true;
 
         internal bool ShowBattlePopups { get; set; } = true;

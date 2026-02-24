@@ -494,32 +494,31 @@ namespace Multiplayer.Managers
             CachedLobbies.Remove(lobby.Id);
         }
 
-        /// <summary>
-        /// Starts cleaning lobbies from cache over time.
-        /// </summary>
-        private static async Task CacheCleaner()
-        {
-            DateTime current;
-            while (Client.Connected)
-            {
-                await Task.Delay(Constants.CacheCheckIntervalMS);
-                current = DateTime.Now;
-
-                foreach (Lobby lobby in CachedLobbies.Values)
-                {
-                    if (current - lobby.LastUpdated >= Constants.LobbyCacheExpiration && lobby != LocalLobby)
-                    {
-                        ClearLobbyFromCache(lobby);
-                    }
-                }
-            }
-        }
-
         internal static async Task Init()
         {
             CachedLobbies = new();
             await RestoreLobby();
-            _ = CacheCleaner();
+
+            // Auto cache cleaner
+            /*
+            _ = Task.Run(async () =>
+            {
+                DateTime current;
+                while (Client.Connected)
+                {
+                    await Task.Delay(Constants.CacheCheckIntervalMS);
+                    current = DateTime.Now;
+
+                    foreach (Lobby lobby in CachedLobbies.Values)
+                    {
+                        if (current - lobby.LastUpdated >= Constants.LobbyCacheExpiration && lobby != LocalLobby)
+                        {
+                            ClearLobbyFromCache(lobby);
+                        }
+                    }
+                }
+            });
+            */
         }
     }
 }

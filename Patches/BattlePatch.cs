@@ -155,7 +155,7 @@ namespace Multiplayer.Patches
                     if (!DisplayedPlayers.Contains(player.Uid) && !localLobby.ReadyPlayers.Contains(player.Uid))
                     {
                         DisplayedPlayers.Add(player.Uid);
-                        await PnlMessageExtension.AddOne($"{positionList.Count - positionList.IndexOf(player)}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", false, sprites[(int)player.BattleStats.Grade]);
+                        await PnlMessageExtension.AddOne($"{positionList.IndexOf(player) + 1}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", false, sprites[(int)player.BattleStats.Grade]);
                     }
                 }
                 Main.Dispatch(() =>

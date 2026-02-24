@@ -190,7 +190,7 @@ namespace Multiplayer.UI.Extensions
         /// </summary>
         private static void ReplaceGirl(GameObject museShow, int girlIndex)
         {
-            if (GirlFancyPanel is null || museShow == OriginalMuseShow) return;
+            if (GirlFancyPanel is null || museShow == OriginalMuseShow || girlIndex < 0) return;
 
             var prefab = museShow.transform.Find("ShowLocalization/SpinePerfab_other").gameObject;
             var museShowComponent = prefab.GetComponent<MuseShow>();
@@ -504,6 +504,8 @@ namespace Multiplayer.UI.Extensions
 
             Enabled = true;
             UpdateAllPages();
+            ReplaceGirl(LeftMuseShow, LeftGirlIndex);
+            ReplaceGirl(RightMuseShow, RightGirlIndex);
         }
 
         /// <summary>

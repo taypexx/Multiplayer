@@ -120,7 +120,11 @@ namespace Multiplayer.UI.Extensions
         private static void EnableNotification()
         {
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
-            UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
+            try
+            {
+                UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
+            }
+            catch { }
 
             var buttonMain = new Tuple<string, Color, Color, Action>
             (

@@ -9,7 +9,6 @@ namespace Multiplayer.Data.Chat
         public string Message { 
             get; 
             set {
-                value = value.TrimEnd('\n','\r');
                 if (Settings.Config.FilterChatMessages)
                 {
                     field = Filtering.Filter(value);

@@ -11,8 +11,8 @@ namespace Multiplayer.Managers
         private static Dictionary<string, Player> CachedPlayers;
 
         internal static Player LocalPlayer { get; private set; }
-        internal static string LocalPlayerUid { get; private set; }
-        internal static string LocalPlayerName { get; private set; }
+        internal static string LocalPlayerUid { get; set; }
+        internal static string LocalPlayerName { get; set; }
 
         internal static HashSet<string> LocalPlayerHiddens;
 
@@ -215,42 +215,39 @@ namespace Multiplayer.Managers
             CachedPlayers.Remove(player.Uid);
         }
 
-        /// <summary>
-        /// Starts cleaning players from cache over time.
-        /// </summary>
-        private static async Task CacheCleaner()
-        {
-            DateTime current;
-            while (Client.Connected)
-            {
-                await Task.Delay(Constants.CacheCheckIntervalMS);
-                current = DateTime.Now;
-
-                foreach (Player player in CachedPlayers.Values)
-                {
-                    if (player != LocalPlayer && current - player.LastUpdated >= Constants.PlayerCacheExpiration)
-                    {
-                        // We don't need to clear our mates/lobby members
-                        if (LocalPlayer.AreFriends(player) || (LobbyManager.IsInLobby && LobbyManager.LocalLobby.IsMember(player))) continue;
-
-                        ClearPlayerFromCache(player);
-                    }
-                }
-            }
-        }
-
         internal static async Task Init()
         {
             CachedPlayers = new();
-            LocalPlayerName = DataHelper.nickname;
-            LocalPlayerUid = DataHelper.PeroUid;
             LocalPlayerHiddens = new();
             LocalPlayer = await GetPlayer(LocalPlayerUid);
 
             SyncProfile();
             SyncHiddens();
             SyncCustoms();
-            _ = CacheCleaner();
+
+            // Auto cache cleaner
+            /*
+            _ = Task.Run(async () =>
+            {
+                DateTime current;
+                while (Client.Connected)
+                {
+                    await Task.Delay(Constants.CacheCheckIntervalMS);
+                    current = DateTime.Now;
+
+                    foreach (Player player in CachedPlayers.Values)
+                    {
+                        if (player != LocalPlayer && current - player.LastUpdated >= Constants.PlayerCacheExpiration)
+                        {
+                            // We don't need to clear our mates/lobby members
+                            if (LocalPlayer.AreFriends(player) || (LobbyManager.IsInLobby && LobbyManager.LocalLobby.IsMember(player))) continue;
+
+                            ClearPlayerFromCache(player);
+                        }
+                    }
+                }
+            });
+            */
         }
     }
 }
