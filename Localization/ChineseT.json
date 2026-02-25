@@ -14,15 +14,15 @@
   },
   "SettingsWindow": {
     "Title": "設定",
-    "EnableChat": "開啓聊天室",
+    "EnableChat": "開啟聊天室",
     "FilterChatMessages": "聊天過濾器",
     "ShowNavigationButtons": "顯示多人模式按鈕",
     "EnableShortcuts": "顯示快捷鍵",
     "FavGirlMode": "顯示FavGirl模式",
     "ShowOtherElfins": "顯示其他玩家精靈",
     "DisplayLobbyStatus": "顯示游戲大廳狀態 (公開 / 私人）",
-    "ShowBattlePopups": "儅玩家失去AP/FC或miss的時候顯示視窗",
-    "EnableLogging": "開啓記錄記載于文檔",
+    "ShowBattlePopups": "當玩家失去AP/FC或miss的時候顯示視窗",
+    "EnableLogging": "開啟紀錄記載於文檔",
     "LobbyUpdateIntervalMS": "大廳資料更新頻率（毫秒）。建議值：1000毫秒 — 5000毫秒",
     "BattleUpdateIntervalMS": "戰鬥數據更新頻率（毫秒）。建議值：100毫秒 — 500毫秒"
   },
@@ -240,15 +240,15 @@
     "PlaylistTitle": "游玩列表",
     "PlaylistDescription": "[ 游玩列表大小 ]: <color={0}>{1}/{2}</color>\n\n若要將譜面新增至游玩列表，請開啟該譜面並按下對應的按鈕。\n\n如果任何玩家隱藏了譜面，其他玩家也無法將其添加到游玩列表中。",
     "PlaylistEmpty": "游玩列表爲空!",
-    "Starting": "開啓游戲中···",
+    "Starting": "開啟游戲中···",
     "HiddensLocked": "不能在游戲大廳隱藏或解除隱藏譜面",
     "ChartHidden": "譜面被玩家隱藏了",
     "ChartNotSynced": "并非所有玩家都擁有這譜面",
-    "PlayConfirm": "確認開啓游玩？",
+    "PlayConfirm": "確認開啟游玩？",
     "NoLobby": "你不在游戲大廳裏",
-    "SleepwalkerUsed": "不能開啓 - {0} 正在使用夢游少女凛",
+    "SleepwalkerUsed": "不能開啟 - {0} 正在使用夢游少女凛",
     "SleepwalkerUsedLocal": "你必須卸下夢游少女凛才能繼續。",
-    "NotHost": "只有主持玩家能開啓游玩"
+    "NotHost": "只有主持玩家能開啟游玩"
   },
   "Intermission": {
     "ButtonPlay": "游玩",
