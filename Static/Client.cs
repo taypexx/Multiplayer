@@ -325,13 +325,13 @@ namespace Multiplayer.Static
             listener.Stop();
 
             Debounce = false;
-            _ = Connect(code);
+            Connect(code);
         }
 
         /// <summary>
         /// Attempts to log in the multiplayer server using the local token/code.
         /// </summary>
-        internal static async Task Connect(string code = null)
+        internal static void Connect(string code = null)
         {
             if (Connected || Debounce) return;
 
@@ -351,65 +351,74 @@ namespace Multiplayer.Static
                 return;
             }
 
-            if (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace())
+            var playerName = DataHelper.nickname.Trim('\n', '\r');
+            var uid = DataHelper.PeroUid;
+            if (uid == null) return;
+
+            if (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace() || uid == null)
             {
                 UIManager.WarnNotification(Localization.Get("Warning", "NoAccount"));
                 return;
             }
 
-            string uid = DataHelper.PeroUid;
-            if (uid == null) return;
+            PlayerManager.LocalPlayerName = playerName;
+            PlayerManager.LocalPlayerUid = uid;
 
-            Main.Dispatch(() => PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Connecting").ToString()));
+            PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Connecting").ToString());
             Debounce = true;
             Main.Log("Connecting to the server...");
 
+            ChartManager.Init();
+
             object payload = code is null 
-                ? new { Uid = uid, Name = DataHelper.nickname } 
-                : new { Uid = uid, Name = DataHelper.nickname, Code = code };
+                ? new { Uid = uid, Name = playerName } 
+                : new { Uid = uid, Name = playerName, Code = code };
 
-            var response = await PostAsync($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login", payload, true, code is null, true);
-            Main.Dispatch(() => PnlCloudExtension.Finish(response.IsSuccessStatusCode));
-            if (response.IsSuccessStatusCode)
+            Task.Run(async () => 
             {
-                var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
-
-                ServerVersion = new Version(content["Version"].GetString());
-                if (!Outdated)
+                var response = await PostAsync($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login", payload, true, code is null, true);
+                Main.Dispatch(() => PnlCloudExtension.Finish(response.IsSuccessStatusCode));
+                if (response.IsSuccessStatusCode)
                 {
-                    var newToken = content["Token"].GetString();
-                    if (newToken != null)
+                    var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+
+                    ServerVersion = new Version(content["Version"].GetString());
+                    if (!Outdated)
                     {
-                        Token = newToken;
-                        File.WriteAllText(TokenPath, Cipher.Encrypt(Token, Constants.TokenCipherShift));
+                        var newToken = content["Token"].GetString();
+                        if (newToken != null)
+                        {
+                            Token = newToken;
+                            File.WriteAllText(TokenPath, Cipher.Encrypt(Token, Constants.TokenCipherShift));
+                        }
+
+                        Connected = true;
+                        _ = Main.InitConnect();
+
+                        Main.Log("Connected to the server successfully!", Main.LogType.Success);
                     }
-
-                    Connected = true;
-                    ChartManager.Init();
-                    _ = Main.InitConnect();
-
-                    Main.Log("Connected to the server successfully!", Main.LogType.Success);
+                    else
+                    {
+                        OutdatedWarning = new(string.Format(Localization.Get("Warning", "Outdated").ToString(), Constants.Version, ServerVersion));
+                        UIManager.WarningChooseAction = UpdateModOption;
+                        Main.Dispatch(() => UIManager.WarnChooseNotification(OutdatedWarning));
+                        Main.Log("Outdated version of the mod, cannot proceed!", Main.LogType.Error);
+                    }
+                }
+                else if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    UIManager.WarningChooseAction = LoginOption;
+                    Main.Dispatch(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "LoginRequired")));
+                    Main.Log("Token has expired, login is required.", Main.LogType.Warning);
                 }
                 else
                 {
-                    OutdatedWarning = new(string.Format(Localization.Get("Warning", "Outdated").ToString(), Constants.Version, ServerVersion));
-                    UIManager.WarningChooseAction = UpdateModOption;
-                    Main.Dispatch(() => UIManager.WarnChooseNotification(OutdatedWarning));
-                    Main.Log("Outdated version of the mod, cannot proceed!", Main.LogType.Error);
+                    UIManager.WarningChooseAction = ReconnectOption;
+                    Main.Dispatch(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "Offline")));
+                    Main.Log("Failed to connect to the server!", Main.LogType.Error);
                 }
-            } else if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                UIManager.WarningChooseAction = LoginOption;
-                Main.Dispatch(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "LoginRequired")));
-                Main.Log("Token has expired, login is required.", Main.LogType.Warning);
-            }
-            else
-            {
-                UIManager.WarningChooseAction = ReconnectOption;
-                Main.Dispatch(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "Offline")));
-                Main.Log("Failed to connect to the server!", Main.LogType.Error);
-            }
-            Debounce = false;
+                Debounce = false;
+            });
         }
 
         /// <summary>
@@ -437,7 +446,7 @@ namespace Multiplayer.Static
         private static void UpdateModOption(bool doUpdate)
         {
             if (!doUpdate) return;
-            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}:{Constants.PortHTTP}/home");
+            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/download");
         }
 
         /// <summary>
@@ -456,7 +465,7 @@ namespace Multiplayer.Static
         private static void ReconnectOption(bool doReconnect)
         {
             if (!doReconnect) return;
-            _ = Connect();
+            Connect();
         }
 
         /// <summary>

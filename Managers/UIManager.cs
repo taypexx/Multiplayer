@@ -320,10 +320,10 @@ namespace Multiplayer.Managers
             PnlCloudExtension.Create();
             PnlMessageExtension.Create();
 
-            if (LobbyManager.IsInLobby && LobbyManager.LocalLobby.Playlist.Count == 0)
+            if (LobbyManager.IsInLobby)
             {
                 MainLobbyDisplay.Create(LobbyManager.LocalLobby);
-                ChatLobbyDisplay.Create(LobbyManager.LocalLobby, true);
+                ChatLobbyDisplay.Create(LobbyManager.LocalLobby, true, true);
                 PnlHomeExtension.Create();
             }
 

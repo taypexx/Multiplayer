@@ -24,9 +24,9 @@ namespace Multiplayer.UI.Displays
             TextAnchor = TextAnchor.UpperLeft;
             TextHorizontalWrapMode = HorizontalWrapMode.Wrap;
             TextVerticalWrapMode = VerticalWrapMode.Overflow;
-            MaxLines = 10;
+            MaxLines = null;
             FontSize = 20;
-            EntryWidth = 400f;
+            EntryWidth = 500f;
             EntryDir = -1;
 
             FrameAnchorPosition = new(25f, -90f);
@@ -62,11 +62,6 @@ namespace Multiplayer.UI.Displays
         {
             if (Lobby is null) return;
 
-            while (GetTotalLines() >= MaxLines)
-            {
-                RemoveText(PositionList.First());
-            }
-
             Action clickAction = null;
             if (chatMessage.Message == "PlaylistAdd")
             {
@@ -85,6 +80,15 @@ namespace Multiplayer.UI.Displays
 
             SetTextPositions();
             Update();
+
+            var lineCount = text.cachedTextGenerator.lineCount;
+            if (lineCount > 1)
+            {
+                text.GetComponent<RectTransform>().sizeDelta = new(EntrySize.x, EntrySize.y * lineCount);
+            }
+
+            Frame.GetComponent<RectTransform>().sizeDelta = new(FrameSize.x, EntrySize.y * GetTotalLines());
+            if (chatMessage.AuthorUid == PlayerManager.LocalPlayerUid) ScrollRect.SetNormalizedPosition(0, 1);
         }
 
         internal override void Update()
@@ -95,9 +99,9 @@ namespace Multiplayer.UI.Displays
             PlaceholderText.transform.position = Title.transform.position;
         }
 
-        internal override void Create(Lobby lobby, bool addTitle = true)
+        internal override void Create(Lobby lobby, bool addTitle = true, bool scrollable = false)
         {
-            base.Create(lobby, addTitle);
+            base.Create(lobby, addTitle, scrollable);
             Frame.SetActive(Settings.Config.EnableChat);
 
             InputField = Title.gameObject.AddComponent<InputField>();

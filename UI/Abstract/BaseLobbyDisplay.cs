@@ -15,6 +15,9 @@ namespace Multiplayer.UI.Abstract
         protected string FrameParentPath { get; set; }
         protected Transform FrameParent => GameObject.Find(FrameParentPath).transform;
 
+        internal GameObject ScrollFrame { get; set; }
+        internal ScrollRect ScrollRect { get; set; }
+
         protected TextAnchor TextAnchor { get; set; }
         protected HorizontalWrapMode TextHorizontalWrapMode { get; set; }
         protected VerticalWrapMode TextVerticalWrapMode { get; set; }
@@ -88,6 +91,7 @@ namespace Multiplayer.UI.Abstract
             if (Frame == null) return null;
 
             GameObject newTextObj = Utilities.CreateText(Frame.transform, "Entry" + TextList.Count.ToString(), true);
+
             var rect = newTextObj.GetComponent<RectTransform>();
             rect.anchorMin = Pivot;
             rect.anchorMax = Pivot;
@@ -125,21 +129,18 @@ namespace Multiplayer.UI.Abstract
         protected void RemoveText(object key)
         {
             Text text = TextList[key];
-            var removeAt = PositionList.IndexOf(key);
-
-            TextList.Remove(key);
-            PositionList.Remove(key);
-
             if (text == null) return;
 
             // Fill the gap
-            foreach ((object k, Text t) in TextList)
+            for (int i = PositionList.IndexOf(key) + 1; i < PositionList.Count; i++)
             {
-                if (PositionList.IndexOf(k) >= removeAt)
-                {
-                    t.gameObject.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0f, EntrySize.y * text.cachedTextGenerator.lineCount);
-                }
+                var afterText = PositionList[i];
+                if (afterText == null || afterText is not Text) continue;
+                (afterText as Text).gameObject.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0f, EntrySize.y * text.cachedTextGenerator.lineCount);
             }
+
+            TextList.Remove(key);
+            PositionList.Remove(key);
 
             GameObject obj = text.gameObject;
             if (obj != null) UnityEngine.Object.Destroy(obj);
@@ -271,19 +272,46 @@ namespace Multiplayer.UI.Abstract
         /// Creates the display for the given <see cref="Data.Lobbies.Lobby"/>.
         /// </summary>
         /// <param name="lobby"><see cref="Data.Lobbies.Lobby"/> whose information will be displayed.</param>
-        internal virtual void Create(Lobby lobby, bool addTitle = true)
+        internal virtual void Create(Lobby lobby, bool addTitle = true, bool scrollable = false)
         {
             if (lobby is null || Lobby != null) return;
             Lobby = lobby;
 
             Frame = new("LobbyDisplay");
             var frameRect = Frame.AddComponent<RectTransform>();
-            frameRect.SetParent(FrameParent);
             frameRect.anchorMin = Pivot;
             frameRect.anchorMax = Pivot;
             frameRect.pivot = Pivot;
-            frameRect.anchoredPosition3D = FrameAnchorPosition;
             frameRect.sizeDelta = FrameSize;
+
+            if (scrollable)
+            {
+                ScrollFrame = new("LobbyDisplayScroll");
+
+                var scrollFrameRect = ScrollFrame.AddComponent<RectTransform>();
+                scrollFrameRect.anchorMin = Pivot;
+                scrollFrameRect.anchorMax = Pivot;
+                scrollFrameRect.pivot = Pivot;
+                scrollFrameRect.sizeDelta = new(EntrySize.x, EntrySize.y * 10);
+                scrollFrameRect.SetParent(FrameParent);
+                scrollFrameRect.anchoredPosition3D = FrameAnchorPosition;
+                scrollFrameRect.localScale = Vector3.one;
+
+                ScrollRect = ScrollFrame.AddComponent<ScrollRect>();
+                ScrollRect.content = Frame.GetComponent<RectTransform>();
+                ScrollRect.horizontal = false;
+                ScrollRect.vertical = true;
+
+                frameRect.SetParent(ScrollFrame.transform);
+                frameRect.anchoredPosition3D = Vector3.zero;
+
+                ScrollFrame.AddComponent<RectMask2D>();
+            }
+            else
+            {
+                frameRect.SetParent(FrameParent);
+                frameRect.anchoredPosition3D = FrameAnchorPosition;
+            }
             frameRect.localScale = Vector3.one;
 
             if (addTitle) Title = AddText(lobby);

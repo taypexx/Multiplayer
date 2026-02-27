@@ -9,7 +9,7 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
-        public const string Version = "0.1.1";
+        public const string Version = "0.1.2";
         public static readonly Version Version_ = new Version(Version);
 
         public const string Credits = "[ DEVELOPMENT ]\n\n" +
@@ -21,7 +21,11 @@ namespace Multiplayer.Static
             "<color=fff700ff>???</color> — Korean translation\n" +
             "<color=fff700ff>???</color> — Japanese translation\n\n" +
             "[ TESTER TEAM ]\n\n" +
-            "Slawter, Medeyah, PBalint817, WallKitty, Nickicchi, Bubu, Fran艾林, ame, shezza, wylh, kariya_07, Fang, AutoGamer, MADGUY, IgnisclowVT";
+            "Slawter, Medeyah, PBalint817, WallKitty,\n" +
+            "Nickicchi, Bubu, Yarshmellow, Fran艾林, ame,\n" +
+            "Rohan, shezza, wylh, kariya_07, Fang, MADGUY,\n" +
+            "المطربة الشعبية, free_muffin, Renbo, AutoGamer\n" +
+            "IgnisclowVT";
 
         internal const int PortHTTP = 9095;
         internal const int PortWebsocket = 443;

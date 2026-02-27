@@ -75,7 +75,7 @@ namespace Multiplayer.UI
                     windowToOpen.Window.Show();
                 }
             }
-            else _ = Client.Connect();
+            else Client.Connect();
         }
 
         private async Task OnPlayerSearch()

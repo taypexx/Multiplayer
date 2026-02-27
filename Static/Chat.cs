@@ -134,7 +134,8 @@ namespace Multiplayer.Static
             Recieve(new()
             {
                 Message = $"<i>{msg}</i>",
-                AuthorName = "system"
+                AuthorName = "system",
+                AuthorUid = PlayerManager.LocalPlayerUid
             });
         }
 
@@ -180,7 +181,8 @@ namespace Multiplayer.Static
                 Recieve(new()
                 {
                     Message = $"<i>{msg}</i>",
-                    AuthorName = "system"
+                    AuthorName = "system",
+                    AuthorUid = PlayerManager.LocalPlayerUid
                 });
             });
         }
@@ -206,7 +208,8 @@ namespace Multiplayer.Static
                 Recieve(new()
                 {
                     Message = helpText,
-                    AuthorName = "system"
+                    AuthorName = "system",
+                    AuthorUid = PlayerManager.LocalPlayerUid
                 });
             });
 
@@ -216,7 +219,8 @@ namespace Multiplayer.Static
                     Recieve(new()
                     {
                         Message = String.Format(Localization.Get("SystemChatMessages", "UnknownCommand").ToString(), args[0]),
-                        AuthorName = "system"
+                        AuthorName = "system",
+                        AuthorUid = PlayerManager.LocalPlayerUid
                     });
                 }), true),
 
@@ -257,7 +261,8 @@ namespace Multiplayer.Static
                     Recieve(new()
                     {
                         Message = String.Format(Localization.Get("SystemChatMessages", "MutedList").ToString(), playerList),
-                        AuthorName = "system"
+                        AuthorName = "system",
+                        AuthorUid = PlayerManager.LocalPlayerUid
                     });
                 })),
 

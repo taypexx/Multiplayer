@@ -104,9 +104,6 @@ namespace Multiplayer
         /// </summary>
         internal static async Task InitConnect()
         {
-            PlayerManager.LocalPlayerName = DataHelper.nickname.Trim('\n', '\r');
-            PlayerManager.LocalPlayerUid = DataHelper.PeroUid;
-
             await PlayerManager.Init();
             await LobbyManager.Init();
             Dispatch(() => 

@@ -1,11 +1,8 @@
-﻿using Il2Cpp;
-using Il2CppAssets.Scripts.Database;
+﻿using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
-using Il2CppAssets.Scripts.PeroTools.Nice.Events;
 using Il2CppAssets.Scripts.UI;
 using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppAssets.Scripts.UI.Panels.PnlRole;
-using Il2CppAssets.Scripts.UI.Specials;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -99,7 +96,7 @@ namespace Multiplayer.UI.Extensions
         private static Vector3 LeftButtonScale = new(-ButtonSize, ButtonSize, ButtonSize);
         private static Vector3 RightButtonScale = new(ButtonSize, ButtonSize, ButtonSize);
 
-        private static CancellationTokenSource PlayerSpeakCTS;
+        private static CancellationTokenSource[] PlayerSpeakCTS = new CancellationTokenSource[3];
 
         /// <summary>
         /// Turns off the speech bubble.
@@ -141,27 +138,15 @@ namespace Multiplayer.UI.Extensions
 
             try
             {
+                // Play an expression
                 var charExpress = museShow.transform.Find("BtnInteraction").GetComponent<Il2CppAssets.Scripts.UI.Controls.CharacterExpression>();
-                /*
-                if (charExpress != null && charExpress.expressionContainer.m_Expressions == null)
-                {
-                    // Initialize expressions in case they are not
-                    charExpress.expressionContainer.SetExpression(
-                        Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance
-                            .GetConfigObject<DBConfigCharacter>()
-                            .GetCharacterInfoByIndex(CurrentPage.IndexOf(player) == 0 ? LeftGirlIndex : RightGirlIndex)
-                    );
-                }
-                */
-
                 var express = ExpressionDeterminer.Determine(charExpress.expressionContainer, msg);
                 if (express != null)
                 {
-                    // Play an expression
                     charExpress.m_CharacterApply.PlayCharacterApply(express.animName, null);
                 }
             }
-            catch { }
+            catch (Exception ex) { Main.Log(ex); }
 
             var bubble = museShow.transform.Find("FirstTwnTalkBubble").gameObject.GetComponent<Il2CppAssets.Scripts.UI.Controls.DefaultTalkBubble>();
             if (bubble == null) return;
@@ -179,10 +164,15 @@ namespace Multiplayer.UI.Extensions
                 1200, 10000
             );
 
-            if (PlayerSpeakCTS != null) PlayerSpeakCTS.Cancel();
-            PlayerSpeakCTS = new();
+            var ctsIndex = player == PlayerManager.LocalPlayer ? 0 : CurrentPage.IndexOf(player) == 0 ? 1 : 2;
 
-            _ = PlayerEndSpeak(bubble, msgDurationMs, PlayerSpeakCTS.Token);
+            var prevCts = PlayerSpeakCTS[ctsIndex];
+            if (prevCts != null) prevCts.Cancel();
+
+            var newCts = new CancellationTokenSource();
+            PlayerSpeakCTS[ctsIndex] = newCts;
+
+            _ = PlayerEndSpeak(bubble, msgDurationMs, newCts.Token);
         }
 
         /// <summary>
@@ -212,6 +202,36 @@ namespace Multiplayer.UI.Extensions
             var newShow = UnityEngine.Object.Instantiate(charApply.gameObject, prefab.transform);
             newShow.GetComponent<MeshRenderer>().sortingOrder = 0;
             museShowComponent.m_MuseShow = newShow;
+
+            // Initialize expressions
+            var charExpress = museShow.transform.Find("BtnInteraction").GetComponent<Il2CppAssets.Scripts.UI.Controls.CharacterExpression>();
+            if (charExpress.expressionContainer.m_Expressions == null)
+            {
+                charExpress.expressionContainer.SetExpression(
+                    Singleton<Il2CppAssets.Scripts.PeroTools.Managers.ConfigManager>.instance
+                        .GetConfigObject<DBConfigCharacter>()
+                        .GetCharacterInfoByIndex(museShow == LeftMuseShow ? LeftGirlIndex : RightGirlIndex)
+                );
+                charExpress.m_CharacterApply = charApply;
+            }
+
+            // Remove other visual stuff from characters
+
+            switch (girlIndex)
+            {
+                case 31:
+                    var bloodheirHandler = newShow.GetComponent<Il2CppAssets.Scripts.UI.Specials.BloodheirTransformGenerator>();
+                    if (bloodheirHandler != null && bloodheirHandler.m_BloodheirTransformObj != null)
+                        GameObject.Destroy(bloodheirHandler.m_BloodheirTransformObj);
+                    break;
+                case 33:
+                    var diverHandler = newShow.GetComponent<Il2CppAssets.Scripts.UI.Specials.DiverBuroHandler>();
+                    if (diverHandler != null && diverHandler.m_PnlDaveFishViewObj != null) 
+                        GameObject.Destroy(diverHandler.m_PnlDaveFishViewObj);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private static string GetName(Player player)
@@ -266,8 +286,8 @@ namespace Multiplayer.UI.Extensions
                 var girlIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
                 if (girlIndex != LeftGirlIndex)
                 {
-                    ReplaceGirl(LeftMuseShow, girlIndex);
                     LeftGirlIndex = girlIndex;
+                    ReplaceGirl(LeftMuseShow, girlIndex);
                 }
             }
             else LeftGirlIndex = -1;
@@ -280,8 +300,8 @@ namespace Multiplayer.UI.Extensions
                 var girlIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
                 if (girlIndex != RightGirlIndex)
                 {
-                    ReplaceGirl(RightMuseShow, girlIndex);
                     RightGirlIndex = girlIndex;
+                    ReplaceGirl(RightMuseShow, girlIndex);
                 }
             }
             else RightGirlIndex = -1;
@@ -361,6 +381,9 @@ namespace Multiplayer.UI.Extensions
             PnlHome = GameObject.Find("UI/Standerd/PnlHome");
             PnlRole = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole").GetComponent<PnlRole>();
             GirlFancyPanel = PnlRole.fancyPanel;
+
+            var bgSwitchBtn = PnlHome.transform.Find("PnlBgSwitchFsv");
+            if (bgSwitchBtn != null) bgSwitchBtn.gameObject.SetActive(false);
 
             OriginalMuseShow = GameObject.Find("UI/Standerd/PnlHome/MuseShow");
             OriginalElfinShow = GameObject.Find("UI/Standerd/PnlHome/ElfinShow");
@@ -516,6 +539,9 @@ namespace Multiplayer.UI.Extensions
             Enabled = false;
             try
             {
+                var bgSwitchBtn = PnlHome.transform.Find("PnlBgSwitchFsv");
+                if (bgSwitchBtn != null) bgSwitchBtn.gameObject.SetActive(true);
+
                 OriginalElfinShow.SetActive(true);
                 OriginalMuseShow.transform.Find("BtnInteraction").gameObject.SetActive(true);
             }

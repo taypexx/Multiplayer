@@ -33,7 +33,7 @@ namespace Multiplayer.Static
                 field = value;
             } 
         } 
-        = false;
+        = true;
 
         internal bool DisplayLobbyStatus { get; set; } = true;
 

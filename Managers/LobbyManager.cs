@@ -20,6 +20,7 @@ namespace Multiplayer.Managers
         internal static bool IsPlaylistChartComingUp => IsInLobby && LocalLobby.Locked && LocalLobby.CurrentPlaylistEntry != null;
 
         internal static bool IsAutoUpdating = false;
+        private static bool PlaylistDebounce = false;
 
         /// <summary>
         /// Starts auto updating the UI according to the current <see cref="Lobby"/>.
@@ -99,6 +100,13 @@ namespace Multiplayer.Managers
             return success;
         }
 
+        private static async Task DoPlaylistDebounce()
+        {
+            PlaylistDebounce = true;
+            await Task.Delay(2000);
+            PlaylistDebounce = false;
+        }
+
         /// <summary>
         /// Sends a request to the server to continue and remove the first <see cref="PlaylistEntry"/>.
         /// </summary>
@@ -134,7 +142,8 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if the <see cref="PlaylistEntry"/> was added, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> PlaylistAdd(MusicInfo musicInfo, int difficulty)
         {
-            if (!Client.Connected || !IsInLobby || LocalLobby.IsPlaylistFull) return false;
+            if (PlaylistDebounce || !Client.Connected || !IsInLobby || LocalLobby.IsPlaylistFull) return false;
+            _ = DoPlaylistDebounce();
 
             string entry = ChartManager.GetEntry(musicInfo, difficulty);
             var payload = new
@@ -195,7 +204,8 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if the <see cref="PlaylistEntry"/> was removed, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> PlaylistRemove(MusicInfo musicInfo, int difficulty)
         {
-            if (!Client.Connected || !IsInLobby) return false;
+            if (PlaylistDebounce || !Client.Connected || !IsInLobby) return false;
+            _ = DoPlaylistDebounce();
 
             string entry = ChartManager.GetEntry(musicInfo, difficulty);
             var payload = new
@@ -378,7 +388,7 @@ namespace Multiplayer.Managers
             {
                 UIManager.PlayConfirmPrompt.Title = (LocalString)lobby.Name;
                 UIManager.MainLobbyDisplay.Create(lobby);
-                UIManager.ChatLobbyDisplay.Create(lobby, true);
+                UIManager.ChatLobbyDisplay.Create(lobby, true, true);
                 PnlPreparationExtension.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
                 PnlHomeExtension.Create();
