@@ -19,7 +19,7 @@ namespace Multiplayer
         internal static bool IsUIScene => CurrentScene == "UISystem_PC";
 
         internal static Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
-        private static readonly string[] Dependencies = { "CustomAlbums", "PopupLib", "LocalizeLib" };
+        private static readonly string[] Dependencies = { "CustomAlbums", "Headquarters", "PopupLib", "LocalizeLib" };
         private static readonly string[] AdditionalDependencies = { "FavGirl" };
         private static Dictionary<string, Assembly> AdditionalDependenciesInstalled = new();
 

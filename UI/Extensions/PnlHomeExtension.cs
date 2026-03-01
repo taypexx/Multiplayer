@@ -382,8 +382,8 @@ namespace Multiplayer.UI.Extensions
             PnlRole = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole").GetComponent<PnlRole>();
             GirlFancyPanel = PnlRole.fancyPanel;
 
-            var bgSwitchBtn = PnlHome.transform.Find("PnlBgSwitchFsv");
-            if (bgSwitchBtn != null) bgSwitchBtn.gameObject.SetActive(false);
+            //var bgSwitchBtn = PnlHome.transform.Find("PnlBgSwitchFsv");
+            //if (bgSwitchBtn != null) bgSwitchBtn.gameObject.SetActive(false);
 
             OriginalMuseShow = GameObject.Find("UI/Standerd/PnlHome/MuseShow");
             OriginalElfinShow = GameObject.Find("UI/Standerd/PnlHome/ElfinShow");

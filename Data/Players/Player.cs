@@ -7,6 +7,7 @@ namespace Multiplayer.Data.Players
     public class Player
     {
         public string Uid { get; private set; }
+        public int HQUid { get; private set; }
 
         public MultiplayerStats MultiplayerStats { get; private set; }
         public BattleStats BattleStats { get; private set; }
@@ -24,9 +25,10 @@ namespace Multiplayer.Data.Players
         }
         internal DateTime LastUpdated { get; private set; }
 
-        internal Player(string uid)
+        internal Player(string uid, int hqUid = 0)
         {
             Uid = uid;
+            HQUid = hqUid;
             MultiplayerStats = new(this);
             BattleStats = new(this);
             MoeStats = new(this);
@@ -50,8 +52,8 @@ namespace Multiplayer.Data.Players
                 await MultiplayerStats.Update();
                 if (fullUpdate)
                 {
-                    _ = MoeStats.Update();
-                    _ = HQStats.Update();
+                    await MoeStats.Update();
+                    await HQStats.Update();
                 }
                 LastUpdated = DateTime.Now;
             }

@@ -15,6 +15,7 @@ namespace Multiplayer.Static
         public const string Credits = "[ DEVELOPMENT ]\n\n" +
             "<color=f542adff>taypexx</color> — Mod & backend development\n" +
             "<color=f542adff>7OU</color> — Backend development\n" +
+            "<color=1eff00ff>AshtonMemer</color> — Custom Albums & Headquarters\n" +
             "<color=1eff00ff>PBalint817</color> — Additional libraries\n" +
             "<color=fff700ff>Bubu</color> — Traditional Chinese translation\n" +
             "<color=fff700ff>???</color> — Simplified Chinese translation\n" +

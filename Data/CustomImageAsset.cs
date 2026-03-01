@@ -2,10 +2,19 @@
 
 namespace Multiplayer.Data
 {
-    internal class CustomImageAsset
+    public class CustomImageAsset
     {
         internal Texture2D Texture { get; private set; }
         internal Sprite Sprite { get; private set; }
+
+        private void Init()
+        {
+            if (Sprite != null || Texture == null) return;
+            Sprite = Sprite.Create(Texture, new Rect(0, 0, Texture.width, Texture.height), new Vector2(0.5f, 0.5f));
+
+            UnityEngine.Object.DontDestroyOnLoad(Texture);
+            UnityEngine.Object.DontDestroyOnLoad(Sprite);
+        }
 
         internal CustomImageAsset(byte[] bytes)
         {
@@ -13,12 +22,13 @@ namespace Multiplayer.Data
             {
                 wrapMode = TextureWrapMode.MirrorOnce
             };
-            ImageConversion.LoadImage(Texture, bytes);
+            Init();
+        }
 
-            Sprite = Sprite.Create(Texture, new Rect(0, 0, Texture.width, Texture.height), new Vector2(0.5f, 0.5f));
-
-            UnityEngine.Object.DontDestroyOnLoad(Texture);
-            UnityEngine.Object.DontDestroyOnLoad(Sprite);
+        internal CustomImageAsset(Texture2D texture2D)
+        {
+            Texture = texture2D;
+            Init();
         }
     }
 }

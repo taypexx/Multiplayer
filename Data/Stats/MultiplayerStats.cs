@@ -23,13 +23,12 @@ namespace Multiplayer.Data.Stats
         }
 
         public string Name { get; private set; }
+        public string Bio { get; internal set; }
 
         public string AvatarName {
             get => Player == PlayerManager.LocalPlayer ? "head_" + DataHelper.selectedHeadIndex.ToString() : field;
             private set; 
         }
-
-        public string Bio { get; internal set; }
 
         public int Level { 
             get => Player == PlayerManager.LocalPlayer ? DataHelper.Level : field;
@@ -84,9 +83,8 @@ namespace Multiplayer.Data.Stats
         {
             Player = player;
             Status = PlayerStatus.Offline;
-            Name = PlayerManager.LocalPlayerName ?? player.Uid;
+            
             AvatarName = "head_0";
-            Bio = "This player did not set their bio.";
             Level = 1;
 
             GirlIndex = 0;

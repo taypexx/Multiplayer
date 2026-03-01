@@ -48,7 +48,7 @@ namespace Multiplayer.UI.LobbyWindows
         {
             CreatePrompt = new(Localization.Get("LobbyCreation", "CreateConfirm"), Localization.Get("LobbyCreation", "Create"));
             CreatePrompt.AutoReset = true;
-            CreatePrompt.OnCompletion += (window) => _ = OnCreate(window);
+            CreatePrompt.OnCompletion += (BaseWindow w) => _ = OnCreate();
 
             NamePrompt = new();
             NamePrompt.AutoReset = true;
@@ -81,7 +81,7 @@ namespace Multiplayer.UI.LobbyWindows
             UpdateDescription();
         }
 
-        private async Task OnCreate(BaseWindow window)
+        private async Task OnCreate()
         {
             if (CreatePrompt.Result != true) 
             {

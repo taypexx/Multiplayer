@@ -88,7 +88,7 @@ namespace Multiplayer.UI.Displays
             }
 
             Frame.GetComponent<RectTransform>().sizeDelta = new(FrameSize.x, EntrySize.y * GetTotalLines());
-            if (chatMessage.AuthorUid == PlayerManager.LocalPlayerUid) ScrollRect.SetNormalizedPosition(0, 1);
+            if (ScrollRect.verticalNormalizedPosition < 0.1f || chatMessage.AuthorUid == PlayerManager.LocalPlayerUid) ScrollRect.SetNormalizedPosition(0, 1);
         }
 
         internal override void Update()
