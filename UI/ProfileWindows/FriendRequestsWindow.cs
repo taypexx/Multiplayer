@@ -38,6 +38,8 @@ namespace Multiplayer.UI.ProfileWindows
                     foreach (string playerUid in localStats.FriendRequests)
                     {
                         Player otherPlayer = PlayerManager.GetCachedPlayer(playerUid);
+                        if (otherPlayer is null) continue;
+
                         ForumObject button = AddButton((LocalString)otherPlayer.MultiplayerStats.Name);
                         ButtonsPlayers.Add(button, otherPlayer);
                     }

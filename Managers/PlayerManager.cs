@@ -143,6 +143,33 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
+        /// Creates a new <see cref="Player"/> based on their <paramref name="uid"/>.
+        /// </summary>
+        /// <param name="uid">UID of a <see cref="Player"/>.</param>
+        /// <param name="playerData">(Optional) JSON body of a <see cref="Player"/>. 
+        /// Will retrieve information from the server anyways if not provided.
+        /// Used for faster loading.</param>
+        /// <returns>A new <see cref="Player"/> instance.</returns>
+        internal static async Task<Player> CreatePlayer(string uid, Dictionary<string, JsonElement> playerData = null)
+        {
+            Player player = new(uid);
+            CachedPlayers.Add(uid, player);
+
+            if (playerData is null)
+            {
+                await player.Update(true);
+            }
+            else
+            {
+                player.MultiplayerStats.UpdateFields(playerData);
+                await player.MoeStats.Update();
+                await player.HQStats.Update();
+            }
+
+            return player;
+        }
+
+        /// <summary>
         /// Finds/creates a <see cref="Player"/> by their <paramref name="uid"/>.
         /// </summary>
         /// <param name="uid">UID of a <see cref="Player"/>.</param>
@@ -153,11 +180,9 @@ namespace Multiplayer.Managers
 
             Player player = GetCachedPlayer(uid);
             if (player != null) return player;
-            
+
             // If not cached
-            player = new(uid);
-            CachedPlayers.Add(uid, player);
-            await player.Update(true);
+            player = await CreatePlayer(uid);
 
             return player;
         }
@@ -169,7 +194,7 @@ namespace Multiplayer.Managers
             Player player = GetCachedPlayer(query);
             if (player != null) return player;
 
-            // If query is not uid (or it's not cached)
+            // If query is not uid (or the player is not cached)
             var response = await Client.PostAsync("getPlayer", new
             {
                 Query = query
@@ -183,12 +208,9 @@ namespace Multiplayer.Managers
             if (player == null)
             {
                 // If not cached at all
-                player = new(uid);
-                await player.MoeStats.Update();
-                await player.HQStats.Update();
-                CachedPlayers.Add(uid, player);
+                player = await CreatePlayer(uid, playerData); 
             }
-            player.MultiplayerStats.UpdateFields(playerData);
+            else player.MultiplayerStats.UpdateFields(playerData);
 
             return player;
         }

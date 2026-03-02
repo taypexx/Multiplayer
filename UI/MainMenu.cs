@@ -1,5 +1,4 @@
-﻿using Il2Cpp;
-using LocalizeLib;
+﻿using LocalizeLib;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -81,7 +80,7 @@ namespace Multiplayer.UI
         private async Task OnPlayerSearch()
         {
             var query = SearchPlayerPrompt.Result;
-            if (Utilities.IsValidString(query, Constants.NameCharactersMin, 48))
+            if (Utilities.IsValidString(query, Constants.NameCharactersMin, 32)) // 48 because query might be the UID
             {
                 var player = await PlayerManager.GetPlayerByQuery(query);
                 if (player != null)

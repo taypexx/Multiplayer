@@ -30,10 +30,21 @@ namespace Multiplayer.Data.Stats
             private set; 
         }
 
-        public int Level { 
+        public int Level
+        {
             get => Player == PlayerManager.LocalPlayer ? DataHelper.Level : field;
-            private set; 
+            private set;
         }
+
+        public ushort ELO { get; private set; }
+        public bool Banned { get; private set; }
+        public string Rank => Ranks.GetRank(ELO);
+
+        public bool FriendsCached { get; private set; }
+        public bool FriendRequestsCached { get; private set; }
+        public HashSet<string> Friends { get; private set; }
+        public HashSet<string> FriendRequests { get; private set; }
+        public Dictionary<DateTime, Achievement> Achievements { get; internal set; }
 
         public int GirlIndex { 
             get => Player == PlayerManager.LocalPlayer ? DataHelper.selectedRoleIndex : field;
@@ -69,29 +80,18 @@ namespace Multiplayer.Data.Stats
             private set;
         }
 
-        public bool FriendsCached { get; private set; }
-        public bool FriendRequestsCached { get; private set; }
-        public HashSet<string> Friends { get; private set; }
-        public HashSet<string> FriendRequests { get; private set; }
-        public Dictionary<DateTime, Achievement> Achievements { get; internal set; }
-
-        public ushort ELO { get; private set; }
-        public bool Banned { get; private set; }
-        public string Rank => Ranks.GetRank(ELO);
-
         public MultiplayerStats(Player player)
         {
             Player = player;
             Status = PlayerStatus.Offline;
-            
+
+            Name = "Player" + player.Uid;
+            Bio = "This user does not have anything interesting to say.";
+
             AvatarName = "head_0";
             Level = 1;
-
-            GirlIndex = 0;
-            ElfinIndex = -1;
-
-            FavGirlIndex = -1;
-            FavElfinIndex = -2;
+            ELO = 1500;
+            Banned = false;
 
             FriendsCached = false;
             FriendRequestsCached = false;
@@ -99,8 +99,11 @@ namespace Multiplayer.Data.Stats
             FriendRequests = new();
             Achievements = new();
 
-            ELO = 1500;
-            Banned = false;
+            GirlIndex = 0;
+            ElfinIndex = -1;
+
+            FavGirlIndex = -1;
+            FavElfinIndex = -2;
         }
 
         /// <summary>
@@ -111,9 +114,11 @@ namespace Multiplayer.Data.Stats
         {
             Status = (PlayerStatus)updatedData["Status"].GetByte();
             Name = updatedData["Name"].GetString();
-            AvatarName = updatedData["AvatarName"].GetString();
             Bio = updatedData["Bio"].GetString();
+            AvatarName = updatedData["AvatarName"].GetString();
             Level = updatedData["Level"].GetInt32();
+            ELO = updatedData["ELO"].GetUInt16();
+            Banned = updatedData["Banned"].GetBoolean();
 
             try
             {
@@ -140,9 +145,6 @@ namespace Multiplayer.Data.Stats
             }
             catch { }
 
-            ELO = updatedData["ELO"].GetUInt16();
-            Banned = updatedData["Banned"].GetBoolean();
-
             GirlIndex = updatedData["GirlIndex"].GetInt32();
             ElfinIndex = updatedData["ElfinIndex"].GetInt32();
 
@@ -159,6 +161,7 @@ namespace Multiplayer.Data.Stats
         {
             var response = await Client.PostAsync("getPlayer", new
             {
+                Uid = PlayerManager.LocalPlayerUid,
                 TargetUid = Player.Uid,
                 Name = PlayerManager.LocalPlayerName
             });
@@ -172,22 +175,55 @@ namespace Multiplayer.Data.Stats
         /// </summary>
         internal async Task CacheFriends()
         {
-            foreach (string friendUid in Friends)
+            var response = await Client.PostAsync("getFriends", new
             {
-                await PlayerManager.GetPlayer(friendUid);
+                Uid = PlayerManager.LocalPlayerUid,
+                TargetUid = Player.Uid
+            });
+            if (response is null) return;
+
+            try
+            {
+                var friends = await response.Content.ReadFromJsonAsync<List<Dictionary<string, JsonElement>>>();
+                foreach (var friendData in friends)
+                {
+                    var friendUid = friendData["Uid"].GetString();
+                    var friend = PlayerManager.GetCachedPlayer(friendUid);
+                    if (friend is null)
+                    {
+                        friend = await PlayerManager.CreatePlayer(friendUid, friendData);
+                    }
+                    else friend.MultiplayerStats.UpdateFields(friendData);
+                }
+
+                FriendsCached = true;
             }
-            FriendsCached = true;
+            catch { }
         }
 
         /// <summary>
-        /// Caches every <see cref="Players.Player"/> from friend request.
+        /// Caches every <see cref="Players.Player"/> from friend requests.
         /// </summary>
         internal async Task CacheFriendRequests()
         {
-            foreach (string otherUid in FriendRequests)
+            var response = await Client.PostAsync("getFriendRequests", new
             {
-                await PlayerManager.GetPlayer(otherUid);
+                Uid = PlayerManager.LocalPlayerUid
+            });
+            if (response is null) return;
+
+            var friendRequests = await response.Content.ReadFromJsonAsync<List<Dictionary<string, JsonElement>>>();
+            foreach (var otherData in friendRequests)
+            {
+                var otherUid = otherData["Uid"].GetString();
+                var otherPlayer = PlayerManager.GetCachedPlayer(otherUid);
+                if (otherPlayer is null)
+                {
+                    otherPlayer = await PlayerManager.CreatePlayer(otherUid, otherData);
+                }
+                else otherPlayer.MultiplayerStats.UpdateFields(otherData);
             }
+
             FriendRequestsCached = true;
         }
     }

@@ -26,6 +26,7 @@ namespace Multiplayer.Data.Lobbies
 
         public bool IsPrivate { get; private set; }
         public bool Locked { get; internal set; }
+
         public HashSet<string> ReadyPlayers { get; private set; }
         public bool EveryoneReady => ReadyPlayers.Count == Players.Count;
         public bool EveryoneFinished => ReadyPlayers.Count == 0;
@@ -41,11 +42,9 @@ namespace Multiplayer.Data.Lobbies
         private ushort CurrentGlobalPlaylistEntryIndex { get; set; }
         public ushort CurrentPlaylistEntryIndex { get; private set; }
         public PlaylistEntry? CurrentPlaylistEntry => 
-            Playlist is null 
-            ? null 
-            : Playlist.Count > 0
-                ? Playlist[CurrentPlaylistEntryIndex]
-                : null;
+            Playlist.Count > 0
+            ? Playlist[CurrentPlaylistEntryIndex]
+            : null;
 
         internal DateTime LastUpdated { get; private set; }
 
@@ -54,20 +53,21 @@ namespace Multiplayer.Data.Lobbies
             Id = id;
             Name = "Lobby";
 
-            IsPrivate = true;
             PlayType = LobbyPlayType.All;
             ChartSelection = LobbyChartSelection.HostPlaylist;
             Goal = LobbyGoal.Accuracy;
 
+            IsPrivate = true;
             Locked = false;
+
             ReadyPlayers = new();
-            Host = null;
             Players = new();
             MaxPlayers = 2;
 
-            PlaylistSize = 5;
-            CurrentPlaylistEntryIndex = 0;
             Playlist = new();
+            PlaylistSize = 5;
+            CurrentGlobalPlaylistEntryIndex = 0;
+            CurrentPlaylistEntryIndex = 0;
         }
 
         /// <summary>
@@ -126,7 +126,6 @@ namespace Multiplayer.Data.Lobbies
                             battleInfo = $"{battleStats.Accuracy}%  {battleStats.Misses}M";
                             if (battleStats.Greats > 0) battleInfo += $" {battleStats.Greats}G";
                         }
-
                         break;
                     case LobbyGoal.Score:
                         battleInfo = battleStats.Score.ToString();//$"<color=#{Constants.Yellow}>{battleStats.Score}</color>";
@@ -153,21 +152,13 @@ namespace Multiplayer.Data.Lobbies
         /// </summary>
         internal bool HasInPlaylist(string entry)
         {
-            foreach (var playlistEntry in Playlist)
-            {
-                if (playlistEntry.Entry == entry) return true;
-            }
-            return false;
+            return Playlist.Exists(e => e.Entry == entry);
         }
 
         /// <returns>A <see cref="PlaylistEntry"/> which has the given <paramref name="entry"/>.</returns>
         internal PlaylistEntry GetFromPlaylist(string entry)
         {
-            foreach (var playlistEntry in Playlist)
-            {
-                if (playlistEntry.Entry == entry) return playlistEntry;
-            }
-            return null;
+            return Playlist.Find(e => e.Entry == entry);
         }
 
         /// <summary>
@@ -182,9 +173,10 @@ namespace Multiplayer.Data.Lobbies
             IsPrivate = updatedData["IsPrivate"].GetBoolean();
             Locked = updatedData["Locked"].GetBoolean();
             MaxPlayers = updatedData["MaxPlayers"].GetUInt16();
-            Host = await PlayerManager.GetPlayer(updatedData["HostUid"].GetString());
             PlaylistSize = updatedData["PlaylistSize"].GetUInt16();
             CurrentGlobalPlaylistEntryIndex = updatedData["CurrentPlaylistEntry"].GetUInt16();
+
+            Host = await PlayerManager.GetPlayer(updatedData["HostUid"].GetString());
 
             PlayType = (LobbyPlayType)updatedData["PlayType"].GetByte();
             ChartSelection = (LobbyChartSelection)updatedData["ChartSelection"].GetByte();
@@ -201,20 +193,23 @@ namespace Multiplayer.Data.Lobbies
                         (await PlayerManager.GetPlayer(playerUid)).MultiplayerStats.UpdateFields(playerStats);
                     }
                 } 
-                else Players = JsonSerializer.Deserialize<HashSet<string>>(updatedData["Players"]);
+                else
+                {
+                    Players = JsonSerializer.Deserialize<HashSet<string>>(updatedData["Players"]);
+
+                    // Cache new players, update current ones if needed
+                    foreach (string playerUid in Players)
+                    {
+                        Player player = PlayerManager.GetCachedPlayer(playerUid);
+                        if (player is null)
+                        {
+                            await PlayerManager.GetPlayer(playerUid);
+                        }
+                        else if (updatePlayers) await player.Update();
+                    }
+                }
             }
             catch { }
-
-            // Cache new players, update current ones if needed
-            foreach (string playerUid in Players)
-            {
-                Player player = PlayerManager.GetCachedPlayer(playerUid);
-                if (player is null)
-                {
-                    await PlayerManager.GetPlayer(playerUid);
-                }
-                else if (updatePlayers) await player.Update();
-            }
 
             if (this == LobbyManager.LocalLobby)
             {
@@ -225,10 +220,10 @@ namespace Multiplayer.Data.Lobbies
                 catch { }
                 try
                 {
-                    var playlist = JsonSerializer.Deserialize<List<string>>(updatedData["Playlist"]);
+                    var newPlaylist = JsonSerializer.Deserialize<List<string>>(updatedData["Playlist"]);
 
                     // Add new entries from other players
-                    foreach (string entry in playlist)
+                    foreach (string entry in newPlaylist)
                     {
                         string[] str = entry.Split("#");
                         MusicInfo musicInfo = ChartManager.GetMusicInfo(str[0]);
@@ -237,14 +232,13 @@ namespace Multiplayer.Data.Lobbies
                         if (HasInPlaylist(entry)) continue;
 
                         PlaylistEntry playlistEntry = new(musicInfo, difficulty, entry);
-                        if (playlistEntry is null) continue;
                         Playlist.Add(playlistEntry);
                     }
 
                     // Remove entries that were removed by other players
                     foreach (var playlistEntry in Playlist)
                     {
-                        if (playlist.Contains(playlistEntry.Entry)) continue;
+                        if (newPlaylist.Contains(playlistEntry.Entry)) continue;
 
                         Playlist.Remove(playlistEntry);
                     }
@@ -263,7 +257,6 @@ namespace Multiplayer.Data.Lobbies
         {
             var response = await Client.PostAsync("getLobby", new
             {
-                Client.Token,
                 PlayerManager.LocalPlayer.Uid,
                 Id
             });
