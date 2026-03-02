@@ -22,6 +22,7 @@ namespace Multiplayer.Data
             {
                 wrapMode = TextureWrapMode.MirrorOnce
             };
+            ImageConversion.LoadImage(Texture, bytes);
             Init();
         }
 

@@ -27,7 +27,6 @@ namespace Multiplayer.UI.ProfileWindows
         private ForumObject AchievementsButton;
         private ForumObject FriendsButton;
         private ForumObject FriendRequestsButton;
-        private ForumObject HQStatsButton;
         private ForumObject MDMoeButton;
         private ForumObject FriendActionButton;
 
@@ -98,12 +97,11 @@ namespace Multiplayer.UI.ProfileWindows
             {
                 AvatarButton = AddButton(Localization.Get("ProfileWindow", "Avatar"));
                 BioButton = AddButton(Localization.Get("ProfileWindow", "Bio"), BioWindow);
-                FriendRequestsButton = AddButton(Localization.Get("ProfileWindow", "FriendRequests"), UIManager.FriendRequestsWindow);
+                FriendRequestsButton = AddButton(Localization.Get("ProfileWindow", "FriendRequests"));
             }
 
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"));
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
-            //HQStatsButton = AddButton(Localization.Get("ProfileWindow", "HQStats")); No support for hq for now =(
             MDMoeButton = AddButton(Localization.Get("ProfileWindow", "MDMoe"));
 
             if (FriendButtonState != 4)

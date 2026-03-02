@@ -1,5 +1,4 @@
-﻿using LocalizeLib;
-using Multiplayer.Data.Players;
+﻿using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
