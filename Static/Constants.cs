@@ -45,6 +45,13 @@ namespace Multiplayer.Static
 
         public static readonly int TokenCipherShift = 17;
 
+        public static readonly HashSet<string> UnsupportedChartUids = new() 
+        {
+            "93-0", // sushi class
+            "84-0", // buro warrior
+            "41-0" // super battleworn insomniac
+        };
+
         public const int ModUnlockLevel = 100;
         public const int SleepwalkerRoleIndex = 2;
         public const int IntermissionTimeMS = 30000;

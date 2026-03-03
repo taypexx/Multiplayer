@@ -1,5 +1,4 @@
-﻿using Il2CppAssets.Scripts.Database;
-using MelonLoader;
+﻿using MelonLoader;
 using Multiplayer.Managers;
 using Multiplayer.Patches;
 using Multiplayer.Static;

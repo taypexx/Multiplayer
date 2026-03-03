@@ -167,7 +167,9 @@
     "WebsiteOnly": "Only website custom charts are allowed!",
     "Waiting": "Waiting for host...",
     "PlaylistFull": "Playlist is full",
-    "RetrievingInfo": "Retrieving info..."
+    "RetrievingInfo": "Retrieving info...",
+    "TouhouNotSupported": "Touhou charts are not supported!",
+    "ChartNotSupported": "This chart is not supported!"
   },
   "Lobbies": {
     "Title": "Lobbies",

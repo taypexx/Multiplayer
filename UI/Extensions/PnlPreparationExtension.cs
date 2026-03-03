@@ -15,6 +15,14 @@ namespace Multiplayer.UI.Extensions
     internal static class PnlPreparationExtension
     {
         internal static bool IsRetrieving = false;
+        private static bool PlaylistDebounce = false;
+
+        private static async Task DoPlaylistDebounce()
+        {
+            PlaylistDebounce = true;
+            await Task.Delay(2000);
+            PlaylistDebounce = false;
+        }
 
         internal static void BindCustomPnlPreparationClick(PnlPreparation pnlPreparation)
         {
@@ -30,8 +38,9 @@ namespace Multiplayer.UI.Extensions
         /// </summary>
         internal static void OnPnlPreparationClick()
         {
-            if (IsRetrieving) return;
-            else if (!LobbyManager.IsInLobby)
+            if (IsRetrieving || PlaylistDebounce) return;
+
+            if (!LobbyManager.IsInLobby)
             {
                 UIManager.PnlPreparation.OnBattleStart();
             }
@@ -42,7 +51,12 @@ namespace Multiplayer.UI.Extensions
                 MusicInfo musicInfo = GlobalDataBase.dbMusicTag.CurMusicInfo();
                 int difficulty = ChartManager.CurrentDifficulty;
 
-                if (musicInfo.albumIndex == AlbumManager.Uid)
+                if (difficulty == 5)
+                {
+                    PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "TouhouNotSupported"));
+                    return;
+                }
+                else if (musicInfo.albumIndex == AlbumManager.Uid)
                 {
                     if (LobbyManager.LocalLobby.PlayType == LobbyPlayType.VanillaOnly)
                     {
@@ -60,6 +74,13 @@ namespace Multiplayer.UI.Extensions
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "CustomOnly"));
                     return;
                 }
+                else if (Constants.UnsupportedChartUids.Contains(musicInfo.uid))
+                {
+                    PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "ChartNotSupported"));
+                    return;
+                }
+
+                _ = DoPlaylistDebounce();
 
                 if (LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(musicInfo, difficulty)))
                 {

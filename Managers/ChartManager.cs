@@ -1,8 +1,6 @@
 ﻿using CustomAlbums.Data;
 using CustomAlbums.Managers;
-using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
-using Il2CppAssets.Scripts.PeroTools.Commons;
 using Multiplayer.Data;
 using Multiplayer.Static;
 
@@ -13,11 +11,7 @@ namespace Multiplayer.Managers
         // [MD5] = data
         internal static Dictionary<string, CustomChartData> CustomCharts;
 
-        internal static int CurrentDifficulty => 
-            GlobalDataBase.dbMusicTag.selectedDiffTglIndex == 3 
-            && Singleton<SpecialSongManager>.instance.IsInvokeHideBms(GlobalDataBase.dbMusicTag.CurMusicInfo().uid) 
-            ? 4 
-            : GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
+        internal static int CurrentDifficulty => GlobalDataBase.dbBattleStage.m_MapDifficulty;
 
         /// <summary>
         /// Gets the <see cref="CustomChartData"/> by the <paramref name="uid"/>.
@@ -34,7 +28,7 @@ namespace Multiplayer.Managers
         internal static string GetNiceChartName(MusicInfo musicInfo, int difficulty) => String.Format(
             "{0} {1}★",
             musicInfo.GetLocal(Localization.LanguageIndex).name,
-            musicInfo.GetMusicLevelStringByDiff(difficulty)
+            musicInfo.GetCallBackMusicLevelIntByDiff(difficulty)
         );
 
         /// <returns>A <see cref="string"/> representation of the future playlist entry.</returns>
