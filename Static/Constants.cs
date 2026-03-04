@@ -9,7 +9,7 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
-        public const string Version = "0.1.2";
+        public const string Version = "0.1.3";
         public static readonly Version Version_ = new Version(Version);
 
         public const string Credits = "[ DEVELOPMENT ]\n\n" +

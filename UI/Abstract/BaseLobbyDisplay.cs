@@ -15,8 +15,9 @@ namespace Multiplayer.UI.Abstract
         protected string FrameParentPath { get; set; }
         protected Transform FrameParent => GameObject.Find(FrameParentPath).transform;
 
-        internal GameObject ScrollFrame { get; set; }
-        internal ScrollRect ScrollRect { get; set; }
+        internal GameObject ScrollFrame { get; private set; }
+        internal Vector2 ScrollFrameSize { get; set; }
+        internal ScrollRect ScrollRect { get; private set; }
 
         protected TextAnchor TextAnchor { get; set; }
         protected HorizontalWrapMode TextHorizontalWrapMode { get; set; }
@@ -275,13 +276,11 @@ namespace Multiplayer.UI.Abstract
         internal virtual void Create(Lobby lobby, bool addTitle = true, bool scrollable = false)
         {
             if (lobby is null || Lobby != null) return;
-            Lobby = lobby;
 
+            Lobby = lobby;
             Frame = new("LobbyDisplay");
+
             var frameRect = Frame.AddComponent<RectTransform>();
-            frameRect.anchorMin = Pivot;
-            frameRect.anchorMax = Pivot;
-            frameRect.pivot = Pivot;
             frameRect.sizeDelta = FrameSize;
 
             if (scrollable)
@@ -292,24 +291,37 @@ namespace Multiplayer.UI.Abstract
                 scrollFrameRect.anchorMin = Pivot;
                 scrollFrameRect.anchorMax = Pivot;
                 scrollFrameRect.pivot = Pivot;
-                scrollFrameRect.sizeDelta = new(EntrySize.x, EntrySize.y * 10);
+                scrollFrameRect.sizeDelta = ScrollFrameSize;
                 scrollFrameRect.SetParent(FrameParent);
                 scrollFrameRect.anchoredPosition3D = FrameAnchorPosition;
                 scrollFrameRect.localScale = Vector3.one;
 
                 ScrollRect = ScrollFrame.AddComponent<ScrollRect>();
-                ScrollRect.content = Frame.GetComponent<RectTransform>();
+                ScrollRect.content = frameRect;
                 ScrollRect.horizontal = false;
                 ScrollRect.vertical = true;
 
-                frameRect.SetParent(ScrollFrame.transform);
-                frameRect.anchoredPosition3D = Vector3.zero;
+                var mask = ScrollFrame.AddComponent<RectMask2D>();
+                mask.padding = new(0f, 10f, 0f, 10f);
+                mask.softness = new(20, 20);
 
-                ScrollFrame.AddComponent<RectMask2D>();
+                frameRect.SetParent(scrollFrameRect);
+
+                var framePivot = new Vector2(0.5f, 0.5f);
+                frameRect.anchorMin = framePivot;
+                frameRect.anchorMax = framePivot;
+                frameRect.pivot = framePivot;
+
+                frameRect.anchoredPosition3D = Vector3.zero;
             }
             else
             {
                 frameRect.SetParent(FrameParent);
+
+                frameRect.anchorMin = Pivot;
+                frameRect.anchorMax = Pivot;
+                frameRect.pivot = Pivot;
+
                 frameRect.anchoredPosition3D = FrameAnchorPosition;
             }
             frameRect.localScale = Vector3.one;

@@ -201,8 +201,6 @@ namespace Multiplayer.UI.Extensions
             BattleHelper.GameBattleStart(new Il2CppSystem.Object());
         }
 
-
-
         /// <summary>
         /// Starts the intermission.
         /// </summary>
@@ -226,8 +224,8 @@ namespace Multiplayer.UI.Extensions
             Stopwatch.Stop();
 
             UIManager.Debounce = false;
-            Main.Dispatch(DisableNotification);
             Main.Dispatch(StartBattle);
+            Main.Dispatch(DisableNotification);
             Active = false;
         }
     }

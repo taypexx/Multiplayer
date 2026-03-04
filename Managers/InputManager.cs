@@ -64,6 +64,7 @@ namespace Multiplayer.Managers
                 if (Input.GetKeyDown(Constants.ChatFocusKeyCode) && InputEnabled)
                 {
                     UIManager.ChatLobbyDisplay.ResetMessageHistoryIndex();
+                    UIManager.ChatLobbyDisplay.ScrollToBottom();
 
                     inputField.text = string.Empty;
                     inputField.Select();

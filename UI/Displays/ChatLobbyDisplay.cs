@@ -1,9 +1,10 @@
-﻿using Multiplayer.Data.Lobbies;
-using Multiplayer.Data.Chat;
+﻿using Multiplayer.Data.Chat;
+using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 
 namespace Multiplayer.UI.Displays
@@ -11,11 +12,21 @@ namespace Multiplayer.UI.Displays
     internal sealed class ChatLobbyDisplay : BaseLobbyDisplay
     {
         private int MessageHistoryIndex = 0;
+        private float OutlineOffset = 25f;
+        private int MaxVisibleLines = 9;
+
+        private Vector2 GetFrameSize(int lines) => new(FrameSize.x, EntrySize.y * (lines + (lines > (MaxVisibleLines + 1) ? 0.5f : 0f)));
+        private Vector2 GetScrollFrameSize(int lines) => 
+            lines > MaxVisibleLines
+            ? ScrollFrameSize
+            : new(EntrySize.x + OutlineOffset, EntrySize.y * lines + OutlineOffset);
 
         internal InputField InputField { get; private set; }
         private Text PlaceholderText;
+        private Dictionary<string, Action> OpenProfileActions;
 
         private static GameObject TxtStageDesigner => GameObject.Find("UI/Standerd/PnlPreparation/TxtStageDesigner");
+        private static Sprite BtnBaseSprite = Addressables.LoadAssetAsync<Sprite>("BtnBase").WaitForCompletion();
 
         internal ChatLobbyDisplay() : base()
         {
@@ -26,11 +37,14 @@ namespace Multiplayer.UI.Displays
             TextVerticalWrapMode = VerticalWrapMode.Overflow;
             MaxLines = null;
             FontSize = 20;
-            EntryWidth = 500f;
+            EntryWidth = 480f;
             EntryDir = -1;
 
-            FrameAnchorPosition = new(25f, -90f);
+            ScrollFrameSize = new(EntrySize.x + OutlineOffset, EntrySize.y * (MaxVisibleLines + 1) + OutlineOffset);
+
+            FrameAnchorPosition = new(10f, -90f);
             Pivot = new(0f, 1f);
+            OpenProfileActions = new();
         }
 
         /// <summary>
@@ -49,11 +63,9 @@ namespace Multiplayer.UI.Displays
             InputField.text = Chat.MessageHistory[Chat.MessageHistory.Count - 1 - MessageHistoryIndex] ?? InputField.text;
             InputField.MoveTextEnd(false);
         }
+        internal void ResetMessageHistoryIndex() => MessageHistoryIndex = 0;
 
-        internal void ResetMessageHistoryIndex()
-        {
-            MessageHistoryIndex = 0;
-        }
+        internal void ScrollToBottom() => ScrollRect.SetNormalizedPosition(0, 1);
 
         /// <summary>
         /// Adds the <see cref="ChatMessage"/> to the display.
@@ -69,7 +81,15 @@ namespace Multiplayer.UI.Displays
             }
             else if (!chatMessage.IsSystemMessage && chatMessage.AuthorUid != null)
             {
-                clickAction = new(() => _ = UIManager.OpenProfileWindow(chatMessage.AuthorUid));
+                if (OpenProfileActions.TryGetValue(chatMessage.AuthorUid, out var action))
+                {
+                    clickAction = action;
+                }
+                else
+                {
+                    clickAction = new(() => _ = UIManager.OpenProfileWindow(chatMessage.AuthorUid));
+                    OpenProfileActions.Add(chatMessage.AuthorUid, action);
+                }
             }
 
             Text text = AddText(chatMessage, clickAction);
@@ -79,7 +99,6 @@ namespace Multiplayer.UI.Displays
             PositionList.Add(Lobby);
 
             SetTextPositions();
-            Update();
 
             var lineCount = text.cachedTextGenerator.lineCount;
             if (lineCount > 1)
@@ -87,8 +106,12 @@ namespace Multiplayer.UI.Displays
                 text.GetComponent<RectTransform>().sizeDelta = new(EntrySize.x, EntrySize.y * lineCount);
             }
 
-            Frame.GetComponent<RectTransform>().sizeDelta = new(FrameSize.x, EntrySize.y * GetTotalLines());
-            if (ScrollRect.verticalNormalizedPosition < 0.1f || chatMessage.AuthorUid == PlayerManager.LocalPlayerUid) ScrollRect.SetNormalizedPosition(0, 1);
+            Update();
+
+            if (!ScrollRect.m_Dragging && (ScrollRect.verticalNormalizedPosition < 0.1f || chatMessage.IsSystemMessage || chatMessage.AuthorUid == PlayerManager.LocalPlayerUid))
+            {
+                ScrollToBottom();
+            }
         }
 
         internal override void Update()
@@ -97,6 +120,10 @@ namespace Multiplayer.UI.Displays
             if (Title == null || PlaceholderText == null) return;
 
             PlaceholderText.transform.position = Title.transform.position;
+
+            var totalLines = GetTotalLines();
+            Frame.GetComponent<RectTransform>().sizeDelta = GetFrameSize(totalLines);
+            ScrollFrame.GetComponent<RectTransform>().sizeDelta = GetScrollFrameSize(totalLines);
         }
 
         internal override void Create(Lobby lobby, bool addTitle = true, bool scrollable = false)
@@ -122,6 +149,15 @@ namespace Multiplayer.UI.Displays
             PlaceholderText.text = Localization.Get("SystemChatMessages", "ChatPlaceholderText").ToString();
             InputField.placeholder = PlaceholderText;
 
+            var totalLines = GetTotalLines();
+            Frame.GetComponent<RectTransform>().sizeDelta = GetFrameSize(totalLines);
+            ScrollFrame.GetComponent<RectTransform>().sizeDelta = GetScrollFrameSize(totalLines);
+
+            var background = ScrollFrame.AddComponent<Image>();
+            background.type = Image.Type.Tiled;
+            background.sprite = BtnBaseSprite;
+            background.color = new(0f, 0f, 0f, 0.15f);
+
             // Disable text designer because it overlaps and looks fucking ugly
             TxtStageDesigner.SetActive(false);
         }
@@ -130,6 +166,7 @@ namespace Multiplayer.UI.Displays
         {
             base.Destroy();
             if (TxtStageDesigner != null) TxtStageDesigner.SetActive(true);
+            OpenProfileActions.Clear();
         }
     }
 }
