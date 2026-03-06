@@ -19,6 +19,11 @@ namespace Multiplayer.Managers
             Singleton<AudioManager>.instance.PlayBGM("AchievementBgm-SweetVermouth-MusMus");
         }
 
+        internal static void LockBGM()
+        {
+            BGMLocked = false;
+        }
+
         internal static void UnlockBGM()
         {
             BGMLocked = false;

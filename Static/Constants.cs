@@ -87,6 +87,8 @@ namespace Multiplayer.Static
         public const string Blue = "4564ffff";
         public const string Pink = "fb24ffff";
 
+        public static readonly string[] Colors = { Red, Orange, Yellow, Green, Blue, Pink };
+
         public static Dictionary<LobbyGoal, string> GoalColors = new()
         {
             [LobbyGoal.Accuracy] = Yellow,

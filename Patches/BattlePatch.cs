@@ -1,10 +1,8 @@
 ﻿using HarmonyLib;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
-using Il2CppAssets.Scripts.GameCore.Managers;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Il2CppAssets.Scripts.UI.Panels;
-using Il2CppSystem.Runtime.InteropServices;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -21,7 +19,6 @@ namespace Multiplayer.Patches
     {
         private static bool AwaitingForReady = false;
         private static bool CanExitRegardless = false;
-        private static bool HasFailed = false;
         private static bool Started = false;
 
         /// <summary>
@@ -29,7 +26,6 @@ namespace Multiplayer.Patches
         /// </summary>
         internal static void SceneLoaded()
         {
-            HasFailed = false;
             Started = false;
             CanExitRegardless = false;
 
@@ -134,7 +130,7 @@ namespace Multiplayer.Patches
             if (!localLobby.EveryoneFinished) return;
 
             DisplayedPlayers.Clear();
-            PnlMessageExtension.Enable();
+            PnlMessageExtension.Enable(true);
 
             var gradeObjects = GameObject.Find("UI_3D/PnlVictory/Default/PnlVictory/PnlVictory_2D/Info/Grade").GetComponent<GameMainGrade>().gradeObjects;
 
@@ -155,7 +151,11 @@ namespace Multiplayer.Patches
                     if (!DisplayedPlayers.Contains(player.Uid) && !localLobby.ReadyPlayers.Contains(player.Uid))
                     {
                         DisplayedPlayers.Add(player.Uid);
-                        await PnlMessageExtension.AddOne($"{positionList.IndexOf(player) + 1}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", false, sprites[(int)player.BattleStats.Grade]);
+                        await PnlMessageExtension.AddOne(
+                            $"{positionList.IndexOf(player) + 1}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", 
+                            false, 
+                            player.BattleStats.Alive ? sprites[(int)player.BattleStats.Grade] : null
+                        );
                     }
                 }
                 Main.Dispatch(() =>
@@ -168,7 +168,8 @@ namespace Multiplayer.Patches
                     if (localLobby.CurrentPlaylistEntryIndex + 1 < localLobby.Playlist.Count)
                     {
                         _ = PnlMessageExtension.AddOne(
-                            $"{Localization.Get("Battle", "Next")}: {chartName}", false
+                            $"{Localization.Get("Battle", "Next")}: {chartName}", 
+                            false, null
                         );
                     }
                 });
@@ -234,7 +235,11 @@ namespace Multiplayer.Patches
 
             private static void Postfix()
             {
-                if (!LobbyManager.IsInLobby) return;
+                if (!LobbyManager.IsInLobby)
+                {
+                    if (UIManager.BattleLobbyDisplay != null) UIManager.BattleLobbyDisplay.Destroy();
+                    return;
+                }
 
                 SetVictoryButtons();
                 FinishCurrentChart();
@@ -257,7 +262,7 @@ namespace Multiplayer.Patches
                 BattleManager.SyncStop();
 
                 FinishCurrentChart();
-                HasFailed = true;
+                CanExitRegardless = true;
             }
         }
 
@@ -308,7 +313,7 @@ namespace Multiplayer.Patches
         {
             private static bool Prefix()
             {
-                return !LobbyManager.IsInLobby || LobbyManager.LocalLobby.EveryoneFinished || HasFailed || CanExitRegardless;
+                return !LobbyManager.IsInLobby || LobbyManager.LocalLobby.EveryoneFinished || CanExitRegardless;
             }
 
             private static void Postfix()

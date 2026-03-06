@@ -243,9 +243,12 @@ namespace Multiplayer.Managers
             LocalPlayerHiddens = new();
             LocalPlayer = await GetPlayer(LocalPlayerUid);
 
-            SyncProfile();
-            SyncHiddens();
-            SyncCustoms();
+            Main.Dispatch(() =>
+            {
+                SyncProfile();
+                SyncHiddens();
+                SyncCustoms();
+            });
 
             // Auto cache cleaner
             /*

@@ -36,7 +36,7 @@ namespace Multiplayer.Managers
             }
 
             PnlMessageExtension.Enable();
-            _ = PnlMessageExtension.AddMultiple(texts);
+            _ = PnlMessageExtension.AddMultiple(texts, true, null, true);
         }
 
         /// <summary>

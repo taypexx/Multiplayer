@@ -125,6 +125,7 @@ namespace Multiplayer.UI.Extensions
                 UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
             }
             catch { }
+            SoundManager.LockBGM();
 
             var buttonMain = new Tuple<string, Color, Color, Action>
             (
@@ -166,6 +167,7 @@ namespace Multiplayer.UI.Extensions
             CurrentTopElfinID = -1;
 
             SideNotification.Close();
+            SoundManager.UnlockBGM();
             UIManager.MainLobbyDisplay.Destroy();
             UIManager.ChatLobbyDisplay.Destroy();
             PnlHomeExtension.Destroy();
@@ -206,7 +208,7 @@ namespace Multiplayer.UI.Extensions
         /// </summary>
         internal static async Task Start()
         {
-            if (Active || !UIManager.Initialized || !LobbyManager.IsInLobby) return;
+            if (Active || !Main.IsUIScene || !UIManager.Initialized || !LobbyManager.IsInLobby) return;
             Active = true;
 
             UIManager.Debounce = true;

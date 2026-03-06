@@ -1,4 +1,5 @@
 ﻿using Il2CppAssets.Scripts.Database;
+using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 
@@ -47,7 +48,7 @@ namespace Multiplayer.Data.Chat
                 }
                 else return Message;
             }
-            else return $"<b><color=#{(LobbyManager.LocalLobby.Host.Uid == AuthorUid ? Constants.Yellow : "ffffff")}>[{AuthorName}]:</color></b> <color=#e8e8e8>{Message}</color>";
+            else return $"<b><color=#{(AuthorUid is null ? "ffffff" : Constants.Colors[AuthorUid.ToCharArray().Select(c => (int)c).Aggregate((a, b) => a + b) % Constants.Colors.Length])}>[{AuthorName}]:</color></b> <color=#e8e8e8>{Message}</color>";
         }
 
         internal void InitCommand()

@@ -46,14 +46,21 @@ namespace Multiplayer.UI.Displays
                 BattleStats battleStats = player.BattleStats;
                 string battleInfo = string.Empty;
                 
-                if (!InputManager.PingMode)
+                if (InputManager.PingMode)
                 {
-                    battleInfo = LobbyManager.LocalLobby.GetBattleInfo(player);
-                } 
-                else battleInfo = $"<color=#{Utilities.GetPingColor(player.PingMS)}>{player.PingMS}ms</color>";
+                    battleInfo = $"<color=#{Utilities.GetPingColor(player.PingMS)}>{player.PingMS}ms</color>";
+                }
+                else if (!Lobby.ReadyPlayers.Contains(player.Uid))
+                {
+                    battleInfo = Localization.Get("Global", "Loading").ToString();
+                }
+                else if (!Lobby.EveryoneReady)
+                {
+                    battleInfo = $"<color=#{Constants.Green}>Ready ✓</color>";
+                }
+                else battleInfo = LobbyManager.LocalLobby.GetBattleInfo(player);
 
-                var name = Lobby.ReadyPlayers.Contains(player.Uid) ? player.MultiplayerStats.Name : Localization.Get("Global", "Loading").ToString();
-                text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{name}</color>" : name)} — {battleInfo}";
+                text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name)} — {battleInfo}";
 
                 if (battleStats.PrevFC && !battleStats.FC)
                     Popup($"<color=#{Constants.Red}>{Localization.Get("BattleDisplay", "LostFC").ToString()}</color>", key);

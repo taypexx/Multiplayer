@@ -108,10 +108,7 @@ namespace Multiplayer.UI.Displays
 
             Update();
 
-            if (!ScrollRect.m_Dragging && (ScrollRect.verticalNormalizedPosition < 0.1f || chatMessage.IsSystemMessage || chatMessage.AuthorUid == PlayerManager.LocalPlayerUid))
-            {
-                ScrollToBottom();
-            }
+            if (!ScrollRect.m_Dragging) ScrollToBottom();
         }
 
         internal override void Update()

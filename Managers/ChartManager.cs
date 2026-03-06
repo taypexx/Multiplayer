@@ -28,7 +28,7 @@ namespace Multiplayer.Managers
         internal static string GetNiceChartName(MusicInfo musicInfo, int difficulty) => String.Format(
             "{0} {1}★",
             musicInfo.GetLocal(Localization.LanguageIndex).name,
-            musicInfo.GetCallBackMusicLevelIntByDiff(difficulty)
+            musicInfo.GetMusicLevelStringByDiff(difficulty)
         );
 
         /// <returns>A <see cref="string"/> representation of the future playlist entry.</returns>
