@@ -83,7 +83,7 @@ namespace Multiplayer.UI.Extensions
         }
 
         /// <summary>
-        /// Updates the top label.
+        /// Updates the side notification.
         /// </summary>
         private static void UpdateNotification()
         {
@@ -158,9 +158,6 @@ namespace Multiplayer.UI.Extensions
             SideNotification.Popup(string.Empty, buttonMain, buttonSecondary);
         }
 
-        /// <summary>
-        /// Resets everything before entering the chart.
-        /// </summary>
         private static void DisableNotification()
         {
             CurrentTopGirlID = -1;

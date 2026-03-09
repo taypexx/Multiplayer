@@ -215,8 +215,7 @@ namespace Multiplayer.UI.Extensions
                 charExpress.m_CharacterApply = charApply;
             }
 
-            // Remove other visual stuff from characters
-
+            // Remove other visual stuff from character
             switch (girlIndex)
             {
                 case 31:
@@ -245,7 +244,7 @@ namespace Multiplayer.UI.Extensions
         }
 
         /// <summary>
-        /// Updates characters and elfins on the current page.
+        /// Updates player characters and info on the current page.
         /// </summary>
         /// <param name="infoOnly">Whether to only update the info on top of the character.</param>
         internal static void UpdateCurrentPage(bool infoOnly = false)
@@ -348,7 +347,7 @@ namespace Multiplayer.UI.Extensions
         }
 
         /// <summary>
-        /// Toggles the left character and elfin.
+        /// Toggles the left character.
         /// </summary>
         private static void ToggleLeft(bool enabled)
         {
@@ -360,7 +359,7 @@ namespace Multiplayer.UI.Extensions
         }
 
         /// <summary>
-        /// Toggles the right character and elfin.
+        /// Toggles the right character.
         /// </summary>
         private static void ToggleRight(bool enabled)
         {
