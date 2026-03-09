@@ -18,7 +18,7 @@ namespace Multiplayer
         internal static bool IsUIScene => CurrentScene == "UISystem_PC";
 
         internal static Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
-        private static readonly string[] Dependencies = { "CustomAlbums", "Headquarters", "PopupLib", "LocalizeLib" };
+        private static readonly string[] Dependencies = { "CustomAlbums", "Headquarters", "LocalizeLib", "PopupLib" };
         private static readonly string[] AdditionalDependencies = { "FavGirl" };
         private static Dictionary<string, Assembly> AdditionalDependenciesInstalled = new();
 
@@ -66,6 +66,7 @@ namespace Multiplayer
 
         public override void OnInitializeMelon()
         {
+            // Checking hard dependencies
             foreach (var dependencyName in Dependencies)
             {
                 if (!RegisteredMelons.Any(m => m.Info.Name == dependencyName))
@@ -75,6 +76,7 @@ namespace Multiplayer
                 } 
             }
 
+            // Checking soft dependencies
             foreach (var dependencyName in AdditionalDependencies)
             {
                 if (!RegisteredMelons.Any(m => m.Info.Name == dependencyName)) continue;

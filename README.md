@@ -31,6 +31,7 @@ Big thanks to the tester team:
 
 1. Install MelonLoader v0.6.1.
 2. Make sure you have the latest [Custom Albums](https://github.com/MDMods/CustomAlbums/releases) and Headquarters installed.
-3. Get the latest Multiplayer version [here](https://github.com/taypexx/Multiplayer/releases).
+3. Get the [libs](https://github.com/taypexx/Multiplayer/blob/master/Libs.zip) needed for Multiplayer and put them into your mods folder. You don't need to update them in the future.
+4. Get the latest Multiplayer version [here](https://github.com/taypexx/Multiplayer/releases).
 
 Mod also supports [FavGirl](https://github.com/ALLMarvelous/FavGirl).
