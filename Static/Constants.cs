@@ -9,7 +9,7 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
-        public const string Version = "0.1.3";
+        public const string Version = "0.1.4";
         public static readonly Version Version_ = new Version(Version);
 
         public const string Credits = "[ DEVELOPMENT ]\n\n" +
@@ -49,6 +49,7 @@ namespace Multiplayer.Static
         {
             "93-0", // sushi class
             "84-0", // buro warrior
+            "72-0", // buff girls
             "41-0" // super battleworn insomniac
         };
 
