@@ -21,7 +21,7 @@ namespace Multiplayer.Managers
 
         internal static void LockBGM()
         {
-            BGMLocked = false;
+            BGMLocked = true;
         }
 
         internal static void UnlockBGM()
