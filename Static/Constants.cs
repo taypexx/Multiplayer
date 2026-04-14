@@ -25,7 +25,7 @@ namespace Multiplayer.Static
             "Slawter, Medeyah, PBalint817, WallKitty,\n" +
             "Nickicchi, Bubu, Yarshmellow, Fran艾林, ame,\n" +
             "Rohan, shezza, wylh, kariya_07, Fang, MADGUY,\n" +
-            "المطربة الشعبية, free_muffin, Renbo, AutoGamer\n" +
+            "Elmotreba el4a3beya, free_muffin, Renbo, AutoGamer\n" +
             "IgnisclowVT";
 
         internal const int PortHTTP = 9095;

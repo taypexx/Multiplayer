@@ -24,7 +24,7 @@ We also share our progress and make polls here.
 
 Big thanks to the tester team:
 
-**Slawter, Medeyah, PBalint817, WallKitty, Nickicchi, Bubu, Yarshmellow, Fran艾林, ame, Rohan, shezza, wylh, kariya_07, Fang, MADGUY, المطربة الشعبية, free_muffin, Renbo, AutoGamer, IgnisclowVT**
+**Slawter, Medeyah, PBalint817, WallKitty, Nickicchi, Bubu, Yarshmellow, Fran艾林, ame, Rohan, shezza, wylh, kariya_07, Fang, MADGUY, Elmotreba el4a3beya, free_muffin, Renbo, AutoGamer, IgnisclowVT**
 
 
 ## Download

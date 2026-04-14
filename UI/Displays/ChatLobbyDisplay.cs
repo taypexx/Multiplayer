@@ -42,7 +42,7 @@ namespace Multiplayer.UI.Displays
 
             ScrollFrameSize = new(EntrySize.x + OutlineOffset, EntrySize.y * (MaxVisibleLines + 1) + OutlineOffset);
 
-            FrameAnchorPosition = new(10f, -90f);
+            FrameAnchorPosition = new(10f, -80f);
             Pivot = new(0f, 1f);
             OpenProfileActions = new();
         }

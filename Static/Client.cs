@@ -66,6 +66,8 @@ namespace Multiplayer.Static
                 try
                 {
                     var msgBuilder = new StringBuilder();
+                    var binaryStream = new MemoryStream();
+
                     WebSocketReceiveResult res = null;
 
                     do
@@ -80,7 +82,7 @@ namespace Multiplayer.Static
 
                         if (res.MessageType == WebSocketMessageType.Binary)
                         {
-                            Main.Dispatch(() => BattleManager.Recieve(buffer.AsSpan(0, res.Count)));
+                            binaryStream.Write(buffer, 0, res.Count);
                         }
                         else if (res.MessageType == WebSocketMessageType.Text)
                         {
@@ -95,7 +97,11 @@ namespace Multiplayer.Static
                     while (!res.EndOfMessage);
 
                     // Executing the recieved text message
-                    if (msgBuilder.Length > 0)
+                    if (binaryStream.Length > 0)
+                    {
+                        Main.Dispatch(() => BattleManager.Recieve(buffer.ToArray()));
+                    }
+                    else if (msgBuilder.Length > 0)
                     {
                         var message = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(msgBuilder.ToString());
                         switch (message["Type"].GetString())

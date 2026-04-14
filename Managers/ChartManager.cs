@@ -8,6 +8,8 @@ namespace Multiplayer.Managers
 {
     internal static class ChartManager
     {
+        internal static bool Initialized { get; private set; } = false;
+
         // [MD5] = data
         internal static Dictionary<string, CustomChartData> CustomCharts;
 
@@ -98,6 +100,9 @@ namespace Multiplayer.Managers
 
         internal static void Init()
         {
+            if (Initialized) return;
+            Initialized = true;
+
             CustomCharts = new();
 
             foreach ((_, Album album) in AlbumManager.LoadedAlbums)
