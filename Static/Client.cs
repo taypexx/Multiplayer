@@ -36,8 +36,6 @@ namespace Multiplayer.Static
         private static HttpMessageHandler HttpHandler;
         private static HttpClient Http;
 
-        private static UdpClient Udp;
-
         private static ClientWebSocket WebSocket;
         private static int WebsocketReconnectTries = 0;
 
@@ -483,9 +481,6 @@ namespace Multiplayer.Static
             Http = new(HttpHandler);
             Http.DefaultRequestHeaders.ConnectionClose = false;
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            Udp = new();
-            Udp.Client.ReceiveTimeout = Constants.BattleUpdateTimeoutMS;
 
             if (File.Exists(TokenPath)) Token = Cipher.Decrypt(File.ReadAllText(TokenPath), Constants.TokenCipherShift);
         }

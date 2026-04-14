@@ -336,8 +336,14 @@ namespace Multiplayer.UI.Abstract
         internal virtual void Destroy()
         {
             if (Lobby is null) return;
+
             ClearText();
             GameObject.Destroy(Frame);
+            if (ScrollFrame != null)
+            {
+                GameObject.Destroy(ScrollFrame);
+            }
+
             Lobby = null;
         }
     }

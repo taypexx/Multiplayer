@@ -398,6 +398,7 @@ namespace Multiplayer.Managers
             Main.Dispatch(() =>
             {
                 UIManager.MainLobbyDisplay.Destroy();
+                UIManager.BattleLobbyDisplay.Destroy();
                 UIManager.ChatLobbyDisplay.Destroy();
                 PnlPreparationExtension.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
