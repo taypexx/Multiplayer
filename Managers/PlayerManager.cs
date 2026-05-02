@@ -1,4 +1,5 @@
-﻿using Il2CppAssets.Scripts.Database;
+﻿using Headquarters.Managers;
+using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
 using Multiplayer.Static;
 using System.Net.Http.Json;
@@ -72,6 +73,7 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = LocalPlayerUid,
+                HQUid = AuthManager.User.Uid,
                 Status = localStats.Status,
                 Name = localStats.Name,
                 AvatarName = localStats.AvatarName,
@@ -254,15 +256,13 @@ namespace Multiplayer.Managers
             /*
             _ = Task.Run(async () =>
             {
-                DateTime current;
                 while (Client.Connected)
                 {
                     await Task.Delay(Constants.CacheCheckIntervalMS);
-                    current = DateTime.Now;
 
                     foreach (Player player in CachedPlayers.Values)
                     {
-                        if (player != LocalPlayer && current - player.LastUpdated >= Constants.PlayerCacheExpiration)
+                        if (player != LocalPlayer && player.SinceLastUpdate >= Constants.PlayerCacheExpiration)
                         {
                             // We don't need to clear our mates/lobby members
                             if (LocalPlayer.AreFriends(player) || (LobbyManager.IsInLobby && LobbyManager.LocalLobby.IsMember(player))) continue;

@@ -3,7 +3,6 @@ using LocalizeLib;
 using System.Text;
 using System.Text.Json;
 using System.Net.Http.Json;
-using System.Net.Sockets;
 using System.Net.Http.Headers;
 using System.Diagnostics;
 using Il2CppAssets.Scripts.Database;
@@ -14,6 +13,8 @@ using System.Net.WebSockets;
 using Multiplayer.Data.Chat;
 using UnityEngine;
 using Multiplayer.UI.Extensions;
+using CustomAlbums.Utilities;
+using Headquarters.Managers;
 
 namespace Multiplayer.Static
 {
@@ -97,7 +98,7 @@ namespace Multiplayer.Static
                     // Executing the recieved text message
                     if (binaryStream.Length > 0)
                     {
-                        Main.Dispatch(() => BattleManager.Recieve(buffer.ToArray()));
+                        Main.Dispatch(() => BattleManager.Recieve(binaryStream.ToArray()));
                     }
                     else if (msgBuilder.Length > 0)
                     {
@@ -303,6 +304,21 @@ namespace Multiplayer.Static
         }
 
         /// <summary>
+        /// Downloads a file from the given <paramref name="url"/>.
+        /// </summary>
+        /// <param name="url">URL of the file.</param>
+        /// <returns>Raw <see cref="byte"/>[] of the downloaded file.</returns>
+        internal static async Task<byte[]> DownloadAsync(string url)
+        {
+            using var stream = await Http.GetStreamAsync(url);
+
+            var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+
+            return memoryStream.ToArray();
+        }
+
+        /// <summary>
         /// Awaits for the POST on the localhost with the exchange code, then tries to <see cref="Connect(string)"/>
         /// </summary>
         internal static async Task AwaitAndConnect()
@@ -339,6 +355,7 @@ namespace Multiplayer.Static
         {
             if (Connected || Debounce) return;
 
+            // Level unlock check
             if (DataHelper.Level < Constants.ModUnlockLevel)
             {
                 if (LowLevelWarning is null)
@@ -349,6 +366,7 @@ namespace Multiplayer.Static
                 return;
             }
 
+            // Internet check
             if (Application.internetReachability == NetworkReachability.NotReachable)
             {
                 UIManager.WarnNotification(Localization.Get("Warning", "NoInternet"));
@@ -359,11 +377,21 @@ namespace Multiplayer.Static
             var uid = DataHelper.PeroUid;
             if (uid == null) return;
 
+            // PeroPero account check
             if (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace() || uid == null)
             {
                 UIManager.WarnNotification(Localization.Get("Warning", "NoAccount"));
                 return;
             }
+
+            // Headquarters check
+            if (!AuthManager.IsAuthenticated)
+            {
+                UIManager.WarnNotification(Localization.Get("Warning", "HeadquartersFail"));
+                return;
+            }
+
+            ChartManager.Init();
 
             PlayerManager.LocalPlayerName = playerName;
             PlayerManager.LocalPlayerUid = uid;
@@ -371,8 +399,6 @@ namespace Multiplayer.Static
             PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Connecting").ToString());
             Debounce = true;
             Main.Log("Connecting to the server...");
-
-            ChartManager.Init();
 
             object payload = code is null 
                 ? new { Uid = uid, Name = playerName } 

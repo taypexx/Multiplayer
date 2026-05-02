@@ -9,7 +9,7 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
-        public const string Version = "0.1.4";
+        public const string Version = "0.1.5";
         public static readonly Version Version_ = new Version(Version);
 
         public const string Credits = "[ DEVELOPMENT ]\n\n" +
@@ -47,6 +47,7 @@ namespace Multiplayer.Static
 
         public static readonly HashSet<string> UnsupportedChartUids = new() 
         {
+            "95-0", // horse
             "93-0", // sushi class
             "84-0", // buro warrior
             "72-0", // buff girls
@@ -80,6 +81,11 @@ namespace Multiplayer.Static
         public const int CacheCheckIntervalMS = 5000;
         public static readonly TimeSpan PlayerCacheExpiration = TimeSpan.FromMinutes(10);
         public static readonly TimeSpan LobbyCacheExpiration = TimeSpan.FromMinutes(10);
+
+        public static readonly TimeSpan PlayerBattleInactivity = TimeSpan.FromSeconds(10);
+
+        public const int EventDelayMS = 5000;
+        public static readonly TimeSpan EventExpirationTime = TimeSpan.FromDays(1);
 
         public const string Red = "f5428aff";
         public const string Orange = "ff6f00ff";

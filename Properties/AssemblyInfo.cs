@@ -5,6 +5,7 @@ using Constants = Multiplayer.Static.Constants;
 [assembly: MelonInfo(typeof(Multiplayer.Main), Constants.ModName, Constants.Version, Constants.Authors, $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/home")]
 [assembly: MelonGame("PeroPeroGames", "MuseDash")]
 [assembly: MelonColor(255, 255, 0, 127)]
+[assembly: MelonAdditionalDependencies("CustomAlbums", "Headquarters", "LocalizeLib", "PopupLib")]
 [assembly: MelonOptionalDependencies("FavGirl")]
 [assembly: MelonIncompatibleAssemblies("PracticeMod")]
 

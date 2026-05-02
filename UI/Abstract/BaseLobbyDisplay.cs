@@ -300,6 +300,7 @@ namespace Multiplayer.UI.Abstract
                 ScrollRect.content = frameRect;
                 ScrollRect.horizontal = false;
                 ScrollRect.vertical = true;
+                ScrollRect.scrollSensitivity = 4;
 
                 var mask = ScrollFrame.AddComponent<RectMask2D>();
                 mask.padding = new(0f, 10f, 0f, 10f);

@@ -5,6 +5,7 @@ using Multiplayer.Static;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Reflection;
+using Headquarters.Managers;
 
 namespace Multiplayer.Data.Stats
 {
@@ -16,6 +17,7 @@ namespace Multiplayer.Data.Stats
     public class MultiplayerStats
     {
         public Player Player { get; private set; }
+        public int HQUid { get; private set; }
 
         public PlayerStatus Status {
             get => Player == PlayerManager.LocalPlayer ? (LobbyManager.IsInLobby ? (Main.IsUIScene ? PlayerStatus.InLobby : PlayerStatus.InBattle) : PlayerStatus.Online) : field;
@@ -83,6 +85,7 @@ namespace Multiplayer.Data.Stats
         public MultiplayerStats(Player player)
         {
             Player = player;
+            HQUid = player != PlayerManager.LocalPlayer ? 0 : AuthManager.User.Uid;
             Status = PlayerStatus.Offline;
 
             Name = "Player" + player.Uid;
@@ -112,6 +115,7 @@ namespace Multiplayer.Data.Stats
         /// <param name="updatedData">JSON dictionary containing fields as keys and their values.</param>
         internal void UpdateFields(Dictionary<string, JsonElement> updatedData)
         {
+            HQUid = updatedData["HQUid"].GetInt32();
             Status = (PlayerStatus)updatedData["Status"].GetByte();
             Name = updatedData["Name"].GetString();
             Bio = updatedData["Bio"].GetString();

@@ -13,6 +13,7 @@ using PopupLib.UI.Components;
 using PopupLib.UI.Windows;
 using PopupLib.UI.Windows.Abstract;
 using System.Net.Http.Json;
+using System.Numerics;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -27,6 +28,7 @@ namespace Multiplayer.UI.ProfileWindows
         private ForumObject AchievementsButton;
         private ForumObject FriendsButton;
         private ForumObject FriendRequestsButton;
+        private ForumObject MDMCMoeButton;
         private ForumObject MDMoeButton;
         private ForumObject FriendActionButton;
 
@@ -93,15 +95,22 @@ namespace Multiplayer.UI.ProfileWindows
         {
             StatsButton = AddButton(Localization.Get("ProfileWindow", "Stats"));
 
-            if (Player == PlayerManager.LocalPlayer)
+            if (Player == PlayerManager.LocalPlayer && Player != null)
             {
-                AvatarButton = AddButton(Localization.Get("ProfileWindow", "Avatar"));
-                BioButton = AddButton(Localization.Get("ProfileWindow", "Bio"), BioWindow);
+                if (Player.HQStats.Avatar == null)
+                {
+                    AvatarButton = AddButton(Localization.Get("ProfileWindow", "Avatar"));
+                }
+                if (!Player.HQStats.LoggedIn)
+                {
+                    BioButton = AddButton(Localization.Get("ProfileWindow", "Bio"), BioWindow);
+                }
                 FriendRequestsButton = AddButton(Localization.Get("ProfileWindow", "FriendRequests"));
             }
 
             FriendsButton = AddButton(Localization.Get("ProfileWindow", "Friends"));
             AchievementsButton = AddButton(Localization.Get("ProfileWindow", "Achievements"), UIManager.AchievementsWindow);
+            MDMCMoeButton = AddButton(Localization.Get("ProfileWindow", "MDMCMoe"));
             MDMoeButton = AddButton(Localization.Get("ProfileWindow", "MDMoe"));
 
             if (FriendButtonState != 4)
@@ -130,7 +139,16 @@ namespace Multiplayer.UI.ProfileWindows
 
             var button = AvatarBox.GetComponent<Button>();
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener((UnityAction) new Action(OpenPnlHead));
+            
+            if (Player != null && (!Player.HQStats.LoggedIn || Player.HQStats.Avatar == null))
+            {
+                button.onClick.AddListener((UnityAction)new Action(OpenPnlHead));
+
+                // Removing edges
+                var bg = AvatarBox.transform.Find("bg");
+                bg.GetComponent<Image>().sprite = null;
+                bg.GetComponent<RectTransform>().sizeDelta = new(95f, 95f);
+            }
 
             AvatarHeadItem = AvatarBox.GetComponent<HeadItem>();
             AvatarHeadItem.m_ImgLock.gameObject.SetActive(false);
@@ -193,6 +211,14 @@ namespace Multiplayer.UI.ProfileWindows
         }
 
         /// <summary>
+        /// Opens the <see href="https://mdmc.moe"/> profile of the player in the browser.
+        /// </summary>
+        private void OpenMDMCMoe()
+        {
+            Utilities.OpenBrowserLink("https://mdmc.moe/user/" + Player.HQStats.Uid);
+        }
+
+        /// <summary>
         /// Opens <see cref="PnlHead"/> the right way (otherwise it breaks).
         /// </summary>
         private void OpenPnlHead()
@@ -233,19 +259,21 @@ namespace Multiplayer.UI.ProfileWindows
 
                 StatsButton.Contents = new
                 (
-                    $"{player.MultiplayerStats.Bio}\n\n" +
+                    $"{(player.HQStats.LoggedIn ? player.HQStats.Bio : player.MultiplayerStats.Bio)}\n\n" +
 
                     $"[ LVL ]: <color={Constants.Green}>{player.MultiplayerStats.Level}</color>\n" +
                     $"[ RL ]: <color={Constants.Green}>{player.MoeStats.RL}</color>\n" +
-                    "\n" +
+                    $"[ MP ]: <color={Constants.Green}>{player.HQStats.MelonPoints}</color>\n" +
                     //$"[ ELO ]: <color=1eff00ff>{player.MultiplayerStats.ELO}</color>\n" +
                     //$"[ Rank ]: <color=fff700ff>{player.MultiplayerStats.Rank}</color>\n" +
+                    "\n" +
                     $"[ Records ]: <color={Constants.Yellow}>{player.TotalRecords}</color>\n" +
                     $"[ APs ]: <color={Constants.Yellow}>{player.TotalAPs}</color>\n" +
                     $"[ Average Accuracy ]: <color={Constants.Yellow}>{player.TotalAverageAccuracy}%</color>"
                 );
                 AchievementsButton.Contents = StatsButton.Contents;
                 FriendsButton.Contents = StatsButton.Contents;
+                MDMCMoeButton.Contents = StatsButton.Contents;
                 MDMoeButton.Contents = StatsButton.Contents;
 
                 if (AvatarButton != null)
@@ -271,7 +299,13 @@ namespace Multiplayer.UI.ProfileWindows
                 UIManager.AchievementsWindow.Update(player);
 
                 Title = (LocalString)player.MultiplayerStats.Name;
-                AvatarHeadItem.m_ImgHead.sprite = PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
+
+                AvatarHeadItem.m_ImgHead.sprite = player.HQStats.Avatar != null 
+                    ? player.HQStats.Avatar.Sprite 
+                    : PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
+
+                UpdateBanner(player.HQStats.Banner);
+
                 AvatarStatus.sprite = AvatarStatusSprites[player.MultiplayerStats.Status];
 
                 FriendActionButton.Titles = FriendButtonTitles[FriendButtonState];
@@ -369,6 +403,10 @@ namespace Multiplayer.UI.ProfileWindows
             else if (button == StatsButton)
             {
                 UIManager.OpenProfilePage(Player.Uid); return;
+            }
+            else if (button == MDMCMoeButton)
+            {
+                OpenMDMCMoe(); return;
             }
             else if (button == MDMoeButton)
             {

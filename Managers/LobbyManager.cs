@@ -504,15 +504,13 @@ namespace Multiplayer.Managers
             /*
             _ = Task.Run(async () =>
             {
-                DateTime current;
                 while (Client.Connected)
                 {
                     await Task.Delay(Constants.CacheCheckIntervalMS);
-                    current = DateTime.Now;
 
                     foreach (Lobby lobby in CachedLobbies.Values)
                     {
-                        if (current - lobby.LastUpdated >= Constants.LobbyCacheExpiration && lobby != LocalLobby)
+                        if (lobby.SinceLastUpdate >= Constants.LobbyCacheExpiration && lobby != LocalLobby)
                         {
                             ClearLobbyFromCache(lobby);
                         }

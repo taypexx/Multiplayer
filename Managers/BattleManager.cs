@@ -62,9 +62,8 @@ namespace Multiplayer.Managers
                 battleStats.FC = packet[startAt + UidSize + 18] != 0;
                 battleStats.Alive = packet[startAt + UidSize + 19] != 0;
                 player.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 20));
+                player.RefreshLastUpdated();
             }
-
-            UIManager.BattleLobbyDisplay.Update();
         }
 
         /// <summary>
@@ -91,7 +90,9 @@ namespace Multiplayer.Managers
             BattleStats.Earlies = (ushort)BattleRoleAttributeComponent.early;
             BattleStats.Lates = (ushort)BattleRoleAttributeComponent.late;
             BattleStats.Misses = (ushort)TaskStageTarget.GetComboMiss();
+
             BattleStats.Player.PingMS = Client.PingMS;
+            BattleStats.Player.RefreshLastUpdated();
 
             // Sending battle stats
             var packet = new byte[UidSize + BattleStatsSize];
@@ -108,6 +109,8 @@ namespace Multiplayer.Managers
             span[UidSize + 18] = (byte)(BattleStats.FC ? 1 : 0);
             span[UidSize + 19] = (byte)(BattleStats.Alive ? 1 : 0);
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 20), BattleStats.Player.PingMS);
+
+            UIManager.BattleLobbyDisplay.Update();
 
             _ = Client.WebsocketSend(packet);
         }
@@ -126,7 +129,7 @@ namespace Multiplayer.Managers
             Synchronizing = true;
             Main.Log("Battle synchronization started!");
 
-            while (Synchronizing && Client.Connected)
+            while (Synchronizing && LobbyManager.IsInLobby)
             {
                 try
                 {

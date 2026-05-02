@@ -46,7 +46,9 @@ namespace Multiplayer.Data.Lobbies
             ? Playlist[CurrentPlaylistEntryIndex]
             : null;
 
-        internal DateTime LastUpdated { get; private set; }
+        private DateTime LastUpdated { get; set; }
+        internal TimeSpan SinceLastUpdate => DateTime.Now - LastUpdated;
+        internal void RefreshLastUpdated() { LastUpdated = DateTime.Now; }
 
         internal Lobby(int id)
         {
@@ -246,7 +248,7 @@ namespace Multiplayer.Data.Lobbies
                 catch { }
             }
 
-            LastUpdated = DateTime.Now;
+            RefreshLastUpdated();
         }
 
         /// <summary>

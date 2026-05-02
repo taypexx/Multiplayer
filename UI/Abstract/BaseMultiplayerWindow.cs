@@ -19,6 +19,7 @@ namespace Multiplayer.UI.Abstract
 
         internal static Image BannerImageComponent => GameObject.Find("UI/Forward/Tips/PnlBulletinNew/ImgBase/ScrollView/Viewport/Content/Image").GetComponent<Image>();
         internal CustomImageAsset Banner { get; private set; }
+        internal string InitialBannerAssetName { get; private set; }
 
         internal BaseMultiplayerWindow ReturnWindow { get; set; }
         internal bool HasReturnWindow => ReturnWindow != null;
@@ -31,7 +32,11 @@ namespace Multiplayer.UI.Abstract
         internal BaseMultiplayerWindow(LocalString title, BaseMultiplayerWindow returnWindow = null, string bannerAssetName = null)
         {
             Title = title;
-            if (bannerAssetName != null) Banner = AssetManager.GetImageAsset("UI.Banners." + bannerAssetName);
+            if (bannerAssetName != null)
+            {
+                Banner = AssetManager.GetImageAsset("UI.Banners." + bannerAssetName);
+                InitialBannerAssetName = bannerAssetName;
+            }
 
             ReturnWindow = returnWindow;
             ButtonsWindows = new();
@@ -55,8 +60,10 @@ namespace Multiplayer.UI.Abstract
         {
             if (content == null) content = new();
 
-            ForumObject button = new(buttonName, content);
-            button.Texture = Banner?.Texture;
+            ForumObject button = new(buttonName, content)
+            {
+                Texture = Banner?.Texture
+            };
 
             Window.ForumObjects.Add(button);
             ButtonsWindows.Add(button, windowToOpen);
@@ -105,6 +112,15 @@ namespace Multiplayer.UI.Abstract
             }
             toRemove.Clear();
             return success;
+        }
+
+        internal void UpdateBanner(CustomImageAsset banner = null)
+        {
+            Banner = banner ?? AssetManager.GetImageAsset("UI.Banners." + InitialBannerAssetName);
+            foreach (ForumObject button in Window.ForumObjects)
+            {
+                button.Texture = Banner.Texture;
+            }
         }
 
         /// <summary>

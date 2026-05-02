@@ -50,7 +50,7 @@ namespace Multiplayer.UI.Displays
                 {
                     battleInfo = $"<color=#{Utilities.GetPingColor(player.PingMS)}>{player.PingMS}ms</color>";
                 }
-                else if (!Lobby.ReadyPlayers.Contains(player.Uid))
+                else if (!Lobby.ReadyPlayers.Contains(player.Uid) || (Lobby.EveryoneReady && player.SinceLastUpdate >= Constants.PlayerBattleInactivity))
                 {
                     battleInfo = Localization.Get("Global", "Loading").ToString();
                 }

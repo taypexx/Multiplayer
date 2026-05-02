@@ -1,7 +1,7 @@
 ﻿using CustomAlbums.Utilities;
 using Multiplayer.Data;
+using Multiplayer.Static;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 
 namespace Multiplayer.Managers
@@ -54,25 +54,27 @@ namespace Multiplayer.Managers
         /// Gets the <see cref="CustomImageAsset"/> reference or creates a new one and caches it (from web).
         /// </summary>
         /// <param name="url">URL of the image.</param>
+        /// <param name="ignoreCache">Whether to download the image from <paramref name="url"/> regardless of it being cached.</param>
         /// <returns><see cref="CustomImageAsset"/> reference.</returns>
-        internal static async Task<CustomImageAsset> GetImageAssetFromWeb(string url)
+        internal static async Task<CustomImageAsset> GetImageAssetFromWeb(string url, bool ignoreCache = false)
         {
             if (ImageAssets.TryGetValue(url, out CustomImageAsset asset)) return asset;
 
-            UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
-            var operation = request.SendWebRequest();
+            var bytes = await Client.DownloadAsync(url);
+            if (bytes == null) return null;
 
-            while (!operation.isDone)
+            CustomImageAsset newAsset = null;
+
+            if (url.EndsWith(".webp"))
             {
-                await Task.Yield();
+                var image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(bytes);
+                newAsset = new(image, true);
             }
+            else newAsset = new(bytes);
 
-            if (request.isHttpError) return null;
-
-            CustomImageAsset newAsset = new(DownloadHandlerTexture.GetContent(request));
             if (newAsset == null) return null;
 
-            CacheImageAsset(url, newAsset);
+            Main.Dispatch(() => CacheImageAsset(url, newAsset));
 
             return newAsset;
         }

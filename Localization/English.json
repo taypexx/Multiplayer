@@ -15,7 +15,7 @@
   "SettingsWindow": {
     "Title": "Settings",
     "EnableChat": "Enable the lobby chat",
-    "FilterChatMessages": "Hide any curse words in the chat",
+    "FilterChatMessages": "Enable chat profanity filter",
     "ShowNavigationButtons": "Show multiplayer buttons on the navigation panel",
     "EnableShortcuts": "Enable shortcuts to quickly open multiplayer tabs",
     "FavGirlMode": "Display fav girls instead of equipped combinations on the home page when enabled",
@@ -42,7 +42,7 @@
     "NoArguments": "This command requires arguments to be executed.",
     "PlayerNotFound": "<b>{0}</b> is not in lobby.",
     "MutedList": "Currently muted: {0}.",
-    "NoPerms": "You don't have permission to execute this command.",
+    "NoPerms": "You do not have permission to execute this command.",
     "ChatPlaceholderText": "Press / or click here to start typing",
     "ChatPlaceholderTextNoKey": "Click here to start typing",
     "WebsocketReconnect": "Reconnecting to the chat..."
@@ -63,7 +63,7 @@
     "Title": "Warning",
     "Unknown": "Unknown error occured!",
     "NoAccount": "You are not logged into your Muse Dash account! Please log in to play multiplayer.",
-    "Offline": "Couldn't connect to the multiplayer server. Do you want to try again?",
+    "Offline": "Could not connect to the multiplayer server. Do you want to try again?",
     "LostConnection": "Connection with the multiplayer server was lost. Do you want to try to reconnect?",
     "Outdated": "Current mod version ({0}) is outdated. Would you like to update the mod? ({1})",
     "NoInvites": "Invites are not available at the moment. Please contact mod developers and let them know.",
@@ -71,7 +71,8 @@
     "LowLevel": "Reach LVL {0} to unlock multiplayer!",
     "NoInternet": "You are offline. Connect to the internet to play multiplayer!",
     "WebsocketFail": "Lost connection with the lobby, please try again later.",
-    "LogoutUnavailable": "You must leave your lobby in order to log out of your account."
+    "LogoutUnavailable": "You must leave your lobby in order to log out of your account.",
+    "HeadquartersFail": "You must log into headquarters to proceed."
   },
   "PnlCloudMessage": {
     "Default": "Synchronizing",
@@ -119,7 +120,8 @@
     "FriendRequests": "Friend Requests",
     "Achievements": "Achievements",
     "HQStats": "Headquarters Stats",
-    "MDMoe": "Musedash.moe",
+    "MDMCMoe": "mdmc.moe",
+    "MDMoe": "musedash.moe",
     "RequestSend": "Send a friend request",
     "RemoveFriend": "Unfriend",
     "DecideFriendRequest": "Accept/reject friend request",
@@ -131,9 +133,9 @@
     "CancelFriendRequestSuccess": "Cancelled friend request",
     "AddedFriend": "New friend added!",
     "EmptyFriends": "This person doesn't have friends. Maybe you could be their first one... (˶ᵔ ᵕ ᵔ˶)",
-    "EmptyFriendsLocal": "You don't have friends... yet (╥ ᴗ ╥)",
+    "EmptyFriendsLocal": "You do not have friends... yet (╥ ᴗ ╥)",
     "EmptyFriendRequests": "Nobody has sent you any friend requests.\n\nDo it yourself! ( • ̀ω•́ )੭ ✧´-",
-    "EmptyAchievements": "You didn't achieve anything.\n\nKeep playing! (•̀ ᴗ -˵)",
+    "EmptyAchievements": "You did not achieve anything.\n\nKeep playing! (•̀ ᴗ -˵)",
     "EmptyAchievementsLocal": "This person didn't achieve anything.\n\nBut they are trying! (•̀ ᴗ -˵)"
   },
   "Ranks": {
@@ -173,7 +175,7 @@
   },
   "Lobbies": {
     "Title": "Lobbies",
-    "Description": "<color=1eff00ff>Public</color> lobbies are open to everyone as long as they are not full.\n\n<color=f5428aff>Private</color> lobbies require you to enter their name and password in order to join.\n\nIf you don't want to join someone's lobby you can create your own.",
+    "Description": "<color=1eff00ff>Public</color> lobbies are open to everyone as long as they are not full.\n\n<color=f5428aff>Private</color> lobbies require you to enter their name and password in order to join.\n\nIf you do not want to join someone's lobby you can create your own.",
     "PublicButton": "Public Lobbies",
     "PrivateButton": "Join Private Lobby",
     "CreateButton": "Create a Lobby",
@@ -261,6 +263,15 @@
   "Invite": {
     "Message": "<color={0}>{1}</color>\nis inviting you to join\n<color={2}>{3}</color>",
     "Join": "JOIN",
+    "Ignore": "IGNORE"
+  },
+  "FriendNotificationAccept": {
+    "Message": "<color={0}>{1}</color>\nhas accepted your friend request!",
+    "Ok": "OK"
+  },
+  "FriendNotificationSent": {
+    "Message": "<color={0}>{1}</color>\njust sent you a friend request!",
+    "Accept": "ACCEPT",
     "Ignore": "IGNORE"
   }
 }

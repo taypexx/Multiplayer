@@ -7,7 +7,6 @@ namespace Multiplayer.Data.Players
     public class Player
     {
         public string Uid { get; private set; }
-        public int HQUid { get; private set; }
 
         public MultiplayerStats MultiplayerStats { get; private set; }
         public BattleStats BattleStats { get; private set; }
@@ -23,12 +22,14 @@ namespace Multiplayer.Data.Players
                 return this == PlayerManager.LocalPlayer ? Client.PingMS : field;
             } internal set; 
         }
-        internal DateTime LastUpdated { get; private set; }
 
-        internal Player(string uid, int hqUid = 0)
+        private DateTime LastUpdated { get; set; }
+        internal TimeSpan SinceLastUpdate => DateTime.Now - LastUpdated;
+        internal void RefreshLastUpdated() { LastUpdated = DateTime.Now; }
+
+        internal Player(string uid)
         {
             Uid = uid;
-            HQUid = hqUid;
             MultiplayerStats = new(this);
             BattleStats = new(this);
             MoeStats = new(this);
@@ -55,7 +56,7 @@ namespace Multiplayer.Data.Players
                     await MoeStats.Update();
                     await HQStats.Update();
                 }
-                LastUpdated = DateTime.Now;
+                RefreshLastUpdated();
             }
             catch (Exception ex)
             {

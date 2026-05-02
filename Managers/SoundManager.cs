@@ -48,5 +48,10 @@ namespace Multiplayer.Managers
         {
             Singleton<AudioManager>.instance.PlayButtonClickedSfx(ClickSfxType.Confirm);
         }
+
+        internal static void PlayCrystal()
+        {
+            Singleton<AudioManager>.instance.PlayButtonClickedSfx(ClickSfxType.Crystal);
+        }
     }
 }

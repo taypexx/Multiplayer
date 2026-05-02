@@ -56,6 +56,7 @@
     <None Remove="Assets\UI\Statuses\Offline.png" />
     <None Remove="Assets\UI\Statuses\Online.png" />
     <None Remove="Localization\English.json" />
+    <None Remove="Localization\Japanese.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -82,6 +83,7 @@
     <EmbeddedResource Include="Assets\UI\Statuses\Online.png" />
     <EmbeddedResource Include="Localization\ChineseT.json" />
     <EmbeddedResource Include="Localization\English.json" />
+    <EmbeddedResource Include="Localization\Japanese.json" />
     <EmbeddedResource Include="Localization\ProfanityTrieList.txt" />
   </ItemGroup>
 
