@@ -21,6 +21,7 @@ We also share our progress and make polls here.
 - **[AshtonMemer](https://github.com/ALLMarvelous)** — Custom Albums & Headquarters
 - **[PBalint817](https://github.com/Balint817)** — Additional libraries
 - **Bubu** — Traditional Chinese translation
+- **isei** — Japanese translation
 
 Big thanks to the tester team:
 
