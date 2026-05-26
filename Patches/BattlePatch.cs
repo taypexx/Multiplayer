@@ -154,7 +154,7 @@ namespace Multiplayer.Patches
                         await PnlMessageExtension.AddOne(
                             $"{positionList.IndexOf(player) + 1}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", 
                             false,
-                            player.HQStats.LoggedIn ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(player.MultiplayerStats.AvatarName)//player.BattleStats.Alive ? sprites[(int)player.BattleStats.Grade] : null
+                            player.HQStats.HasAvatar ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(player.MultiplayerStats.AvatarName)//player.BattleStats.Alive ? sprites[(int)player.BattleStats.Grade] : null
                         );
                     }
                 }

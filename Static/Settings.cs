@@ -1,101 +1,110 @@
-﻿using Multiplayer.Managers;
+﻿using MelonLoader;
+using Multiplayer.Data.Settings;
+using Multiplayer.Managers;
 using Multiplayer.UI.Extensions;
 using Tomlet;
+using Tomlet.Exceptions;
+using Tomlet.Models;
+using UnityEngine;
 
 namespace Multiplayer.Static
 {
-    public class Config
-    {
-        internal bool ShowNavigationButtons { 
-            get; set 
-            {
-                UIManager.ToggleNavigationButtons(value);
-                field = value;
-            } 
-        } 
-        = true;
-
-        internal bool EnableChat {
-            get; set
-            {
-                if (UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Frame != null) UIManager.ChatLobbyDisplay.Frame.SetActive(value);
-                field = value;
-            }
-        } 
-        = true;
-
-        internal bool FilterChatMessages { get; set; } = true;
-
-        internal bool FavGirlMode { 
-            get; set 
-            {
-                PnlHomeExtension.UpdateCurrentPage();
-                field = value;
-            } 
-        } 
-        = true;
-
-        internal bool DisplayLobbyStatus { get; set; } = true;
-
-        internal bool ShowBattlePopups { get; set; } = true;
-
-        internal bool EnableLogging { get; set; } = true;
-
-        internal int LobbyUpdateIntervalMS { 
-            get; set 
-            {
-                field = Math.Clamp(value, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS);
-            } 
-        } 
-        = 2000;
-
-        internal int BattleUpdateIntervalMS { 
-            get; set 
-            {
-                field = Math.Clamp(value, Constants.BattleUpdateIntervalMinMS, Constants.BattleUpdateIntervalMaxMS);
-            } 
-        } 
-        = 200;
-    }
-
     internal static class Settings
     {
-        internal static string ConfigFilePath = Path.Combine("UserData", "Multiplayer.cfg");
-        internal static Config Config = new();
+        internal static readonly MelonPreferences_Category MelonCategory;
+        internal static readonly HashSet<ISetting> Config;
+        internal static readonly string ConfigPath = Path.Combine("UserData", Constants.ModName + ".cfg");
 
+        internal static T Get<T>(string settingName)
+        {
+            var setting = Config.First(s => s.Name == settingName) as Setting<T>;
+            return setting.Value;
+        }
+
+        /// <summary>
+        /// Loads the <see cref="Settings"/> from the config file.
+        /// </summary>
         internal static void Load()
         {
-            Main.Log("Loading the settings...");
-            try
+            MelonCategory.LoadFromFile();
+            foreach (var setting in Config)
             {
-                if (!File.Exists(ConfigFilePath))
-                {
-                    var defaultConfig = TomletMain.TomlStringFrom(Config);
-                    File.WriteAllText(ConfigFilePath, defaultConfig);
-                }
-
-                Config = TomletMain.To<Config>(File.ReadAllText(ConfigFilePath));
-
-                Main.Log("Successfully loaded the settings!", Main.LogType.Success);
-            }
-            catch (Exception ex)
-            {
-                Main.Log("Failed to load settings: " + ex, Main.LogType.Error);
+                setting.Load();
             }
         }
 
-        internal static void Save()
+        static Settings()
         {
-            Main.Log("Saving the settings...");
-            try
+            MelonCategory = MelonPreferences.CreateCategory(Constants.ModName);
+            MelonCategory.SetFilePath(ConfigPath, false);
+
+            // Custom color mapper
+            TomletMain.RegisterMapper
+            (
+                color =>
+                {
+                    long r = (byte)(255 * color.r);
+                    long g = (byte)(255 * color.g);
+                    long b = (byte)(255 * color.b);
+                    long a = (byte)(255 * color.a);
+
+                    long num = (r << 24) | (g << 16) | (b << 8) | a;
+
+                    return new TomlLong(num);
+                },
+
+                value =>
+                {
+                    if (value is not TomlLong)
+                        throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType(), typeof(Color));
+
+                    long num = ((TomlLong)value).Value;
+
+                    float r = (byte)((num >> 24) & 0xFF);
+                    float g = (byte)((num >> 16) & 0xFF);
+                    float b = (byte)((num >> 8) & 0xFF);
+                    float a = (byte)(num & 0xFF);
+
+                    return new Color(r, g, b, a);
+                }
+            );
+
+            // Default config
+            Config = new()
             {
-                File.WriteAllText(ConfigFilePath, TomletMain.TomlStringFrom(Config));
-                Main.Log("Successfully saved the settings!", Main.LogType.Success);
-            }
-            catch (Exception ex)
-            {
-                Main.Log("Failed to save the settings: " + ex, Main.LogType.Error);
-            }
+                // Global
+
+                new Setting<bool>("UseMDMCName", SettingCategory.Global, false, null, _ => PlayerManager.SyncProfile()),
+
+                new Setting<bool>("ShowNavigationButtons", SettingCategory.Global, true, null, UIManager.ToggleNavigationButtons),
+
+                new Setting<bool>("EnableLogging", SettingCategory.Global, true),
+
+                // Chat
+
+                new Setting<bool>("EnableChat", SettingCategory.Chat, true, null,
+                (bool value) =>
+                {
+                    if (UIManager.ChatLobbyDisplay == null || UIManager.ChatLobbyDisplay.Frame == null) return;
+                    UIManager.ChatLobbyDisplay.Frame.SetActive(value);
+                }),
+
+                new Setting<bool>("FilterChatMessages", SettingCategory.Chat, true),
+
+                // Lobby
+
+                new Setting<bool>("FavGirlMode", SettingCategory.Lobby, true, null, (_) => PnlHomeExtension.UpdateCurrentPage()),
+
+                new Setting<bool>("DisplayLobbyStatus", SettingCategory.Lobby, true),
+
+                new Setting<int>("LobbyUpdateIntervalMS", SettingCategory.Lobby, 2000, ms => Math.Clamp(ms, Constants.LobbyUpdateIntervalMinMS, Constants.LobbyUpdateIntervalMaxMS)),
+
+                // Battle
+
+                new Setting<bool>("ShowBattlePopups", SettingCategory.Battle, true),
+
+                new Setting<int>("BattleUpdateIntervalMS", SettingCategory.Battle, 200, ms => Math.Clamp(ms, Constants.BattleUpdateIntervalMinMS, Constants.BattleUpdateIntervalMaxMS))
+            };
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Reflection;
 using Headquarters.Managers;
+using Multiplayer.UI.Extensions;
 
 namespace Multiplayer.Data.Stats
 {
@@ -20,11 +21,17 @@ namespace Multiplayer.Data.Stats
         public int HQUid { get; private set; }
 
         public PlayerStatus Status {
-            get => Player == PlayerManager.LocalPlayer ? (LobbyManager.IsInLobby ? (Main.IsUIScene ? PlayerStatus.InLobby : PlayerStatus.InBattle) : PlayerStatus.Online) : field;
+            get => Player == PlayerManager.LocalPlayer 
+                ? (LobbyManager.IsInLobby 
+                    ? (Main.IsUIScene 
+                        ? PlayerStatus.InLobby 
+                        : PlayerStatus.InBattle) 
+                    : PlayerStatus.Online) 
+                : field;
             private set; 
         }
 
-        public string Name { get; private set; }
+        public string Name { get; internal set; }
         public string Bio { get; internal set; }
 
         public string AvatarName {
@@ -179,12 +186,18 @@ namespace Multiplayer.Data.Stats
         /// </summary>
         internal async Task CacheFriends()
         {
+            PnlCloudExtension.Start();
+
             var response = await Client.PostAsync("getFriends", new
             {
                 Uid = PlayerManager.LocalPlayerUid,
                 TargetUid = Player.Uid
             });
-            if (response is null) return;
+            if (response is null)
+            {
+                PnlCloudExtension.Finish(false);
+                return;
+            }
 
             try
             {
@@ -202,7 +215,9 @@ namespace Multiplayer.Data.Stats
 
                 FriendsCached = true;
             }
-            catch { }
+            catch {}
+
+            PnlCloudExtension.Finish(FriendsCached);
         }
 
         /// <summary>
@@ -210,25 +225,37 @@ namespace Multiplayer.Data.Stats
         /// </summary>
         internal async Task CacheFriendRequests()
         {
+            PnlCloudExtension.Start();
+
             var response = await Client.PostAsync("getFriendRequests", new
             {
                 Uid = PlayerManager.LocalPlayerUid
             });
-            if (response is null) return;
-
-            var friendRequests = await response.Content.ReadFromJsonAsync<List<Dictionary<string, JsonElement>>>();
-            foreach (var otherData in friendRequests)
+            if (response is null)
             {
-                var otherUid = otherData["Uid"].GetString();
-                var otherPlayer = PlayerManager.GetCachedPlayer(otherUid);
-                if (otherPlayer is null)
-                {
-                    otherPlayer = await PlayerManager.CreatePlayer(otherUid, otherData);
-                }
-                else otherPlayer.MultiplayerStats.UpdateFields(otherData);
+                PnlCloudExtension.Finish(false);
+                return;
             }
 
-            FriendRequestsCached = true;
+            try
+            {
+                var friendRequests = await response.Content.ReadFromJsonAsync<List<Dictionary<string, JsonElement>>>();
+                foreach (var otherData in friendRequests)
+                {
+                    var otherUid = otherData["Uid"].GetString();
+                    var otherPlayer = PlayerManager.GetCachedPlayer(otherUid);
+                    if (otherPlayer is null)
+                    {
+                        otherPlayer = await PlayerManager.CreatePlayer(otherUid, otherData);
+                    }
+                    else otherPlayer.MultiplayerStats.UpdateFields(otherData);
+                }
+
+                FriendRequestsCached = true;
+            }
+            catch {}
+
+            PnlCloudExtension.Finish(FriendRequestsCached);
         }
     }
 }

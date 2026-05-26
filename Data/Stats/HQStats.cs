@@ -11,14 +11,16 @@ namespace Multiplayer.Data.Stats
         public Player Player { get; private set; }
         public int Uid => Player.MultiplayerStats.HQUid;
         public bool LoggedIn => Uid > 0;
-        public string DiscordId { get; private set; }
 
+        public string DiscordId { get; private set; }
         public string Name { get; private set; }
         public string Bio { get; private set; }
         public string[] Badges { get; private set; }
 
         public CustomImageAsset Avatar { get; private set; }
         public CustomImageAsset Banner { get; private set; }
+        public bool HasAvatar => Avatar != null && LoggedIn;
+        public bool HasBanner => Banner != null && LoggedIn;
 
         internal string AvatarString { get; private set; }
         internal string BannerString { get; private set; }
@@ -34,7 +36,7 @@ namespace Multiplayer.Data.Stats
         {
             Player = player;
 
-            Name = PlayerManager.LocalPlayerName ?? $"Player{Uid}";
+            Name = "Player" + Uid;
             Bio = "This user does not have anything interesting to say.";
 
             MelonPoints = 0;
@@ -42,7 +44,7 @@ namespace Multiplayer.Data.Stats
 
             Records = 0;
             APs = 0;
-            AverageAccuracy = 0;
+            AverageAccuracy = 0f;
         }
 
         internal async Task UpdateImages(string avatar, string banner, bool ignoreCache = false)
@@ -78,6 +80,7 @@ namespace Multiplayer.Data.Stats
         internal void UpdateUserData(Dictionary<string, JsonElement> userData)
         {
             DiscordId = userData["discordId"].GetString();
+            Name = userData["username"].ToString();
 
             var profile = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(userData["profile"]);
             if (profile == null) return;

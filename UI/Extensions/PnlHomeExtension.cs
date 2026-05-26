@@ -73,8 +73,9 @@ namespace Multiplayer.UI.Extensions
         private static Text LeftInfo;
         private static Text RightInfo;
 
-        private const string InfoFormat = "<color=#" + Constants.Yellow + ">[ RL {0} ]</color>";
-        private const string PingInfoFormat = "[ <color=#{0}>{1}ms</color> ]";
+        private const string InfoFormatRL = "<color=#" + Constants.Yellow + ">[ RL {0} ]</color>";
+        private const string InfoFormatLVL = "<color=#" + Constants.Yellow + ">LV. {0}</color>";
+        private const string InfoFormatPing = "[ <color=#{0}>{1}ms</color> ]";
         private static Vector3 InfoTextGap = new(0f, 0.3f, 0f);
         private static int MiddleInfoFontSize = 36;
         private static int SideInfoFontSize = 34;
@@ -235,12 +236,18 @@ namespace Multiplayer.UI.Extensions
 
         private static string GetName(Player player)
         {
-            return $"{player.MultiplayerStats.Name} {(player.AreFriends(PlayerManager.LocalPlayer) ? $"<color=#{Constants.Red}>♥</color>" : $"<color=#{Constants.Green}>+</color>")}";
+            return $"{player.MultiplayerStats.Name} {(player.AreFriends(PlayerManager.LocalPlayer) 
+                ? $"<color=#{Constants.Red}>♥</color>" 
+                : $"<color=#{Constants.Green}>+</color>")}";
         }
 
         private static string GetInfo(Player player)
         {
-            return InputManager.PingMode ? string.Format(PingInfoFormat, Utilities.GetPingColor(player.PingMS), player.PingMS) : string.Format(InfoFormat, player.MoeStats.RL);
+            return InputManager.PingMode 
+                ? string.Format(InfoFormatPing, Utilities.GetPingColor(player.PingMS), player.PingMS) 
+                : player.MoeStats.RL == 0
+                    ? string.Format(InfoFormatLVL, player.MultiplayerStats.Level)
+                    : string.Format(InfoFormatRL, player.MultiplayerStats.Level);
         }
 
         /// <summary>
@@ -282,7 +289,7 @@ namespace Multiplayer.UI.Extensions
                 Player player = CurrentPage[0];
                 LeftName.text = GetName(player);
 
-                var girlIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
+                var girlIndex = Settings.Get<bool>("FavGirlMode") && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
                 if (girlIndex != LeftGirlIndex)
                 {
                     LeftGirlIndex = girlIndex;
@@ -296,7 +303,7 @@ namespace Multiplayer.UI.Extensions
                 Player player = CurrentPage[1];
                 RightName.text = GetName(player);
 
-                var girlIndex = Settings.Config.FavGirlMode && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
+                var girlIndex = Settings.Get<bool>("FavGirlMode") && player.MultiplayerStats.FavGirlIndex >= 0 ? player.MultiplayerStats.FavGirlIndex : player.MultiplayerStats.GirlIndex;
                 if (girlIndex != RightGirlIndex)
                 {
                     RightGirlIndex = girlIndex;
@@ -522,7 +529,7 @@ namespace Multiplayer.UI.Extensions
             buttonRight.onClick.AddListener((UnityAction)new Action(RightButtonClick));
 
             MiddleName.text = PlayerManager.LocalPlayer.MultiplayerStats.Name;
-            MiddleInfo.text = string.Format(InfoFormat, PlayerManager.LocalPlayer.MoeStats.RL);
+            MiddleInfo.text = GetInfo(PlayerManager.LocalPlayer);
 
             Enabled = true;
             UpdateAllPages();

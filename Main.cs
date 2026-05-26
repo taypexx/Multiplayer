@@ -32,24 +32,21 @@ namespace Multiplayer
         /// Logs the passed object.
         /// </summary>
         /// <param name="msg">Message to log.</param>
-        /// <param name="logType">Type of the log.</param>
-        internal static void Log(object msg, LogType logType = LogType.Info)
+        /// <param name="type">Type of the log.</param>
+        internal static void Log(object msg, LogType type = LogType.Info)
         {
-            if (msg is Exception || logType == LogType.Error)
+            if (msg is Exception || type == LogType.Error)
             {
                 Logger.Error(msg);
             }
-            else if (Settings.Config.EnableLogging)
+            else if (Settings.Get<bool>("EnableLogging")) switch (type)
             {
-                switch (logType)
-                {
-                    case LogType.Info:
-                        Logger.Msg(msg); break;
-                    case LogType.Success:
-                        Logger.Msg(System.ConsoleColor.Green, msg); break;
-                    case LogType.Warning:
-                        Logger.Warning(msg); break;
-                }
+                case LogType.Info:
+                    Logger.Msg(msg); break;
+                case LogType.Success:
+                    Logger.Msg(System.ConsoleColor.Green, msg); break;
+                case LogType.Warning:
+                    Logger.Warning(msg); break;
             }
         }
 
@@ -93,9 +90,9 @@ namespace Multiplayer
         /// </summary>
         private static void InitGlobal()
         {
-            Settings.Load();
             AssetManager.Init();
             Localization.Init();
+            Settings.Load();
             Client.Init();
             Chat.Init();
         }
@@ -112,6 +109,7 @@ namespace Multiplayer
                 AchievementManager.Init();
                 UIManager.MainMenu.Open();
             });
+            _ = EventManager.StartEventPolling();
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
@@ -142,7 +140,6 @@ namespace Multiplayer
 
         public override void OnDeinitializeMelon()
         {
-            Settings.Save();
             Client.Disconnect();
         }
 

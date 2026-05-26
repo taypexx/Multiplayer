@@ -1,5 +1,4 @@
 ﻿using Il2CppAssets.Scripts.Database;
-using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 
@@ -10,7 +9,7 @@ namespace Multiplayer.Data.Chat
         public string Message { 
             get; 
             set {
-                if (Settings.Config.FilterChatMessages)
+                if (Static.Settings.Get<bool>("FilterChatMessages"))
                 {
                     field = Filtering.Filter(value);
                 }

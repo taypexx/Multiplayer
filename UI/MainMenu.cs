@@ -32,7 +32,7 @@ namespace Multiplayer.UI
             SearchPlayerPrompt.OnCompletion += (BaseWindow w) => _ = OnPlayerSearch();
 
             MainDescription = Localization.Get("MainMenu", "Description");
-            Credits = new(Constants.Credits);
+            Credits = new($"<color=ffffffff>{Constants.ModName} v{Constants.Version}</color>\n\n{Constants.Credits}");
         }
 
         internal void CreateButtons()

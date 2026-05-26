@@ -23,8 +23,8 @@ namespace Multiplayer.UI.LobbyWindows
         private Dictionary<int, LocalString> ActionButtonResponses;
 
         private ForumObject ActionButton;
-        private ForumObject PlaylistButton;
         private ForumObject PlayButton;
+        private ForumObject PlaylistButton;
 
         private PromptWindow JoinPrompt;
         private InputWindow PasswordPrompt;
@@ -92,18 +92,6 @@ namespace Multiplayer.UI.LobbyWindows
                 ForumObject[] keepButtons = new ForumObject[3];
                 keepButtons[0] = ActionButton;
 
-                if (lobby.Host == PlayerManager.LocalPlayer || (lobby == LobbyManager.LocalLobby && lobby.ChartSelection == LobbyChartSelection.Playlist))
-                {
-                    if (PlaylistButton is null)
-                    {
-                        PlaylistButton = AddButton(Localization.Get("Lobby", "PlaylistButton"), null, MainDescription);
-                    }
-
-                    keepButtons[1] = PlaylistButton;
-                } else
-                {
-                    PlaylistButton = null;
-                }
                 if (lobby.Host == PlayerManager.LocalPlayer)
                 {
                     if (PlayButton is null)
@@ -111,11 +99,20 @@ namespace Multiplayer.UI.LobbyWindows
                         PlayButton = AddButton(Localization.Get("Lobby", "Play"), null, MainDescription);
                     }
 
-                    keepButtons[2] = PlayButton;
-                } else
+                    keepButtons[1] = PlayButton;
+                } 
+                else PlayButton = null;
+
+                if (lobby.Host == PlayerManager.LocalPlayer || (lobby == LobbyManager.LocalLobby && lobby.ChartSelection == LobbyChartSelection.Playlist))
                 {
-                    PlayButton = null;
+                    if (PlaylistButton is null)
+                    {
+                        PlaylistButton = AddButton(Localization.Get("Lobby", "PlaylistButton"), null, MainDescription);
+                    }
+
+                    keepButtons[2] = PlaylistButton;
                 }
+                else PlaylistButton = null;
 
                 RemoveAllButtons(keepButtons);
                 ButtonsPlayers.Clear();

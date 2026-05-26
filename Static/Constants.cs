@@ -9,7 +9,7 @@ namespace Multiplayer.Static
         public const string ModName = "Multiplayer";
         public const string ModDescription = "Multiplayer client mod";
         public const string Authors = "taypexx & 7OU";
-        public const string Version = "0.1.5";
+        public const string Version = "0.1.6";
         public static readonly Version Version_ = new Version(Version);
 
         public const string Credits = "[ DEVELOPMENT ]\n\n" +
@@ -20,13 +20,13 @@ namespace Multiplayer.Static
             "<color=fff700ff>Bubu</color> — Traditional Chinese translation\n" +
             "<color=fff700ff>???</color> — Simplified Chinese translation\n" +
             "<color=fff700ff>???</color> — Korean translation\n" +
-            "<color=fff700ff>???</color> — Japanese translation\n\n" +
+            "<color=fff700ff>isei</color> — Japanese translation\n\n" +
             "[ TESTER TEAM ]\n\n" +
             "Slawter, Medeyah, PBalint817, WallKitty,\n" +
             "Nickicchi, Bubu, Yarshmellow, Fran艾林, ame,\n" +
             "Rohan, shezza, wylh, kariya_07, Fang, MADGUY,\n" +
-            "Elmotreba el4a3beya, free_muffin, Renbo, AutoGamer\n" +
-            "IgnisclowVT";
+            "Elmotreba el4a3beya, free_muffin, Renbo\n" +
+            "AutoGamer, IgnisclowVT";
 
         internal const int PortHTTP = 9095;
         internal const int PortWebsocket = 443;
@@ -85,7 +85,7 @@ namespace Multiplayer.Static
         public static readonly TimeSpan PlayerBattleInactivity = TimeSpan.FromSeconds(10);
 
         public const int EventDelayMS = 5000;
-        public static readonly TimeSpan EventExpirationTime = TimeSpan.FromDays(1);
+        public static readonly TimeSpan EventExpirationTime = TimeSpan.FromHours(1);
 
         public const string Red = "f5428aff";
         public const string Orange = "ff6f00ff";

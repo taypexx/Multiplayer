@@ -56,7 +56,7 @@ namespace Multiplayer.Managers
             }
 
             // Chat controls
-            if (Settings.Config.EnableChat && UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
+            if (Settings.Get<bool>("EnableChat") && UIManager.ChatLobbyDisplay != null && UIManager.ChatLobbyDisplay.Lobby != null)
             {
                 var inputField = UIManager.ChatLobbyDisplay.InputField;
 

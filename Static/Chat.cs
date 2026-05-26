@@ -16,7 +16,7 @@ namespace Multiplayer.Static
         /// </summary>
         internal static void Recieve(ChatMessage chatMessage)
         {
-            if (!LobbyManager.IsInLobby || !Settings.Config.EnableChat || UIManager.ChatLobbyDisplay.Lobby == null) return;
+            if (!LobbyManager.IsInLobby || !Settings.Get<bool>("EnableChat") || UIManager.ChatLobbyDisplay.Lobby == null) return;
 
             if (!chatMessage.IsSystemMessage)
             {

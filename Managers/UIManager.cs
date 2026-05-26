@@ -20,6 +20,7 @@ using UnityEngine.Events;
 using Il2CppAssets.Scripts.UI.Panels.PnlRole;
 using UnityEngine.EventSystems;
 using Multiplayer.UI.Extensions;
+using Multiplayer.UI.SettingsWindows;
 
 namespace Multiplayer.Managers
 {
@@ -54,7 +55,7 @@ namespace Multiplayer.Managers
         internal static Action<bool> WarningChooseAction;
 
         internal static MainMenu MainMenu { get; private set; }
-        internal static SettingsWindow SettingsWindow { get; private set; }
+        internal static SettingsCategoriesWindow SettingsWindow { get; private set; }
 
         internal static ProfileWindow ProfileWindow { get; private set; }
         internal static FriendsWindow FriendsWindow { get; private set; }
@@ -250,17 +251,24 @@ namespace Multiplayer.Managers
         /// <param name="uid">UID of a chart.</param>
         internal static void JumpToChart(string uid)
         {
-            if (PnlMenu.gameObject.active)
+            try
             {
-                PnlMenu.backBtn.onClick.Invoke();
+                if (PnlMenu.gameObject.active)
+                {
+                    PnlMenu.backBtn.onClick.Invoke();
+                }
+                if (PageHome.gameObject.active)
+                {
+                    PageHome.m_BtnEnter.onClick.Invoke();
+                }
+                if (PnlPreparation.gameObject.active)
+                {
+                    PnlNavigation.transform.Find("Top/BtnNavigationBack").GetComponent<Button>().onClick.Invoke();
+                }
             }
-            if (PageHome.gameObject.active)
+            catch (Exception ex)
             {
-                PageHome.m_BtnEnter.onClick.Invoke();
-            }
-            if (PnlPreparation.gameObject.active)
-            {
-                PnlNavigation.transform.Find("Top/BtnNavigationBack").GetComponent<Button>().onClick.Invoke();
+                Main.Log(ex.ToString(), Main.LogType.Warning);
             }
             PnlStage.SelectAllTagAndJumpToAssginIndex(uid);
         }

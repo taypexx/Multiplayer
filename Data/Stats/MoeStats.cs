@@ -11,7 +11,7 @@ namespace Multiplayer.Data.Stats
         public float RL { get; private set { field = Utilities.RoundFloat(value); } }
         public ushort Records { get; private set; }
         public ushort APs { get; private set; }
-        public float AverageAccuracy { get; private set { field = Utilities.RoundFloat(value); }}
+        public float AverageAccuracy { get; private set; }
 
         public MoeStats(Player player)
         {
@@ -19,7 +19,7 @@ namespace Multiplayer.Data.Stats
             RL = 0;
             Records = 0;
             APs = 0;
-            AverageAccuracy = 0;
+            AverageAccuracy = 0f;
         }
 
         /// <summary>
@@ -27,30 +27,38 @@ namespace Multiplayer.Data.Stats
         /// </summary>
         internal async Task Update()
         {
-            var response = await Client.GetAsync("https://api.musedash.moe/player/" + Player.Uid, true, false);
-            if (response == null) return;
-
-            var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string,JsonElement>>();
-            var plays = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(updatedData["plays"].GetRawText());
-
-            unchecked
+            try
             {
-                float newRL = 0f;
-                updatedData["rl"].TryGetSingle(out newRL);
-                RL = newRL;
-                Records = (ushort)plays.Count;
-            }
-            APs = 0;
+                var response = await Client.GetAsync("https://api.musedash.moe/player/" + Player.Uid, true, false);
+                if (response == null) return;
 
-            float totalAcc = 0f;
-            foreach (var play in plays)
-            {
-                float acc = 0f;
-                play["acc"].TryGetSingle(out acc);
-                if (acc == 100f) APs++;
-                totalAcc += acc;
+                var updatedData = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+                var plays = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(updatedData["plays"].GetRawText());
+
+                unchecked
+                {
+                    float newRL = 0f;
+                    updatedData["rl"].TryGetSingle(out newRL);
+                    RL = newRL;
+                    Records = (ushort)plays.Count;
+                }
+                APs = 0;
+
+                float totalAcc = 0f;
+                foreach (var play in plays)
+                {
+                    float acc = 0f;
+                    play["acc"].TryGetSingle(out acc);
+                    if (acc == 100f) APs++;
+                    totalAcc += acc;
+                }
+                AverageAccuracy = totalAcc / Records;
+
             }
-            AverageAccuracy = totalAcc / Records;
+            catch (Exception ex)
+            {
+                Main.Log(ex);
+            }
         }
     }
 }

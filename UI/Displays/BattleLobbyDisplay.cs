@@ -30,7 +30,7 @@ namespace Multiplayer.UI.Displays
 
         protected override void Popup(string text, object key)
         {
-            if (!Settings.Config.ShowBattlePopups) return;
+            if (!Settings.Get<bool>("ShowBattlePopups")) return;
             base.Popup(text, key);
         }
 

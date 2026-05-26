@@ -139,7 +139,7 @@ namespace Multiplayer.Managers
                 {
                     Main.Log(ex);
                 }
-                await Task.Delay(Settings.Config.BattleUpdateIntervalMS);
+                await Task.Delay(Settings.Get<int>("BattleUpdateIntervalMS"));
             }
         }
 

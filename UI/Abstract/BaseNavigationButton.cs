@@ -90,7 +90,7 @@ namespace Multiplayer.UI.Abstract
             ButtonComponent.onClick.RemoveAllListeners();
             ButtonComponent.onClick.AddListener(ButtonAction);
 
-            Button.SetActive(Settings.Config.ShowNavigationButtons || AlwaysVisible);
+            Button.SetActive(Settings.Get<bool>("ShowNavigationButtons") || AlwaysVisible);
         }
     }
 }

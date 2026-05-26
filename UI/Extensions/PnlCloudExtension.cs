@@ -17,7 +17,7 @@ namespace Multiplayer.UI.Extensions
         private static Text PendingText;
 
         /// <summary>
-        /// Enables the <see cref="PnlCloudMessage"/> so it sits there with the "Synchronizing" label.
+        /// Enables the <see cref="PnlCloudMessage"/> and sets its <paramref name="text"/> (or default text if <see langword="null"/>).
         /// </summary>
         /// <param name="text">Text to display.</param>
         internal static void Start(string text = null)

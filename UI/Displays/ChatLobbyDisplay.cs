@@ -126,7 +126,7 @@ namespace Multiplayer.UI.Displays
         internal override void Create(Lobby lobby, bool addTitle = true, bool scrollable = false)
         {
             base.Create(lobby, addTitle, scrollable);
-            Frame.SetActive(Settings.Config.EnableChat);
+            Frame.SetActive(Settings.Get<bool>("EnableChat"));
 
             InputField = Title.gameObject.AddComponent<InputField>();
             InputField.textComponent = Title;

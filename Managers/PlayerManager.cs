@@ -70,6 +70,8 @@ namespace Multiplayer.Managers
             if (!Client.Connected) return;
 
             var localStats = LocalPlayer.MultiplayerStats;
+            localStats.Name = Settings.Get<bool>("UseMDMCName") ? LocalPlayer.HQStats.Name : LocalPlayerName;
+
             var payload = new
             {
                 Uid = LocalPlayerUid,
@@ -164,7 +166,7 @@ namespace Multiplayer.Managers
             else
             {
                 player.MultiplayerStats.UpdateFields(playerData);
-                await player.MoeStats.Update();
+                _ = player.MoeStats.Update();
                 await player.HQStats.Update();
             }
 

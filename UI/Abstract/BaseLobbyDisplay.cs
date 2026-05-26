@@ -203,7 +203,7 @@ namespace Multiplayer.UI.Abstract
             {
                 Title.text = Lobby.Name + $" <color=#{Constants.Yellow}>({Lobby.Players.Count}/{Lobby.MaxPlayers})</color>";
 
-                if (Settings.Config.DisplayLobbyStatus)
+                if (Settings.Get<bool>("DisplayLobbyStatus"))
                 {
                     Title.text += $" <color=#{(Lobby.IsPrivate ? Constants.Red : Constants.Green)}>({(Lobby.IsPrivate ? "Private" : "Public")})</color>";
                 }

@@ -119,19 +119,11 @@ namespace Multiplayer.UI.Extensions
 
         private static void EnableNotification()
         {
-            var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
-            try
-            {
-                UIManager.PnlStage.SelectAllTagAndJumpToAssginIndex(entry.MusicInfo.uid);
-            }
-            catch { }
-            SoundManager.LockBGM();
-
             var buttonMain = new Tuple<string, Color, Color, Action>
             (
                 Localization.Get("Intermission", "ButtonPlay").ToString(),
                 new(), new(),
-                new(() => 
+                new Action(() => 
                 {
                     SoundManager.PlayClick();
                     if (!Active) return;
@@ -143,7 +135,7 @@ namespace Multiplayer.UI.Extensions
             (
                 Localization.Get("Intermission", "ButtonEquip").ToString(),
                 new(), new(),
-                new(() =>
+                new Action(() =>
                 {
                     SoundManager.PlayClick();
                     if (IsTopComboEquipped || !Active) return;
@@ -156,6 +148,9 @@ namespace Multiplayer.UI.Extensions
             );
 
             SideNotification.Popup(string.Empty, buttonMain, buttonSecondary);
+
+            var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
+            UIManager.JumpToChart(entry.MusicInfo.uid);
         }
 
         private static void DisableNotification()
@@ -164,7 +159,6 @@ namespace Multiplayer.UI.Extensions
             CurrentTopElfinID = -1;
 
             SideNotification.Close();
-            SoundManager.UnlockBGM();
             UIManager.MainLobbyDisplay.Destroy();
             UIManager.ChatLobbyDisplay.Destroy();
             PnlHomeExtension.Destroy();

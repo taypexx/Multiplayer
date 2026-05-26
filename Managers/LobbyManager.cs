@@ -30,7 +30,7 @@ namespace Multiplayer.Managers
 
             while (IsAutoUpdating && Client.Connected)
             {
-                await Task.Delay(Settings.Config.LobbyUpdateIntervalMS);
+                await Task.Delay(Settings.Get<int>("LobbyUpdateIntervalMS"));
 
                 // Websocket handles the lobby update (if local lobby), we just update the window without lobby
                 await UIManager.LobbyWindow.Update(lobby, lobby != LocalLobby);

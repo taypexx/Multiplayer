@@ -26,6 +26,10 @@ namespace Multiplayer.UI.Abstract
 
         internal Dictionary<ForumObject, object> ButtonsWindows { get; private set; }
 
+
+        /// <summary>
+        /// Creates a new multiplayer window.
+        /// </summary>
         /// <param name="title">Title of the window.</param>
         /// <param name="returnWindow">(Optional) Window to open after this one is closed.</param>
         /// <param name="bannerAssetName">(Optional) Path to the image asset relative to "Multiplayer.Assets.UI.Banners".</param>
@@ -114,6 +118,10 @@ namespace Multiplayer.UI.Abstract
             return success;
         }
 
+        /// <summary>
+        /// Refreshes the current window <paramref name="banner"/>.
+        /// </summary>
+        /// <param name="banner">New <paramref name="banner"/> to display.</param>
         internal void UpdateBanner(CustomImageAsset banner = null)
         {
             Banner = banner ?? AssetManager.GetImageAsset("UI.Banners." + InitialBannerAssetName);
@@ -121,6 +129,8 @@ namespace Multiplayer.UI.Abstract
             {
                 button.Texture = Banner.Texture;
             }
+
+            if (Window.Activated && banner != null) OnRefresh();
         }
 
         /// <summary>

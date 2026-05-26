@@ -14,6 +14,13 @@
   },
   "SettingsWindow": {
     "Title": "Settings",
+    "GlobalCategory": "Global Settings",
+    "ChatCategory": "Chat Settings",
+    "LobbyCategory": "Lobby Settings",
+    "BattleCategory": "Battle Settings",
+    "OpenConfig": "— Open Config File —",
+    "ReloadConfig": "— Reload Config —",
+    "UseMDMCName": "Whether to use your MDMC name or official",
     "EnableChat": "Enable the lobby chat",
     "FilterChatMessages": "Enable chat profanity filter",
     "ShowNavigationButtons": "Show multiplayer buttons on the navigation panel",

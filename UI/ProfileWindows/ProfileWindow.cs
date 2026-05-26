@@ -41,6 +41,8 @@ namespace Multiplayer.UI.ProfileWindows
 
         internal bool PnlHeadWasOpened = false;
         private GameObject AvatarBox;
+        private GameObject AvatarBoxBGSquare;
+        private GameObject AvatarBoxBGRounded;
         private HeadItem AvatarHeadItem;
         private Image AvatarStatus;
         private Dictionary<PlayerStatus, Sprite> AvatarStatusSprites;
@@ -97,7 +99,7 @@ namespace Multiplayer.UI.ProfileWindows
 
             if (Player == PlayerManager.LocalPlayer && Player != null)
             {
-                if (Player.HQStats.Avatar == null)
+                if (!Player.HQStats.HasAvatar)
                 {
                     AvatarButton = AddButton(Localization.Get("ProfileWindow", "Avatar"));
                 }
@@ -139,16 +141,7 @@ namespace Multiplayer.UI.ProfileWindows
 
             var button = AvatarBox.GetComponent<Button>();
             button.onClick.RemoveAllListeners();
-            
-            if (Player != null && (!Player.HQStats.LoggedIn || Player.HQStats.Avatar == null))
-            {
-                button.onClick.AddListener((UnityAction)new Action(OpenPnlHead));
-
-                // Removing edges
-                var bg = AvatarBox.transform.Find("bg");
-                bg.GetComponent<Image>().sprite = null;
-                bg.GetComponent<RectTransform>().sizeDelta = new(95f, 95f);
-            }
+            button.onClick.AddListener((UnityAction)new Action(OpenPnlHead));
 
             AvatarHeadItem = AvatarBox.GetComponent<HeadItem>();
             AvatarHeadItem.m_ImgLock.gameObject.SetActive(false);
@@ -160,6 +153,13 @@ namespace Multiplayer.UI.ProfileWindows
             statusRect.anchorMax = statusRect.pivot;
             statusRect.anchoredPosition = new(-10f, 10f);
             statusRect.gameObject.SetActive(true);
+
+            AvatarBoxBGRounded = AvatarBox.transform.Find("bg").gameObject;
+
+            AvatarBoxBGSquare = GameObject.Instantiate(AvatarBoxBGRounded, AvatarBoxBGRounded.transform.parent);
+            AvatarBoxBGSquare.GetComponent<RectTransform>().sizeDelta = new(95f, 95f);
+            AvatarBoxBGSquare.GetComponent<Image>().sprite = null;
+            AvatarBoxBGSquare.transform.SetAsFirstSibling();
         }
 
         /// <summary>
@@ -300,13 +300,17 @@ namespace Multiplayer.UI.ProfileWindows
 
                 Title = (LocalString)player.MultiplayerStats.Name;
 
-                AvatarHeadItem.m_ImgHead.sprite = player.HQStats.Avatar != null 
+                AvatarBox.GetComponent<Button>().enabled = !player.HQStats.HasAvatar;
+                AvatarBoxBGRounded.SetActive(!player.HQStats.HasAvatar);
+                AvatarBoxBGSquare.SetActive(player.HQStats.HasAvatar);
+
+                AvatarHeadItem.m_ImgHead.sprite = player.HQStats.HasAvatar
                     ? player.HQStats.Avatar.Sprite 
                     : PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
 
-                UpdateBanner(player.HQStats.Banner);
-
                 AvatarStatus.sprite = AvatarStatusSprites[player.MultiplayerStats.Status];
+
+                UpdateBanner(player.HQStats.Banner);
 
                 FriendActionButton.Titles = FriendButtonTitles[FriendButtonState];
                 FriendRequestPrompt.Title = (LocalString)player.MultiplayerStats.Name;

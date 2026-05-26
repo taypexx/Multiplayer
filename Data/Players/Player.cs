@@ -15,7 +15,11 @@ namespace Multiplayer.Data.Players
 
         public ushort TotalRecords => (ushort)(HQStats.Records + MoeStats.Records);
         public ushort TotalAPs => (ushort)(HQStats.APs + MoeStats.APs);
-        public float TotalAverageAccuracy => MoeStats.AverageAccuracy;//(HQStats.AverageAccuracy + MoeStats.AverageAccuracy) / 2;
+        public float TotalAverageAccuracy => Utilities.RoundFloat(
+            (HQStats.AverageAccuracy + MoeStats.AverageAccuracy) 
+            / 
+            ((HQStats.AverageAccuracy > 0f ? 1 : 0) + (MoeStats.AverageAccuracy > 0f ? 1 : 0))
+        );
 
         public ushort PingMS { 
             get {
@@ -53,8 +57,8 @@ namespace Multiplayer.Data.Players
                 await MultiplayerStats.Update();
                 if (fullUpdate)
                 {
-                    await MoeStats.Update();
                     await HQStats.Update();
+                    _ = MoeStats.Update();
                 }
                 RefreshLastUpdated();
             }

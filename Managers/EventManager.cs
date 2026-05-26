@@ -1,7 +1,6 @@
 ﻿using Multiplayer.Data;
 using Multiplayer.Static;
 using Multiplayer.UI.Extensions;
-using PopupLib.UI;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -9,9 +8,6 @@ namespace Multiplayer.Managers
 {
     internal static class EventManager
     {
-        internal static Stack<Event> Events = new();
-        private static bool Happening = false;
-
         private static void DoAnnouncement(Event e)
         {
             SideNotification.Popup(
@@ -130,54 +126,44 @@ namespace Multiplayer.Managers
             }
         }
 
-        private static async Task Do()
+        internal static async Task StartEventPolling()
         {
-            if (Happening) return;
-            Happening = true;
-
-            while (Happening)
+            while (Client.Connected)
             {
-                var e = Events.Pop();
-                if (DateTime.Now - e.Time > Constants.EventExpirationTime) continue;
-
-                switch (e.Type)
+                var response = await Client.PostAsync("getEvents", new
                 {
-                    case EventType.Announcement:
-                        DoAnnouncement(e);
-                        break;
-                    case EventType.Invite:
-                        await DoInvite(e);
-                        break;
-                    case EventType.FriendRequest:
-                        await DoFriendRequest(e);
-                        break;
+                    PlayerManager.LocalPlayer.Uid
+                });
+                if (response == null) return;
+
+                var body = await response.Content.ReadFromJsonAsync<HashSet<Dictionary<string, JsonElement>>>();
+                if (body == null) return;
+
+                foreach (var e_ in body)
+                {
+                    var type = (EventType)e_["Type"].GetByte();
+                    var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(e_["Data"]);
+                    var time = DateTimeOffset.FromUnixTimeSeconds(e_["Timestamp"].GetInt64()).Date;
+                    if (DateTime.Now - time > Constants.EventExpirationTime) continue;
+
+                    var e = new Event(type, data, time);
+
+                    switch (e.Type)
+                    {
+                        case EventType.Announcement:
+                            DoAnnouncement(e);
+                            break;
+                        case EventType.Invite:
+                            await DoInvite(e);
+                            break;
+                        case EventType.FriendRequest:
+                            await DoFriendRequest(e);
+                            break;
+                    }
                 }
 
                 await Task.Delay(Constants.EventDelayMS);
             }
-        }
-
-        internal static async Task Check()
-        {
-            var response = await Client.PostAsync("getEvents", new
-            {
-                PlayerManager.LocalPlayer.Uid
-            });
-            if (response == null) return;
-
-            var body = await response.Content.ReadFromJsonAsync<HashSet<Dictionary<string, JsonElement>>>();
-            if (body == null) return;
-
-            foreach (var e in body)
-            {
-                var type = (EventType)e["Type"].GetByte();
-                var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(e["Data"]);
-                var time = DateTimeOffset.FromUnixTimeSeconds(e["Timestamp"].GetInt64()).Date;
-                var e_ = new Event(type, data, time);
-                Events.Push(e_);
-            }
-
-            _ = Do();
         }
     }
 }
