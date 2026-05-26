@@ -2,10 +2,6 @@
 using Multiplayer.Data.Settings;
 using Multiplayer.Managers;
 using Multiplayer.UI.Extensions;
-using Tomlet;
-using Tomlet.Exceptions;
-using Tomlet.Models;
-using UnityEngine;
 
 namespace Multiplayer.Static
 {
@@ -38,37 +34,6 @@ namespace Multiplayer.Static
             MelonCategory = MelonPreferences.CreateCategory(Constants.ModName);
             MelonCategory.SetFilePath(ConfigPath, false);
 
-            // Custom color mapper
-            TomletMain.RegisterMapper
-            (
-                color =>
-                {
-                    long r = (byte)(255 * color.r);
-                    long g = (byte)(255 * color.g);
-                    long b = (byte)(255 * color.b);
-                    long a = (byte)(255 * color.a);
-
-                    long num = (r << 24) | (g << 16) | (b << 8) | a;
-
-                    return new TomlLong(num);
-                },
-
-                value =>
-                {
-                    if (value is not TomlLong)
-                        throw new TomlTypeMismatchException(typeof(TomlLong), value.GetType(), typeof(Color));
-
-                    long num = ((TomlLong)value).Value;
-
-                    float r = (byte)((num >> 24) & 0xFF);
-                    float g = (byte)((num >> 16) & 0xFF);
-                    float b = (byte)((num >> 8) & 0xFF);
-                    float a = (byte)(num & 0xFF);
-
-                    return new Color(r, g, b, a);
-                }
-            );
-
             // Default config
             Config = new()
             {
@@ -91,6 +56,8 @@ namespace Multiplayer.Static
 
                 new Setting<bool>("FilterChatMessages", SettingCategory.Chat, true),
 
+                new Setting<string>("NameColor", SettingCategory.Chat, "ffffff", c => c.Remove(0,6), _ => PlayerManager.SyncProfile()),
+
                 // Lobby
 
                 new Setting<bool>("FavGirlMode", SettingCategory.Lobby, true, null, (_) => PnlHomeExtension.UpdateCurrentPage()),
@@ -102,6 +69,8 @@ namespace Multiplayer.Static
                 // Battle
 
                 new Setting<bool>("ShowBattlePopups", SettingCategory.Battle, true),
+
+                new Setting<bool>("DisplayAvatars", SettingCategory.Battle, true),
 
                 new Setting<int>("BattleUpdateIntervalMS", SettingCategory.Battle, 200, ms => Math.Clamp(ms, Constants.BattleUpdateIntervalMinMS, Constants.BattleUpdateIntervalMaxMS))
             };

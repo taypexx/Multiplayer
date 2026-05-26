@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Reflection;
 using Headquarters.Managers;
 using Multiplayer.UI.Extensions;
+using UnityEngine;
 
 namespace Multiplayer.Data.Stats
 {
@@ -33,6 +34,11 @@ namespace Multiplayer.Data.Stats
 
         public string Name { get; internal set; }
         public string Bio { get; internal set; }
+        public string ChatColor
+        {
+            get => Player == PlayerManager.LocalPlayer ? Static.Settings.Get<string>("NameColor") : field;
+            private set;
+        }
 
         public string AvatarName {
             get => Player == PlayerManager.LocalPlayer ? "head_" + DataHelper.selectedHeadIndex.ToString() : field;
@@ -97,6 +103,7 @@ namespace Multiplayer.Data.Stats
 
             Name = "Player" + player.Uid;
             Bio = "This user does not have anything interesting to say.";
+            ChatColor = "ffffff";
 
             AvatarName = "head_0";
             Level = 1;
@@ -126,6 +133,7 @@ namespace Multiplayer.Data.Stats
             Status = (PlayerStatus)updatedData["Status"].GetByte();
             Name = updatedData["Name"].GetString();
             Bio = updatedData["Bio"].GetString();
+            ChatColor = updatedData["ChatColor"].GetString();
             AvatarName = updatedData["AvatarName"].GetString();
             Level = updatedData["Level"].GetInt32();
             ELO = updatedData["ELO"].GetUInt16();
@@ -137,12 +145,36 @@ namespace Multiplayer.Data.Stats
             }
             catch { }
 
+            // Check if all friends are already cached
+            if (!FriendsCached)
+            {
+                bool cached = true;
+                foreach (var friendUid in Friends)
+                {
+                    cached = PlayerManager.GetCachedPlayer(friendUid) != null && cached;
+                    if (!cached) break;
+                }
+                FriendsCached = cached;
+            }
+
             FriendRequests.Clear();
             try
             {
                 FriendRequests = JsonSerializer.Deserialize<HashSet<string>>(updatedData["FriendRequests"]);
             }
             catch { }
+
+            // Check if all friend requests are already cached
+            if (!FriendRequestsCached)
+            {
+                bool cached = true;
+                foreach (var otherUid in FriendRequests)
+                {
+                    cached = PlayerManager.GetCachedPlayer(otherUid) != null && cached;
+                    if (!cached) break;
+                }
+                FriendRequestsCached = cached;
+            }
 
             Achievements.Clear();
             try

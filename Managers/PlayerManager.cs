@@ -4,6 +4,7 @@ using Multiplayer.Data.Players;
 using Multiplayer.Static;
 using System.Net.Http.Json;
 using System.Text.Json;
+using UnityEngine;
 
 namespace Multiplayer.Managers
 {
@@ -80,6 +81,7 @@ namespace Multiplayer.Managers
                 Name = localStats.Name,
                 AvatarName = localStats.AvatarName,
                 Bio = localStats.Bio,
+                ChatColor = localStats.ChatColor,
                 Level = localStats.Level,
                 GirlIndex = localStats.GirlIndex,
                 ElfinIndex = localStats.ElfinIndex,

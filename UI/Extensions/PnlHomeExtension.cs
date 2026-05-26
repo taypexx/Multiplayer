@@ -247,7 +247,7 @@ namespace Multiplayer.UI.Extensions
                 ? string.Format(InfoFormatPing, Utilities.GetPingColor(player.PingMS), player.PingMS) 
                 : player.MoeStats.RL == 0
                     ? string.Format(InfoFormatLVL, player.MultiplayerStats.Level)
-                    : string.Format(InfoFormatRL, player.MultiplayerStats.Level);
+                    : string.Format(InfoFormatRL, player.MoeStats.RL);
         }
 
         /// <summary>

@@ -151,10 +151,18 @@ namespace Multiplayer.Patches
                     if (!DisplayedPlayers.Contains(player.Uid) && !localLobby.ReadyPlayers.Contains(player.Uid))
                     {
                         DisplayedPlayers.Add(player.Uid);
+
+                        Sprite sprite = null;
+                        if (Settings.Get<bool>("DisplayAvatars"))
+                        {
+                            sprite = player.HQStats.HasAvatar ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
+                        }
+                        else if (player.BattleStats.Alive) sprite = sprites[(int)player.BattleStats.Grade];
+
                         await PnlMessageExtension.AddOne(
                             $"{positionList.IndexOf(player) + 1}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", 
                             false,
-                            player.HQStats.HasAvatar ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(player.MultiplayerStats.AvatarName)//player.BattleStats.Alive ? sprites[(int)player.BattleStats.Grade] : null
+                            sprite
                         );
                     }
                 }

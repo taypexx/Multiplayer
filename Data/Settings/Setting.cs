@@ -34,7 +34,6 @@ namespace Multiplayer.Data.Settings
         {
             MelonPreferencesEntry.Value = Value;
             MelonPreferencesEntry.Save();
-            MelonPreferencesEntry.Category.SaveToFile();
         }
 
         /// <summary>

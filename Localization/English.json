@@ -20,6 +20,8 @@
     "BattleCategory": "Battle Settings",
     "OpenConfig": "— Open Config File —",
     "ReloadConfig": "— Reload Config —",
+    "NameColor": "Your custom name color in the chat",
+    "DisplayAvatars": "Display avatars instead of grades on the result screen",
     "UseMDMCName": "Whether to use your MDMC name or official",
     "EnableChat": "Enable the lobby chat",
     "FilterChatMessages": "Enable chat profanity filter",

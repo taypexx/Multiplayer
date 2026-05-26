@@ -1,6 +1,8 @@
 ﻿using Il2CppAssets.Scripts.Database;
+using Multiplayer.Data.Stats;
 using Multiplayer.Managers;
 using Multiplayer.Static;
+using UnityEngine;
 
 namespace Multiplayer.Data.Chat
 {
@@ -47,7 +49,19 @@ namespace Multiplayer.Data.Chat
                 }
                 else return Message;
             }
-            else return $"<b><color=#{(AuthorUid is null ? "ffffff" : Constants.Colors[AuthorUid.ToCharArray().Select(c => (int)c).Aggregate((a, b) => a + b) % Constants.Colors.Length])}>[{AuthorName}]:</color></b> <color=#e8e8e8>{Message}</color>";
+            else
+            {
+                string nameColor = "ffffff";
+                if (AuthorUid != null)
+                {
+                    var player = PlayerManager.GetCachedPlayer(AuthorUid);
+                    if (player != null)
+                    {
+                        nameColor = player.MultiplayerStats.ChatColor;
+                    }
+                }
+                return $"<b><color=#{nameColor}>[{AuthorName}]:</color></b> <color=#e8e8e8>{Message}</color>";
+            }
         }
 
         internal void InitCommand()

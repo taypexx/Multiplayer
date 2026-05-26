@@ -60,12 +60,14 @@ namespace Multiplayer.UI.SettingsWindows
                           ? $"<color={Constants.Green}>{Localization.Get("Global", "Yes").ToString()}</color>"
                           : $"<color={Constants.Red}>{Localization.Get("Global", "No").ToString()}</color>";
                         break;
-                    case Setting<Color>:
-                        var colorHex = ColorUtility.ToHtmlStringRGBA(((Setting<Color>)setting).Value).ToLower();
-                        valueString = $"<color={colorHex}>#{colorHex}<color>";
+                    case Setting<string>:
+                        var value = ((Setting<string>)setting).Value;
+                        bool isColor = setting.Name.Contains("color", StringComparison.InvariantCultureIgnoreCase);
+
+                        valueString = $"<color={(isColor ? value : Constants.Yellow)}>{value}</color>";
                         break;
                     default:
-                        valueString = $"<color={Constants.Yellow}>{(setting is Setting<int> ? ((Setting<int>)setting).Value : ((Setting<string>)setting).Value)}</color>";
+                        valueString = $"<color={Constants.Yellow}>{((Setting<int>)setting).Value}</color>";
                         break;
                 }
 
