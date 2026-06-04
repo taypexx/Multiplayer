@@ -255,6 +255,7 @@
     "ButtonPlay": "游玩",
     "ButtonEquip": "配備",
     "ButtonEquipped": "已配備",
+    "ButtonStop": "停止遊玩",
     "Label": "接下來: <color=#{0}>{1}</color>\n高分配置: <color=#{2}>{3} / {4}</color>\n剩餘時間: <color=#{5}>{6}s</color>"
   },
   "Invite": {

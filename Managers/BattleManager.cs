@@ -138,6 +138,19 @@ namespace Multiplayer.Managers
                 }
                 await Task.Delay(Settings.Get<int>("BattleUpdateIntervalMS"));
             }
+
+            // Send final battle stats when synchronization stops
+            if (LobbyManager.IsInLobby && PlayerManager.LocalPlayer != null)
+            {
+                try
+                {
+                    Main.Dispatch(Send);
+                }
+                catch (Exception ex)
+                {
+                    Main.Log(ex);
+                }
+            }
         }
 
         /// <summary>

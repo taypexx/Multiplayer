@@ -45,7 +45,7 @@ namespace Multiplayer.Static
 
                 new Setting<bool>("EnableLogging", SettingCategory.Global, true),
 
-                new Setting<bool>("JailbreakMode", SettingCategory.Global, false),
+                new Setting<bool>("JailbreakMode", SettingCategory.Global, true),
 
                 // Chat
 

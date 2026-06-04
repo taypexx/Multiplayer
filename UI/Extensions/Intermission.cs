@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -147,7 +147,25 @@ namespace Multiplayer.UI.Extensions
                 })
             );
 
-            SideNotification.Popup(string.Empty, buttonMain, buttonSecondary);
+            var buttonTertiary = LobbyManager.LocalLobby.Host == PlayerManager.LocalPlayer ? new Tuple<string, Color, Color, Action>
+            (
+                Localization.Get("Intermission", "ButtonStop").ToString(),
+                new Color(1f, 0.3f, 0.3f, 1f),
+                new Color(1f, 0.7f, 0.7f, 1f),
+                new Action(async () =>
+                {
+                    SoundManager.PlayClick();
+                    if (!Active) return;
+
+                    var success = await LobbyManager.LockLobby(false);
+                    if (success)
+                    {
+                        Active = false;
+                    }
+                })
+            ) : null;
+
+            SideNotification.Popup(string.Empty, buttonMain, buttonSecondary, buttonTertiary);
 
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
             UIManager.JumpToChart(entry.MusicInfo.uid);

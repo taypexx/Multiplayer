@@ -259,6 +259,7 @@
     "ButtonPlay": "プレイ",
     "ButtonEquip": "装備",
     "ButtonEquipped": "装備中",
+    "ButtonStop": "プレイを停止",
     "Label": "次の曲: <color=#{0}>{1}</color>\n最高コンボ: <color=#{2}>{3} / {4}</color>\n残り時間: <color=#{5}>{6}s</color>"
   },
   "Invite": {

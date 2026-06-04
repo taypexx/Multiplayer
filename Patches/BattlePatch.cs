@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
@@ -104,6 +104,70 @@ namespace Multiplayer.Patches
                 if (infoPlusLabel != null)
                 {
                     infoPlusLabel.SetActive(false);
+                }
+
+                // Add chart name and difficulty in the upper right
+                var battleRoot = GameObject.Find("UI_2D/Standard/PnlBattle/PnlBattleUI");
+                if (battleRoot != null)
+                {
+                    Transform activePanel = null;
+                    for (int i = 0; i < battleRoot.transform.childCount; i++)
+                    {
+                        var child = battleRoot.transform.GetChild(i);
+                        if (child.gameObject.activeInHierarchy)
+                        {
+                            activePanel = child;
+                            break;
+                        }
+                    }
+
+                    if (activePanel != null)
+                    {
+                        var upPanel = activePanel.Find("Up");
+                        if (upPanel != null)
+                        {
+                            var textGo = new GameObject("Multiplayer_ChartInfo");
+                            textGo.transform.SetParent(upPanel, false);
+
+                            var textObj = textGo.AddComponent<Text>();
+                            var currentEntry = LobbyManager.LocalLobby.Playlist[LobbyManager.LocalLobby.CurrentPlaylistEntryIndex];
+                            textObj.text = ChartManager.GetNiceChartName(currentEntry.MusicInfo, currentEntry.Difficulty);
+                            textObj.fontSize = 28;
+                            textObj.color = Color.white;
+                            textObj.fontStyle = FontStyle.Normal;
+                            textObj.alignment = TextAnchor.UpperRight;
+                            textObj.horizontalOverflow = HorizontalWrapMode.Overflow;
+                            textObj.verticalOverflow = VerticalWrapMode.Overflow;
+
+                            var djmaxText = activePanel.Find("Score/Djmax/TxtScore_djmax")?.GetComponent<Text>();
+                            var fallbackText = activePanel.Find("Score/Other/TxtScore")?.GetComponent<Text>();
+                            var sourceText = djmaxText ?? fallbackText;
+                            if (sourceText != null)
+                            {
+                                textObj.font = sourceText.font;
+                            }
+                            else
+                            {
+                                var existingText = activePanel.GetComponentInChildren<Text>(true);
+                                if (existingText != null) textObj.font = existingText.font;
+                            }
+
+                            var outline = textGo.AddComponent<Outline>();
+                            outline.effectColor = Color.black;
+                            outline.effectDistance = new Vector2(2f, 2f);
+
+                            var rect = textGo.GetComponent<RectTransform>();
+                            rect.anchorMin = new Vector2(0.5f, 0.5f);
+                            rect.anchorMax = new Vector2(0.5f, 0.5f);
+                            rect.pivot = new Vector2(0.5f, 0.5f);
+                            rect.anchoredPosition = Vector2.zero;
+                            rect.anchoredPosition3D = Vector3.zero;
+                            rect.sizeDelta = new Vector2(100f, 100f);
+                            rect.localScale = Vector3.one;
+
+                            textGo.transform.localPosition = new Vector3(720f, 470f, 0f);
+                        }
+                    }
                 }
             }
         }

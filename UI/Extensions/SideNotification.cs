@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.PeroTools.Nice.Events;
+using Il2CppAssets.Scripts.PeroTools.Nice.Events;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using UnityEngine;
@@ -19,11 +19,13 @@ namespace Multiplayer.UI.Extensions
         private static Text ButtonMainText;
         private static GameObject ButtonSecondary;
         private static Text ButtonSecondaryText;
+        private static GameObject ButtonTertiary;
+        private static Text ButtonTertiaryText;
 
         private static Text Message;
         private static OnActivate CloseObject;
 
-        internal static void Popup(string content, Tuple<string, Color, Color, Action> buttonMain = null, Tuple<string, Color, Color, Action> buttonSecondary = null) 
+        internal static void Popup(string content, Tuple<string, Color, Color, Action> buttonMain = null, Tuple<string, Color, Color, Action> buttonSecondary = null, Tuple<string, Color, Color, Action> buttonTertiary = null) 
         {
             if (Visible) Close();
 
@@ -54,10 +56,22 @@ namespace Multiplayer.UI.Extensions
                 button.onClick.AddListener((UnityAction)buttonSecondary.Item4);
             }
 
+            ButtonTertiary.SetActive(buttonTertiary != null);
+            if (ButtonTertiary.active)
+            {
+                ButtonTertiaryText.text = buttonTertiary.Item1;
+                ButtonTertiaryText.color = buttonTertiary.Item2;
+                ButtonTertiary.GetComponent<Image>().color = buttonTertiary.Item3;
+
+                var button = ButtonTertiary.GetComponent<Button>();
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener((UnityAction)buttonTertiary.Item4);
+            }
+
             Visible = true;
         }
 
-        internal static void Update(string newContent = null, Tuple<string, Color, Color> newButtonMain = null, Tuple<string, Color, Color> newButtonSecondary = null)
+        internal static void Update(string newContent = null, Tuple<string, Color, Color> newButtonMain = null, Tuple<string, Color, Color> newButtonSecondary = null, Tuple<string, Color, Color> newButtonTertiary = null)
         {
             if (!Visible) return;
 
@@ -73,6 +87,13 @@ namespace Multiplayer.UI.Extensions
                 ButtonSecondaryText.text = newButtonSecondary.Item1;
                 ButtonSecondaryText.color = newButtonSecondary.Item2;
                 ButtonSecondary.GetComponent<Image>().color = newButtonSecondary.Item3;
+            }
+
+            if (newButtonTertiary != null)
+            {
+                ButtonTertiaryText.text = newButtonTertiary.Item1;
+                ButtonTertiaryText.color = newButtonTertiary.Item2;
+                ButtonTertiary.GetComponent<Image>().color = newButtonTertiary.Item3;
             }
 
             if (newContent != null) Message.text = newContent;
@@ -148,6 +169,12 @@ namespace Multiplayer.UI.Extensions
             ButtonSecondary.GetComponent<RectTransform>().anchoredPosition3D = new(-150f, 10f);
 
             ButtonSecondaryText = ButtonSecondary.transform.Find("BtnTxt").GetComponent<Text>();
+
+            ButtonTertiary = GameObject.Instantiate(ButtonMain, ButtonMain.transform.parent);
+            ButtonTertiary.name = "BtnTertiary";
+            ButtonTertiary.GetComponent<RectTransform>().anchoredPosition3D = new(-290f, 10f);
+
+            ButtonTertiaryText = ButtonTertiary.transform.Find("BtnTxt").GetComponent<Text>();
 
             CloseObject = ImgBase.transform.Find("SynchronizingCompleted").GetComponent<OnActivate>();
             CloseObject.enabled = true;
