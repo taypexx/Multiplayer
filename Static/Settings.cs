@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using Multiplayer.Data.Settings;
 using Multiplayer.Managers;
 using Multiplayer.UI.Extensions;
@@ -44,6 +44,8 @@ namespace Multiplayer.Static
                 new Setting<bool>("ShowNavigationButtons", SettingCategory.Global, true, null, UIManager.ToggleNavigationButtons),
 
                 new Setting<bool>("EnableLogging", SettingCategory.Global, true),
+
+                new Setting<bool>("JailbreakMode", SettingCategory.Global, false),
 
                 // Chat
 

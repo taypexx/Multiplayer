@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -44,8 +44,13 @@ namespace Multiplayer.Patches
             {
                 if (LobbyManager.IsPlaylistChartComingUp)
                 {
-                    __result = LobbyManager.LocalLobby.CurrentPlaylistEntry.MusicInfo;
-                    return false;
+                    var musicInfo = LobbyManager.LocalLobby.CurrentPlaylistEntry.MusicInfo;
+                    // Only override if we have a valid MusicInfo, otherwise let the game handle it
+                    if (musicInfo != null && musicInfo.Pointer != IntPtr.Zero)
+                    {
+                        __result = musicInfo;
+                        return false;
+                    }
                 }
                 return true;
             }

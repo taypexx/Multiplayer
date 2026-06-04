@@ -1,4 +1,4 @@
-﻿using CustomAlbums.Managers;
+using CustomAlbums.Managers;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.UI;
@@ -63,7 +63,7 @@ namespace Multiplayer.UI.Extensions
                         PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "VanillaOnly"));
                         return;
                     }
-                    else if (ChartManager.GetCustomChartData(musicInfo.uid).IsOnWebsite != true)
+                    else if (!Settings.Get<bool>("JailbreakMode") && ChartManager.GetCustomChartData(musicInfo.uid)?.IsOnWebsite != true)
                     {
                         PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "WebsiteOnly"));
                         return;

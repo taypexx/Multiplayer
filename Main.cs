@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using Multiplayer.Managers;
 using Multiplayer.Patches;
 using Multiplayer.Static;
@@ -81,6 +81,8 @@ namespace Multiplayer
             }
 
             InitGlobal();
+
+
 
             Log(Constants.ModName + " was successfully initialized.", LogType.Success);
         }

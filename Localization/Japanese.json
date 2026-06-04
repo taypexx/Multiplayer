@@ -248,6 +248,7 @@
     "HiddensLocked": "ロビー内では譜面の非表示/表示を変更できません!",
     "ChartHidden": "この譜面は誰かによって非表示にされています",
     "ChartNotSynced": "この譜面を持っていないプレイヤーがいます",
+    "UnknownCustomChart": "未知的カスタム譜面",
     "PlayConfirm": "ゲームを開始しますか?",
     "NoLobby": "ロビーに参加していません",
     "SleepwalkerUsed": "開始できません - {0} が夢遊少女リンを使用しています",

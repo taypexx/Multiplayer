@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using Il2Cpp;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data;
@@ -27,7 +27,7 @@ namespace Multiplayer.Patches
                 if (!LobbyManager.IsInLobby) return;
 
                 var customData = ChartManager.GetCustomChartData(GlobalDataBase.dbMusicTag.CurMusicInfo().uid);
-                if (customData != null && customData.IsOnWebsite is null) 
+                if (!Multiplayer.Static.Settings.Get<bool>("JailbreakMode") && customData != null && customData.IsOnWebsite is null) 
                 {
                     PnlPreparationExtension.IsRetrieving = true;
                     _ = SetPnlRetrieving(customData);

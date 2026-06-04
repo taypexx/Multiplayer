@@ -1,4 +1,4 @@
-﻿using Headquarters.Managers;
+using Headquarters.Managers;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
 using Multiplayer.Static;
@@ -136,16 +136,27 @@ namespace Multiplayer.Managers
         /// <summary>
         /// Syncs the current list of loaded custom charts of the local <see cref="Player"/>.
         /// </summary>
-        internal static void SyncCustoms()
+        internal static async Task SyncCustoms()
         {
             if (!Client.Connected) return;
+
+            // Sync all currently loaded custom charts
+            foreach (var pair in CustomAlbums.Managers.AlbumManager.LoadedAlbums)
+            {
+                var album = pair.Value;
+                if (!album.Sheets.TryGetValue(2, out var sheet)) continue;
+                if (!ChartManager.CustomCharts.ContainsKey(sheet.Md5))
+                {
+                    ChartManager.CustomCharts.Add(sheet.Md5, new Multiplayer.Data.CustomChartData(album));
+                }
+            }
 
             var payload = new
             {
                 Uid = LocalPlayerUid,
                 Customs = ChartManager.CustomCharts.Keys
             };
-            _ = Client.PostAsync("updatePlayer", payload);
+            await Client.PostAsync("updatePlayer", payload);
         }
 
         /// <summary>
@@ -253,7 +264,7 @@ namespace Multiplayer.Managers
             {
                 SyncProfile();
                 SyncHiddens();
-                SyncCustoms();
+                _ = SyncCustoms();
             });
 
             // Auto cache cleaner

@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Stats;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -42,6 +42,11 @@ namespace Multiplayer.Data.Chat
                             param[1] = ChartManager.GetNiceChartName(musicInfo, int.Parse(param[2]));
                             param[2] = null;
                             ExtraData = musicInfo.uid;
+                        }
+                        else
+                        {
+                            param[1] = Localization.Get("Lobby", "UnknownCustomChart").ToString();
+                            param[2] = null;
                         }
                     }
 

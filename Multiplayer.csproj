@@ -18,6 +18,9 @@
     <Compile Remove="Assets\Stickers\Pack1\**" />
     <EmbeddedResource Remove="Assets\Stickers\Pack1\**" />
     <None Remove="Assets\Stickers\Pack1\**" />
+    <Compile Remove="inspect_cs\**" />
+    <EmbeddedResource Remove="inspect_cs\**" />
+    <None Remove="inspect_cs\**" />
   </ItemGroup>
 
   <ItemGroup>

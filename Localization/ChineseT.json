@@ -244,6 +244,7 @@
     "HiddensLocked": "不能在游戲大廳隱藏或解除隱藏譜面",
     "ChartHidden": "譜面被玩家隱藏了",
     "ChartNotSynced": "并非所有玩家都擁有這譜面",
+    "UnknownCustomChart": "未知自製譜",
     "PlayConfirm": "確認開啟游玩？",
     "NoLobby": "你不在游戲大廳裏",
     "SleepwalkerUsed": "不能開啟 - {0} 正在使用夢游少女凛",

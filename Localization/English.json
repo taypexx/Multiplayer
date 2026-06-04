@@ -257,6 +257,7 @@
     "HiddensLocked": "Cannot hide/unhide charts in lobby!",
     "ChartHidden": "This chart was hidden by someone",
     "ChartNotSynced": "Someone doesn't have this chart",
+    "UnknownCustomChart": "Unknown Custom Chart",
     "PlayConfirm": "Start the game?",
     "NoLobby": "You are not in lobby",
     "SleepwalkerUsed": "Cannot start - {0} is using sleepwalker",

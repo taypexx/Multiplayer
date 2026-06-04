@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.Database;
 using LocalizeLib;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Static;
@@ -135,6 +135,11 @@ namespace Multiplayer.Managers
         internal static async Task<bool> PlaylistAdd(MusicInfo musicInfo, int difficulty)
         {
             if (!Client.Connected || !IsInLobby || LocalLobby.IsPlaylistFull) return false;
+
+            if (musicInfo != null && musicInfo.albumIndex == CustomAlbums.Managers.AlbumManager.Uid)
+            {
+                await PlayerManager.SyncCustoms();
+            }
 
             string entry = ChartManager.GetEntry(musicInfo, difficulty);
             var payload = new

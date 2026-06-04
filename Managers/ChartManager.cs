@@ -1,4 +1,4 @@
-﻿using CustomAlbums.Data;
+using CustomAlbums.Data;
 using CustomAlbums.Managers;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data;
@@ -22,7 +22,14 @@ namespace Multiplayer.Managers
         {
             var md5 = GetMD5(uid);
             if (md5 == null) return null;
-            if (!CustomCharts.TryGetValue(md5, out CustomChartData data)) return null;
+            if (!CustomCharts.TryGetValue(md5, out CustomChartData data))
+            {
+                var album = AlbumManager.GetByUid(uid);
+                if (album == null) return null;
+                data = new CustomChartData(album);
+                CustomCharts.Add(md5, data);
+                _ = PlayerManager.SyncCustoms();
+            }
             return data;
         }
 
@@ -41,6 +48,7 @@ namespace Multiplayer.Managers
         /// </summary>
         internal static string GetMD5(MusicInfo musicInfo)
         {
+            if (musicInfo == null) return null;
             if (musicInfo.albumIndex != AlbumManager.Uid) return null;
 
             Album album = AlbumManager.GetByUid(musicInfo.uid);
@@ -92,7 +100,20 @@ namespace Multiplayer.Managers
         {
             if (str.Length >= 16)
             {
-                if (!CustomCharts.TryGetValue(str, out var data)) return null;
+                if (!CustomCharts.TryGetValue(str, out var data))
+                {
+                    foreach (var pair in AlbumManager.LoadedAlbums)
+                    {
+                        var album = pair.Value;
+                        if (album.Sheets.TryGetValue(2, out var sheet) && sheet.Md5 == str)
+                        {
+                            data = new CustomChartData(album);
+                            CustomCharts.Add(str, data);
+                            return data.MusicInfo;
+                        }
+                    }
+                    return null;
+                }
                 return data.MusicInfo;
             } 
             else return GlobalDataBase.dbMusicTag.GetMusicInfoFromAll(str);
@@ -112,6 +133,44 @@ namespace Multiplayer.Managers
 
                 CustomCharts.Add(sheet.Md5, new(album));
             }
+
+            // Listen for hot-reloaded album events
+            CustomAlbums.ModExtensions.Events.OnAlbumLoaded += OnAlbumLoaded;
+        }
+
+        // Handle hot-reloaded album events to keep chart cache and playlist in sync
+        private static void OnAlbumLoaded(object sender, CustomAlbums.ModExtensions.AlbumEventArgs e)
+        {
+            var album = e.Album;
+            if (album == null) return;
+            if (!album.Sheets.TryGetValue(2, out var sheet)) return;
+
+            // Remove old entry with the same album name
+            var oldKeys = CustomCharts.Where(pair => pair.Value.Album.AlbumName == album.AlbumName).Select(pair => pair.Key).ToList();
+            foreach (var key in oldKeys)
+            {
+                CustomCharts.Remove(key);
+            }
+
+            // Add the new entry
+            var newChartData = new CustomChartData(album);
+            CustomCharts[sheet.Md5] = newChartData;
+
+            // Invalidate playlist entries so MusicInfo is re-fetched when needed
+            if (LobbyManager.IsInLobby && LobbyManager.LocalLobby?.Playlist != null)
+            {
+                foreach (var entry in LobbyManager.LocalLobby.Playlist)
+                {
+                    // Invalidate by new MD5 or any old MD5 key that was just removed
+                    if (entry.EntryKey == sheet.Md5 || oldKeys.Contains(entry.EntryKey))
+                    {
+                        entry.InvalidateMusicInfo();
+                    }
+                }
+            }
+
+            // Sync with the server
+            _ = PlayerManager.SyncCustoms();
         }
     }
 }

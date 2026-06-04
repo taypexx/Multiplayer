@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -238,12 +238,7 @@ namespace Multiplayer.Data.Lobbies
                     }
 
                     // Remove entries that were removed by other players
-                    foreach (var playlistEntry in Playlist)
-                    {
-                        if (newPlaylist.Contains(playlistEntry.Entry)) continue;
-
-                        Playlist.Remove(playlistEntry);
-                    }
+                    Playlist.RemoveAll(playlistEntry => !newPlaylist.Contains(playlistEntry.Entry));
                 }
                 catch { }
             }

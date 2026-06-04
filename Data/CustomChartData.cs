@@ -1,4 +1,4 @@
-﻿using CustomAlbums.Data;
+using CustomAlbums.Data;
 using Il2CppAssets.Scripts.Database;
 using Multiplayer.Static;
 using System.Net.Http.Json;
@@ -9,7 +9,20 @@ namespace Multiplayer.Data
     public class CustomChartData
     {
         public Album Album;
-        public MusicInfo MusicInfo;
+        private MusicInfo _musicInfo;
+        public MusicInfo MusicInfo
+        {
+            get
+            {
+                // IL2CPP objects may appear non-null but have invalid pointers after hot-reload
+                if (_musicInfo == null || _musicInfo.Pointer == IntPtr.Zero)
+                {
+                    _musicInfo = GlobalDataBase.dbMusicTag.GetMusicInfoFromAll(Album.Uid);
+                }
+                return _musicInfo;
+            }
+            set => _musicInfo = value;
+        }
         public bool? IsOnWebsite { get; internal set; } = null;
         public string? WebsiteId { get; internal set; } = null;
         public bool? IsRanked { get; internal set; } = null;
@@ -19,7 +32,6 @@ namespace Multiplayer.Data
         public CustomChartData(Album album)
         {
             Album = album;
-            MusicInfo = GlobalDataBase.dbMusicTag.GetMusicInfoFromAll(album.Uid);
             MapDifficulties = new();
         }
 
@@ -53,7 +65,7 @@ namespace Multiplayer.Data
                             var otherSheet = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + sheetId, true, false, true);
                             if (!otherSheet.IsSuccessStatusCode) continue;
 
-                            var otherBody = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+                            var otherBody = await otherSheet.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
                             MapDifficulties[otherBody["map"].GetInt32()] = otherBody["difficulty"].GetString();
                         }
                     }
