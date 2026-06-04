@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.GameCore.HostComponent;
+using Il2CppAssets.Scripts.GameCore.HostComponent;
 using Il2CppFormulaBase;
 using Multiplayer.Data.Players;
 using Multiplayer.Data.Stats;
@@ -71,14 +71,8 @@ namespace Multiplayer.Managers
         /// </summary>
         private static void Send()
         {
-            // This shit needs to be calculated properly bruh
-            int num1 = TaskStageTarget.GetHitCountByResult(2u)
-                + TaskStageTarget.GetHitCountByResult(4u)
-                + TaskStageTarget.GetHitCountByResult(5u)
-                + TaskStageTarget.m_Block + TaskStageTarget.m_MusicCount + TaskStageTarget.m_EnergyCount;
-            int num2 = TaskStageTarget.GetHitCountByResult(3u);
-            int num3 = TaskStageTarget.GetHitCountByResult(1u);
-            float accuracy = (float)((num1 + num2 / 2.0) / (num1 + num2 + num3) * 100.0);
+            // Calculate accuracy using AccuracyManager
+            float accuracy = AccuracyManager.GetCalculatedAccuracy();
 
             // Updating battle stats
             BattleStats.Score = (uint)TaskStageTarget.GetScore();
@@ -125,6 +119,9 @@ namespace Multiplayer.Managers
             TaskStageTarget = TaskStageTarget.instance;
             BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;
             StageBattleComponent = StageBattleComponent.instance;
+
+            // Initialize accuracy manager stats
+            AccuracyManager.Init();
 
             Synchronizing = true;
             Main.Log("Battle synchronization started!");
