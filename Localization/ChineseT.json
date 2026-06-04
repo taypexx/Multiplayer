@@ -45,7 +45,8 @@
     "NoPerms": "沒有執行此命令的權限。",
     "ChatPlaceholderText": "點擊此處開始聊天",
     "ChatPlaceholderTextNoKey": "點擊此處開始聊天",
-    "WebsocketReconnect": "連接中···"
+    "WebsocketReconnect": "連接中···",
+    "GamePaused": "遊戲已被房主暫停！"
   },
   "CommandDescriptions": {
     "help": "顯示所有指令",

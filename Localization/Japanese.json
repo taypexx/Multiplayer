@@ -45,7 +45,8 @@
     "NoPerms": "このコマンドを実行する権限がありません。",
     "ChatPlaceholderText": "/ を押すかここをクリックして入力",
     "ChatPlaceholderTextNoKey": "ここをクリックして入力",
-    "WebsocketReconnect": "チャットに再接続中..."
+    "WebsocketReconnect": "チャットに再接続中...",
+    "GamePaused": "ゲームはホストにより一時停止されました！"
   },
   "CommandDescriptions": {
     "help": "利用可能なコマンドを表示する",

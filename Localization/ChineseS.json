@@ -54,7 +54,8 @@
     "NoPerms": "你没有权限执行这个命令。",
     "ChatPlaceholderText": "按下“/”或点击此处开始聊天",
     "ChatPlaceholderTextNoKey": "点击此处开始聊天",
-    "WebsocketReconnect": "聊天服务重连中..."
+    "WebsocketReconnect": "聊天服务重连中...",
+    "GamePaused": "游戏已被房主暂停！"
   },
   "CommandDescriptions": {
     "help": "显示所有可用的命令",
@@ -187,7 +188,7 @@
     "Description": "<color=1eff00ff>公开</color> 房间所有人都可以加入\n\n<color=f5428aff>私密</color> 房间必须输入房间号和密码来加入。\n\n你也可以自己创建一个房间。",
     "PublicButton": "公开房间",
     "PrivateButton": "加入私密房间",
-    "CreateButton": "创建一个房间",
+    "CreateButton": "创建房间",
     "IDPrompt": "输入房间号:",
     "IncorrectID": "这个房间不存在！"
   },
@@ -268,7 +269,7 @@
     "ButtonPlay": "开始游戏",
     "ButtonEquip": "选择配置",
     "ButtonEquipped": "已选择配置",
-    "ButtonStop": "停止游玩",
+    "ButtonStop": "停止游戏",
     "Label": "下一首: <color=#{0}>{1}</color>\n推荐高分配置: <color=#{2}>{3} / {4}</color>\n剩余时间: <color=#{5}>{6}s</color>"
   },
   "Invite": {

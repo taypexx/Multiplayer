@@ -54,7 +54,8 @@
     "NoPerms": "You do not have permission to execute this command.",
     "ChatPlaceholderText": "Press / or click here to start typing",
     "ChatPlaceholderTextNoKey": "Click here to start typing",
-    "WebsocketReconnect": "Reconnecting to the chat..."
+    "WebsocketReconnect": "Reconnecting to the chat...",
+    "GamePaused": "The game has been paused by the host!"
   },
   "CommandDescriptions": {
     "help": "Show all available commands",
