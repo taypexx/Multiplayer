@@ -217,6 +217,18 @@ namespace Multiplayer.Patches
             positionList.Sort(localLobby.GoalComparison);
             positionList.Reverse();
 
+            var playerSprites = new Dictionary<string, Sprite>();
+            foreach (var player in positionList)
+            {
+                Sprite sprite = null;
+                if (Settings.Get<bool>("DisplayAvatars"))
+                {
+                    sprite = player.HQStats.HasAvatar ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
+                }
+                else if (player.BattleStats.Alive) sprite = sprites[(int)player.BattleStats.Grade];
+                playerSprites[player.Uid] = sprite;
+            }
+
             Task.Run(async () =>
             {
                 foreach (var player in positionList)
@@ -225,12 +237,7 @@ namespace Multiplayer.Patches
                     {
                         DisplayedPlayers.Add(player.Uid);
 
-                        Sprite sprite = null;
-                        if (Settings.Get<bool>("DisplayAvatars"))
-                        {
-                            sprite = player.HQStats.HasAvatar ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
-                        }
-                        else if (player.BattleStats.Alive) sprite = sprites[(int)player.BattleStats.Grade];
+                        Sprite sprite = playerSprites[player.Uid];
 
                         await PnlMessageExtension.AddOne(
                             $"{positionList.IndexOf(player) + 1}) {player.MultiplayerStats.Name} — {localLobby.GetBattleInfo(player)}", 
