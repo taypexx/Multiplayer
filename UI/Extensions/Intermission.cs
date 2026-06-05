@@ -90,6 +90,11 @@ namespace Multiplayer.UI.Extensions
             if (!Active || !LobbyManager.IsInLobby) return;
 
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
+            if (entry == null)
+            {
+                Active = false;
+                return;
+            }
             var chartTitle = ChartManager.GetNiceChartName(entry.MusicInfo, entry.Difficulty);
             var secondsLeft = (int)Math.Ceiling(Constants.IntermissionTimeMS / 1000 - Stopwatch.Elapsed.TotalSeconds);
 
@@ -215,6 +220,7 @@ namespace Multiplayer.UI.Extensions
             if (!LobbyManager.IsPlaylistChartComingUp) return;
 
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
+            if (entry == null) return;
             var specialSongManager = Singleton<SpecialSongManager>.instance;
             var currentHiddenUnlocked = specialSongManager.IsInvokeHideBms(entry.MusicInfo.uid);
 
