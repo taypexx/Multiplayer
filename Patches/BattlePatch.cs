@@ -143,26 +143,19 @@ namespace Multiplayer.Patches
                             string levelStr = currentEntry.MusicInfo.GetMusicLevelStringByDiff(currentEntry.Difficulty);
                             if (levelStr == "0" || string.IsNullOrEmpty(levelStr)) levelStr = "?";
 
+                            string selectedByStr = Multiplayer.Static.Localization.Get("Battle", "SelectedBy")?.ToString();
+                            if (string.IsNullOrEmpty(selectedByStr)) selectedByStr = "Selected by: {0}";
+                            string ownerFormatted = string.Format(selectedByStr, $"<color=#00e6ffff>{currentEntry.OwnerName}</color>");
+
                             var songName = currentEntry.MusicInfo.GetLocal(Multiplayer.Static.Localization.LanguageIndex).name;
-                            textObj.text = $"{songName}\n<size=27>{diffStr} - Level {levelStr}</size>";
-                            textObj.fontSize = 38;
+                            textObj.text = $"<color=#ffffff>{songName}</color> <color=#ff00d4ff><size=24>{diffStr} - {levelStr}</size></color>\n<size=22>{ownerFormatted}</size>";
+                            textObj.fontSize = 32;
                             textObj.lineSpacing = 0.8f;
                             textObj.alignment = TextAnchor.UpperRight;
+                            textObj.horizontalOverflow = HorizontalWrapMode.Overflow;
+                            textObj.verticalOverflow = VerticalWrapMode.Overflow;
 
-                            // Trying to get the font from another text component
-                            var djmaxText = activePanel.Find("Score/Djmax/TxtScore_djmax")?.GetComponent<Text>();
-                            var fallbackText = activePanel.Find("Score/Other/TxtScore")?.GetComponent<Text>();
-                            var sourceText = djmaxText ?? fallbackText;
-                            if (sourceText != null)
-                            {
-                                textObj.font = sourceText.font;
-                                textObj.fontStyle = sourceText.fontStyle;
-                            }
-                            else
-                            {
-                                var existingText = activePanel.GetComponentInChildren<Text>(true);
-                                if (existingText != null) textObj.font = existingText.font;
-                            }
+                            textObj.font = Multiplayer.Static.Utilities.NormalFont;
 
                             var rect = textGo.GetComponent<RectTransform>();
                             rect.anchorMin = new Vector2(0.5f, 0.5f);

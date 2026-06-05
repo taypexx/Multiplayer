@@ -90,7 +90,8 @@
     "Awaiting": "等待中",
     "Continue": "繼續",
     "Results": "成績",
-    "Next": "下一首"
+    "Next": "下一首",
+    "SelectedBy": "選譜人: {0}"
   },
   "MainMenu": {
     "Title": "多人模式",

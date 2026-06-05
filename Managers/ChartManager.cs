@@ -53,7 +53,7 @@ namespace Multiplayer.Managers
             );
         }
 
-        internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
+        internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}#{2}", GetEntryKey(musicInfo), difficulty, Multiplayer.Managers.PlayerManager.LocalPlayer?.MultiplayerStats?.Name ?? "Unknown");
 
         /// <summary>
         /// Gets the MD5 hash of a custom chart by its <see cref="MusicInfo"/>.

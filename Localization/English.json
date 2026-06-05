@@ -100,7 +100,8 @@
     "Awaiting": "AWAITING",
     "Continue": "CONTINUE",
     "Results": "RESULTS",
-    "Next": "NEXT"
+    "Next": "NEXT",
+    "SelectedBy": "Selected by: {0}"
   },
   "MainMenu": {
     "Title": "Multiplayer",

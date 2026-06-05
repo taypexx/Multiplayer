@@ -19,6 +19,7 @@ namespace Multiplayer.Data.Lobbies
         public string Entry { get; private set; }
         public string EntryKey { get; private set; }
         public bool IsCustom { get; private set; }
+        public string OwnerName { get; private set; }
 
         internal PlaylistEntry(MusicInfo musicInfo, int difficulty, string entry)
         {
@@ -35,6 +36,9 @@ namespace Multiplayer.Data.Lobbies
                 EntryKey = str.Length > 0 ? str[0] : string.Empty;
                 IsCustom = true;
             }
+            
+            string[] parts = entry.Split("#");
+            OwnerName = parts.Length > 2 ? parts[2] : "Unknown";
         }
 
     }
