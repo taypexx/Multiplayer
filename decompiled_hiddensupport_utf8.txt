@@ -1,0 +1,316 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using CustomAlbums.Data;
+using CustomAlbums.Managers;
+using CustomAlbums.Utilities;
+using HarmonyLib;
+using Il2Cpp;
+using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.Database.DataClass;
+using Il2CppAssets.Scripts.PeroTools.Commons;
+using Il2CppAssets.Scripts.PeroTools.Managers;
+using Il2CppAssets.Scripts.UI.Tips;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppPeroPeroGames.GlobalDefines;
+using Il2CppSystem;
+using Il2CppSystem.Collections.Generic;
+
+namespace CustomAlbums.Patches;
+
+internal class HiddenSupportPatch
+{
+	[HarmonyPatch(typeof(SpecialSongManager), "InitHideBmsInfoDic")]
+	internal static class HideBmsInfoDicPatch
+	{
+		private static readonly Logger Logger = new Logger("HideBmsInfoDicPatch");
+
+		internal static bool HasUpdate { get; set; } = true;
+
+		private static void Postfix(SpecialSongManager __instance)
+		{
+			//IL_009b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00a2: Expected O, but got Unknown
+			//IL_019a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_01a4: Expected O, but got Unknown
+			//IL_01a5: Unknown result type (might be due to invalid IL or missing references)
+			//IL_01ac: Expected O, but got Unknown
+			if (!HasUpdate)
+			{
+				return;
+			}
+			foreach (KeyValuePair<string, Album> item in AlbumManager.LoadedAlbums.Where((KeyValuePair<string, Album> kv) => kv.Value.HasDifficulty(4) || kv.Value.HasDifficulty(5)))
+			{
+				item.Deconstruct(out var key, out var value);
+				string text = key;
+				Album album = value;
+				if (album.HasDifficulty(5))
+				{
+					Il2CppStringArray val = new Il2CppStringArray((long)(((Il2CppArrayBase<string>)(object)DBMusicTagDefine.s_BarrageModeSongUid).Length + 1));
+					for (int num = 0; num < ((Il2CppArrayBase<string>)(object)DBMusicTagDefine.s_BarrageModeSongUid).Length; num++)
+					{
+						((Il2CppArrayBase<string>)(object)val)[num] = ((Il2CppArrayBase<string>)(object)DBMusicTagDefine.s_BarrageModeSongUid)[num];
+					}
+					((Il2CppArrayBase<string>)(object)val)[((Il2CppArrayBase<string>)(object)val).Length - 1] = album.Uid;
+					DBMusicTagDefine.s_BarrageModeSongUid = val;
+				}
+				if (LoadedHiddens.Contains(album.Uid))
+				{
+					string albumUid = album.Uid;
+					__instance.m_HideBmsInfos.Add(albumUid, new HideBmsInfo(albumUid, (!(album.Info.HideBmsDifficulty == "0")) ? album.Info.HideBmsDifficulty.ParseAsInt() : (album.HasDifficulty(3) ? 3 : 2), 4, text + "_map4", Func<bool>.op_Implicit((Func<bool>)(() => __instance.IsInvokeHideBms(albumUid)))));
+					HideMusicInfo val2 = new HideMusicInfo();
+					val2.musicUid = albumUid;
+					HideMusicInfo val3 = val2;
+					string hideBmsMode = album.Info.HideBmsMode;
+					if (1 == 0)
+					{
+					}
+					int invokeType = hideBmsMode switch
+					{
+						"CLICK" => 3, 
+						"PRESS" => 1, 
+						"TOGGLE" => 2, 
+						_ => 0, 
+					};
+					if (1 == 0)
+					{
+					}
+					val3.invokeType = invokeType;
+					HideMusicInfo val4 = val2;
+					__instance.m_ConfigHideMusic.m_HideMusicObjectMapping[albumUid] = val4;
+				}
+			}
+			HasUpdate = false;
+		}
+	}
+
+	[HarmonyPatch(typeof(SpecialSongManager), "InvokeHideBms")]
+	internal static class InvokeHideBmsPatch
+	{
+		private static readonly Logger Logger = new Logger("InvokeHideBmsPatch");
+
+		private static bool Prefix(MusicInfo musicInfo, SpecialSongManager __instance)
+		{
+			if (!musicInfo.uid.StartsWith($"{999}-") || !LoadedHiddens.Contains(musicInfo.uid))
+			{
+				return true;
+			}
+			HideBmsInfo val = __instance.m_HideBmsInfos[musicInfo.uid];
+			__instance.m_IsInvokeHideDic[val.uid] = true;
+			if (!val.extraCondition.Invoke())
+			{
+				return false;
+			}
+			Album value = AlbumManager.LoadedAlbums.FirstOrDefault((KeyValuePair<string, Album> kv) => kv.Value.Index == musicInfo.musicIndex).Value;
+			ActivateHidden(val);
+			if (value.Info.HideBmsMessage != null)
+			{
+				PnlTipsManager instance = PnlTipsManager.instance;
+				AbstractMessageBox messageBox = instance.GetMessageBox("PnlSpecialsBmsAsk");
+				messageBox.Show("TIPS", value.Info.HideBmsMessage);
+			}
+			Action onTriggerHideBmsEvent = SpecialSongManager.onTriggerHideBmsEvent;
+			if (onTriggerHideBmsEvent != null)
+			{
+				onTriggerHideBmsEvent.Invoke();
+			}
+			if (value.Info.HideBmsMode == "PRESS")
+			{
+				Singleton<EventManager>.instance.Invoke("UI/OnSpecialsMusic", (Il2CppReferenceArray<Object>)null);
+			}
+			return false;
+		}
+
+		private static void ActivateHidden(HideBmsInfo hideBms)
+		{
+			if (hideBms == null)
+			{
+				return;
+			}
+			MusicInfo musicInfoFromAll = GlobalDataBase.dbMusicTag.GetMusicInfoFromAll(hideBms.uid);
+			if (hideBms.triggerDiff != 0)
+			{
+				int num = hideBms.triggerDiff;
+				if (num == -1)
+				{
+					num = 2;
+					((BaseDataObject)musicInfoFromAll).AddMaskValue("difficulty1", Object.op_Implicit("0"));
+					((BaseDataObject)musicInfoFromAll).AddMaskValue("difficulty3", Object.op_Implicit("0"));
+				}
+				string text = "difficulty" + num;
+				string text2 = "levelDesigner" + num;
+				string text3 = "?";
+				string text4 = musicInfoFromAll.levelDesigner;
+				switch (hideBms.m_HideDiff)
+				{
+				case 1:
+					text3 = musicInfoFromAll.difficulty1;
+					text4 = musicInfoFromAll.levelDesigner1 ?? musicInfoFromAll.levelDesigner;
+					break;
+				case 2:
+					text3 = musicInfoFromAll.difficulty2;
+					text4 = musicInfoFromAll.levelDesigner2 ?? musicInfoFromAll.levelDesigner;
+					break;
+				case 3:
+					text3 = musicInfoFromAll.difficulty3;
+					text4 = musicInfoFromAll.levelDesigner3 ?? musicInfoFromAll.levelDesigner;
+					break;
+				case 4:
+					text3 = musicInfoFromAll.difficulty4;
+					text4 = musicInfoFromAll.levelDesigner4 ?? musicInfoFromAll.levelDesigner;
+					break;
+				case 5:
+					text3 = musicInfoFromAll.difficulty5;
+					text4 = musicInfoFromAll.levelDesigner5 ?? musicInfoFromAll.levelDesigner;
+					break;
+				}
+				((BaseDataObject)musicInfoFromAll).AddMaskValue(text, Object.op_Implicit(text3));
+				((BaseDataObject)musicInfoFromAll).AddMaskValue(text2, Object.op_Implicit(text4));
+				musicInfoFromAll.SetDifficulty(num, hideBms.m_HideDiff);
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(MusicTagManager), "InitDefaultInfo")]
+	internal class MusicTagPatch
+	{
+		private const int HiddenId = 32776;
+
+		private static readonly Logger Logger = new Logger("MusicTagPatch");
+
+		internal static bool HasUpdate { get; set; } = true;
+
+		private static void Postfix()
+		{
+			//IL_00a4: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00aa: Expected O, but got Unknown
+			if (!HasUpdate)
+			{
+				return;
+			}
+			List<string> val = new List<string>();
+			foreach (var (_, album2) in AlbumManager.LoadedAlbums)
+			{
+				if (album2.HasDifficulty(DifficultyDefine.hide) && LoadedHiddens.Add(album2.Uid))
+				{
+					val.Add(album2.Uid);
+				}
+			}
+			Il2CppStringArray val2 = new Il2CppStringArray((long)(((Il2CppArrayBase<string>)(object)DBMusicTagDefine.s_HiddenLocal).Length + val.Count));
+			for (int i = 0; i < ((Il2CppArrayBase<string>)(object)DBMusicTagDefine.s_HiddenLocal).Length; i++)
+			{
+				((Il2CppArrayBase<string>)(object)val2)[i] = ((Il2CppArrayBase<string>)(object)DBMusicTagDefine.s_HiddenLocal)[i];
+			}
+			for (int j = 0; j < val.Count; j++)
+			{
+				((Il2CppArrayBase<string>)(object)val2)[j + ((Il2CppArrayBase<string>)(object)DBMusicTagDefine.s_HiddenLocal).Length] = val[j];
+			}
+			DBMusicTagDefine.s_HiddenLocal = val2;
+			AlbumTagInfo albumTagInfo = GlobalDataBase.dbMusicTag.GetAlbumTagInfo(32776);
+			albumTagInfo.AddTagUids(val);
+			HasUpdate = false;
+		}
+	}
+
+	internal static HashSet<string> LoadedHiddens = new HashSet<string>();
+
+	private static readonly Logger Logger = new Logger("HiddenSupportPatch");
+
+	internal static void UpdateHiddenCharts()
+	{
+		HideBmsInfoDicPatch.HasUpdate = true;
+		MusicTagPatch.HasUpdate = true;
+	}
+
+	internal static void RegisterHiddenChartsDirectly()
+	{
+		//IL_036d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0374: Expected O, but got Unknown
+		//IL_00d2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d9: Expected O, but got Unknown
+		//IL_0210: Unknown result type (might be due to invalid IL or missing references)
+		//IL_021a: Expected O, but got Unknown
+		//IL_021b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0222: Expected O, but got Unknown
+		SpecialSongManager specialSongMgr = Singleton<SpecialSongManager>.instance;
+		if (specialSongMgr == null)
+		{
+			return;
+		}
+		List<string> val = new List<string>();
+		foreach (KeyValuePair<string, Album> loadedAlbum in AlbumManager.LoadedAlbums)
+		{
+			loadedAlbum.Deconstruct(out var key, out var value);
+			string text = key;
+			Album album = value;
+			if (!album.HasDifficulty(4) && !album.HasDifficulty(5))
+			{
+				continue;
+			}
+			string albumUid = album.Uid;
+			if (album.HasDifficulty(5) && !((Il2CppArrayBase<string>)(object)DBMusicTagDefine.s_BarrageModeSongUid).Contains(albumUid))
+			{
+				Il2CppStringArray s_BarrageModeSongUid = DBMusicTagDefine.s_BarrageModeSongUid;
+				Il2CppStringArray val2 = new Il2CppStringArray((long)(((Il2CppArrayBase<string>)(object)s_BarrageModeSongUid).Length + 1));
+				for (int i = 0; i < ((Il2CppArrayBase<string>)(object)s_BarrageModeSongUid).Length; i++)
+				{
+					((Il2CppArrayBase<string>)(object)val2)[i] = ((Il2CppArrayBase<string>)(object)s_BarrageModeSongUid)[i];
+				}
+				((Il2CppArrayBase<string>)(object)val2)[((Il2CppArrayBase<string>)(object)val2).Length - 1] = albumUid;
+				DBMusicTagDefine.s_BarrageModeSongUid = val2;
+			}
+			if (!album.HasDifficulty(4) || !LoadedHiddens.Add(albumUid))
+			{
+				continue;
+			}
+			val.Add(albumUid);
+			if (!specialSongMgr.m_HideBmsInfos.ContainsKey(albumUid))
+			{
+				int num = ((!(album.Info.HideBmsDifficulty == "0")) ? album.Info.HideBmsDifficulty.ParseAsInt() : (album.HasDifficulty(3) ? 3 : 2));
+				specialSongMgr.m_HideBmsInfos.Add(albumUid, new HideBmsInfo(albumUid, num, 4, text + "_map4", Func<bool>.op_Implicit((Func<bool>)(() => specialSongMgr.IsInvokeHideBms(albumUid)))));
+				HideMusicInfo val3 = new HideMusicInfo();
+				val3.musicUid = albumUid;
+				HideMusicInfo val4 = val3;
+				string hideBmsMode = album.Info.HideBmsMode;
+				if (1 == 0)
+				{
+				}
+				int invokeType = hideBmsMode switch
+				{
+					"CLICK" => 3, 
+					"PRESS" => 1, 
+					"TOGGLE" => 2, 
+					_ => 0, 
+				};
+				if (1 == 0)
+				{
+				}
+				val4.invokeType = invokeType;
+				HideMusicInfo val5 = val3;
+				specialSongMgr.m_ConfigHideMusic.m_HideMusicObjectMapping[albumUid] = val5;
+				Logger.Msg($"Registered hidden for {albumUid} (trigger={album.Info.HideBmsMode})", verbose: false);
+			}
+		}
+		if (val.Count > 0)
+		{
+			Il2CppStringArray s_HiddenLocal = DBMusicTagDefine.s_HiddenLocal;
+			Il2CppStringArray val6 = new Il2CppStringArray((long)(((Il2CppArrayBase<string>)(object)s_HiddenLocal).Length + val.Count));
+			for (int num2 = 0; num2 < ((Il2CppArrayBase<string>)(object)s_HiddenLocal).Length; num2++)
+			{
+				((Il2CppArrayBase<string>)(object)val6)[num2] = ((Il2CppArrayBase<string>)(object)s_HiddenLocal)[num2];
+			}
+			for (int num3 = 0; num3 < val.Count; num3++)
+			{
+				((Il2CppArrayBase<string>)(object)val6)[num3 + ((Il2CppArrayBase<string>)(object)s_HiddenLocal).Length] = val[num3];
+			}
+			DBMusicTagDefine.s_HiddenLocal = val6;
+			AlbumTagInfo albumTagInfo = GlobalDataBase.dbMusicTag.GetAlbumTagInfo(32776);
+			if (albumTagInfo != null)
+			{
+				albumTagInfo.AddTagUids(val);
+			}
+		}
+	}
+}
+You are not using the latest version of the tool, please update.
+Latest version is '10.1.0.8386' (yours is '10.0.0.8330')

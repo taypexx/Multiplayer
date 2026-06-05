@@ -1,0 +1,662 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading;
+using CustomAlbums.Data;
+using CustomAlbums.Managers;
+using CustomAlbums.Utilities;
+using HarmonyLib;
+using Il2Cpp;
+using Il2CppAccount;
+using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.GameCore.HostComponent;
+using Il2CppAssets.Scripts.GameCore.Managers;
+using Il2CppAssets.Scripts.PeroTools.Commons;
+using Il2CppAssets.Scripts.PeroTools.Nice.Interface;
+using Il2CppAssets.Scripts.PeroTools.Platforms.Steam;
+using Il2CppAssets.Scripts.Structs;
+using Il2CppAssets.Scripts.UI.Panels;
+using Il2CppInterop.Common;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppSystem;
+using Il2CppSystem.Collections.Generic;
+using MelonLoader;
+using MelonLoader.NativeUtils;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace CustomAlbums.Patches;
+
+internal static class SavePatch
+{
+	[HarmonyPatch(typeof(MusicInfo), "GetLevelDesignerStringByIndex")]
+	internal class LevelDesignerPatch
+	{
+		private static bool Prefix(MusicInfo __instance, ref string __result, int index)
+		{
+			if (1 == 0)
+			{
+			}
+			Object val = default(Object);
+			Object val2 = default(Object);
+			Object val3 = default(Object);
+			Object val4 = default(Object);
+			Object val5 = default(Object);
+			string text = index switch
+			{
+				1 => ((BaseDataObject)__instance).m_MaskValue.TryGetValue("levelDesigner1", ref val) ? val.ToString() : __instance.levelDesigner1, 
+				2 => ((BaseDataObject)__instance).m_MaskValue.TryGetValue("levelDesigner2", ref val2) ? val2.ToString() : __instance.levelDesigner2, 
+				3 => ((BaseDataObject)__instance).m_MaskValue.TryGetValue("levelDesigner3", ref val3) ? val3.ToString() : __instance.levelDesigner3, 
+				4 => ((BaseDataObject)__instance).m_MaskValue.TryGetValue("levelDesigner4", ref val4) ? val4.ToString() : __instance.levelDesigner4, 
+				5 => ((BaseDataObject)__instance).m_MaskValue.TryGetValue("levelDesigner5", ref val5) ? val5.ToString() : __instance.levelDesigner5, 
+				_ => throw new ArgumentOutOfRangeException("index", index, "The difficulty is not a valid index."), 
+			};
+			if (1 == 0)
+			{
+			}
+			__result = text;
+			if (string.IsNullOrEmpty(__result) || __result == "?")
+			{
+				Object val6 = default(Object);
+				__result = (((BaseDataObject)__instance).m_MaskValue.TryGetValue("levelDesigner", ref val6) ? val6.ToString() : __instance.levelDesigner);
+			}
+			if (!string.IsNullOrEmpty(__result))
+			{
+				return false;
+			}
+			__result = "?????";
+			return false;
+		}
+	}
+
+	[HarmonyPatch(typeof(PnlRank), "UIRefresh")]
+	internal class PnlRankPatch
+	{
+		private static bool FirstRun = true;
+
+		private static bool Prefix(string uid, PnlRank __instance)
+		{
+			Text component = __instance.noNet.GetComponent<Text>();
+			if (FirstRun)
+			{
+				OriginalNoNetText = component.text;
+				FirstRun = false;
+			}
+			if (!uid.StartsWith($"{999}-") || HQPresent)
+			{
+				component.text = OriginalNoNetText;
+				return true;
+			}
+			component.text = "Headquarters mod is not loaded! ~(*\u00b4Д\uff40)";
+			__instance.noNet.SetActive(true);
+			return false;
+		}
+
+		private static Exception Finalizer(Exception __exception, PnlRank __instance)
+		{
+			if (__exception != null)
+			{
+				Logger.Error("[PnlRank.UIRefresh] EXCEPTION THROWN: " + __exception.Message + "\n" + __exception.StackTrace);
+				if ((Object)(object)__instance != (Object)null && (Object)(object)__instance.noNet != (Object)null)
+				{
+					Text component = __instance.noNet.GetComponent<Text>();
+					if ((Object)(object)component != (Object)null)
+					{
+						component.text = "CRASH: " + __exception.Message + "\nCheck MelonLoader console for details.";
+					}
+					__instance.noNet.SetActive(true);
+					if ((Object)(object)__instance.server != (Object)null)
+					{
+						__instance.server.SetActive(false);
+					}
+				}
+			}
+			return null;
+		}
+	}
+
+	[HarmonyPatch(typeof(GameAccountSystem), "GetRanks")]
+	internal static class SafeGetRanksPatch
+	{
+		[HarmonyPriority(800)]
+		private static bool Prefix(string musicUid, ref int difficulty)
+		{
+			if (!musicUid.StartsWith($"{999}-"))
+			{
+				return true;
+			}
+			try
+			{
+				Album byUid = AlbumManager.GetByUid(musicUid);
+				if (byUid == null)
+				{
+					Logger.Warning("GetRanks: album 不存在 (uid=" + musicUid + ")，跳过");
+					return false;
+				}
+				if (byUid.Sheets.ContainsKey(difficulty))
+				{
+					return true;
+				}
+				int selectedDiffTglIndex = GlobalDataBase.s_DbMusicTag.selectedDiffTglIndex;
+				Logger.Warning($"GetRanks: difficulty {difficulty} → {selectedDiffTglIndex} (uid={musicUid})");
+				difficulty = selectedDiffTglIndex;
+				if (!byUid.Sheets.ContainsKey(difficulty))
+				{
+					Logger.Warning($"GetRanks: 修正后仍无效 diff={difficulty}，跳过");
+					return false;
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error("GetRanks 验证异常: " + ex.Message);
+				return false;
+			}
+			return true;
+		}
+	}
+
+	[HarmonyPatch(typeof(DataHelper), "CheckMusicUnlockMaster", new Type[]
+	{
+		typeof(MusicInfo),
+		typeof(bool)
+	})]
+	internal class CheckUnlockMasterPatch
+	{
+		private static bool Prefix(MusicInfo musicInfo, ref bool __result)
+		{
+			SaveManager.SaveData.Ability = Math.Max(SaveManager.SaveData.Ability, GlobalDataBase.dbUi.ability);
+			float num = (GameAccountSystem.instance.IsLoggedIn() ? SaveManager.SaveData.Ability : 0f);
+			string text = ((musicInfo != null) ? musicInfo.uid : null);
+			if (text == null)
+			{
+				return true;
+			}
+			if (GlobalDataBase.dbUi.ability == 0f && num != 0f)
+			{
+				Logger.Msg("Fixing bugged vanilla state for master lock");
+				int result;
+				bool flag = !musicInfo.difficulty3.TryParseAsInt(out result) || num >= (float)result;
+				int num2;
+				if (!flag && !DataHelper.unlockMasters.Contains(text) && !SaveManager.SaveData.UnlockedMasters.Contains(AlbumManager.GetAlbumNameFromUid(text)))
+				{
+					Album byUid = AlbumManager.GetByUid(musicInfo.uid);
+					num2 = ((byUid != null && !byUid.IsPackaged) ? 1 : 0);
+				}
+				else
+				{
+					num2 = 1;
+				}
+				__result = (byte)num2 != 0;
+				return false;
+			}
+			if (!text.StartsWith($"{999}-"))
+			{
+				return true;
+			}
+			int result2;
+			bool flag2 = !musicInfo.difficulty3.TryParseAsInt(out result2) || num >= (float)result2;
+			__result = flag2 || SaveManager.SaveData.UnlockedMasters.Contains(AlbumManager.GetAlbumNameFromUid(text)) || !AlbumManager.GetByUid(musicInfo.uid).IsPackaged;
+			return false;
+		}
+	}
+
+	[HarmonyPatch(typeof(PnlPreparation), "OnEnable")]
+	internal class PnlPreparationEnablePatch
+	{
+		private static bool Prefix(PnlPreparation __instance)
+		{
+			return InjectPnlPreparation(__instance, forceReload: true);
+		}
+	}
+
+	[HarmonyPatch(typeof(PnlPreparation), "OnDiffTglChanged")]
+	internal class PnlPreparationDiffTogglePatch
+	{
+		private static bool Prefix(PnlPreparation __instance)
+		{
+			return InjectPnlPreparation(__instance, forceReload: false);
+		}
+	}
+
+	[HarmonyPatch(typeof(DBMusicTag), "AddHide")]
+	internal class AddHidePatch
+	{
+		private static bool Prefix(MusicInfo musicInfo)
+		{
+			if (!musicInfo.uid.StartsWith($"{999}-"))
+			{
+				return true;
+			}
+			if (!ModSettings.SavingEnabled)
+			{
+				return false;
+			}
+			SaveManager.SaveData.Hides.Add(AlbumManager.GetAlbumNameFromUid(musicInfo.uid));
+			return true;
+		}
+	}
+
+	[HarmonyPatch(typeof(DBMusicTag), "RemoveHide")]
+	internal class RemoveHidePatch
+	{
+		private static bool Prefix(MusicInfo musicInfo)
+		{
+			if (!musicInfo.uid.StartsWith($"{999}-"))
+			{
+				return true;
+			}
+			if (!ModSettings.SavingEnabled)
+			{
+				return false;
+			}
+			SaveManager.SaveData.Hides.Remove(AlbumManager.GetAlbumNameFromUid(musicInfo.uid));
+			return true;
+		}
+	}
+
+	[HarmonyPatch(typeof(DBMusicTag), "AddCollection")]
+	internal class AddCollectionPatch
+	{
+		private static bool Prefix(MusicInfo musicInfo)
+		{
+			if (!musicInfo.uid.StartsWith($"{999}-"))
+			{
+				return true;
+			}
+			if (!ModSettings.SavingEnabled)
+			{
+				return false;
+			}
+			SaveManager.SaveData.Collections.Add(AlbumManager.GetAlbumNameFromUid(musicInfo.uid));
+			return true;
+		}
+	}
+
+	[HarmonyPatch(typeof(DBMusicTag), "RemoveCollection")]
+	internal class RemoveCollectionPatch
+	{
+		private static bool Prefix(MusicInfo musicInfo)
+		{
+			if (!musicInfo.uid.StartsWith($"{999}-"))
+			{
+				return true;
+			}
+			if (!ModSettings.SavingEnabled)
+			{
+				return false;
+			}
+			SaveManager.SaveData.Collections.Remove(AlbumManager.GetAlbumNameFromUid(musicInfo.uid));
+			return true;
+		}
+	}
+
+	[HarmonyPatch(typeof(DBMusicTag), "AddHistory")]
+	internal class AddHistoryPatch
+	{
+		private static bool Prefix(string musicUid)
+		{
+			if (!musicUid.StartsWith($"{999}-"))
+			{
+				return true;
+			}
+			if (!ModSettings.SavingEnabled)
+			{
+				return false;
+			}
+			string albumNameFromUid = AlbumManager.GetAlbumNameFromUid(musicUid);
+			SaveManager.SaveData.History.Remove(albumNameFromUid);
+			SaveManager.SaveData.History.Add(albumNameFromUid);
+			if (SaveManager.SaveData.History.Count > 10)
+			{
+				SaveManager.SaveData.History.RemoveAt(0);
+			}
+			return true;
+		}
+	}
+
+	[HarmonyPatch(typeof(GameAccountSystem), "UploadScore")]
+	internal class UploadScorePatch
+	{
+		private static void Postfix(SceneUploadResultData resData)
+		{
+			if (resData.musicUid.StartsWith($"{999}-"))
+			{
+				SaveManager.SaveScore(resData.musicUid, resData.musicDifficulty, resData.score, resData.accuracy, resData.combo, resData.evaluate, resData.miss);
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(PnlVictory), "SetScore")]
+	internal class SetScorePatch
+	{
+		private static void Postfix(PnlVictory __instance)
+		{
+			if (((Object)__instance.m_CurControls.mainPnl.transform.parent).name == "Djmax")
+			{
+				Transform val = __instance.m_CurControls.mainPnl.transform.Find("PnlVictory_3D").Find("SongTittle").Find("ImgSongTittleMask");
+				GameObject gameObject = ((Component)val.Find("TxtSongTittle")).gameObject;
+				if (!gameObject.active)
+				{
+					((Component)val.Find("MaskPos")).gameObject.SetActive(true);
+				}
+			}
+			if (!ModSettings.SavingEnabled || !GlobalDataBase.dbBattleStage.musicUid.StartsWith($"{999}-"))
+			{
+				return;
+			}
+			string albumNameFromUid = AlbumManager.GetAlbumNameFromUid(GlobalDataBase.dbBattleStage.musicUid);
+			if (SaveManager.SaveData.Highest.TryGetValue(albumNameFromUid, out var value))
+			{
+				int mapDifficulty = GlobalDataBase.s_DbBattleStage.m_MapDifficulty;
+				((Behaviour)__instance.m_CurControls.highScoreTitle).enabled = SaveManager.PreviousScore != "-";
+				((Behaviour)__instance.m_CurControls.highScoreTxt).enabled = SaveManager.PreviousScore != "-";
+				int score = Singleton<TaskStageTarget>.instance.GetScore();
+				if (!value.ContainsKey(mapDifficulty))
+				{
+					__instance.m_CurControls.newBest.SetActive(true);
+				}
+				if (SaveManager.PreviousScore != "-")
+				{
+					__instance.m_CurControls.newBest.SetActive(score > int.Parse(SaveManager.PreviousScore));
+				}
+				__instance.m_CurControls.highScoreTxt.text = SaveManager.PreviousScore;
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(PnlPreparation), "OnBattleStart")]
+	internal class OnBattleStartPatch
+	{
+		private static void Postfix()
+		{
+			if (ModSettings.SavingEnabled && !DataHelper.selectedMusicUidFromInfoList.StartsWith("album_"))
+			{
+				SaveManager.SaveData.SelectedAlbum = DataHelper.selectedMusicUidFromInfoList;
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(SteamSync), "SaveLocal")]
+	internal class SaveLocalPatch
+	{
+		private static bool BackedUp { get; set; }
+
+		private static void Prefix()
+		{
+			if (ModSettings.SavingEnabled && DataHelper.selectedMusicUidFromInfoList.StartsWith($"{999}-"))
+			{
+				SaveManager.SaveData.SelectedAlbum = AlbumManager.GetAlbumNameFromUid(DataHelper.selectedMusicUidFromInfoList) ?? "";
+			}
+			if (ModSettings.SavingEnabled)
+			{
+				SaveManager.SaveSaveFile();
+			}
+			CleanCustomData();
+		}
+
+		private static void Postfix()
+		{
+			if (ModSettings.SavingEnabled)
+			{
+				if (!BackedUp)
+				{
+					Backup.InitBackups();
+				}
+				BackedUp = true;
+				InjectCustomData();
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(SteamSync), "LoadLocal")]
+	internal class LoadLocalPatch
+	{
+		private static void Postfix()
+		{
+			CleanCustomData();
+			if (ModSettings.SavingEnabled)
+			{
+				InjectCustomData();
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(GameAccountSystem), "RefreshDatas")]
+	internal class RefreshDatasPatch
+	{
+		private static void Postfix()
+		{
+			Backup.InitBackups();
+			SaveManager.SaveSaveFile();
+			CleanCustomData();
+			if (ModSettings.SavingEnabled)
+			{
+				InjectCustomData();
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(GameAccountSystem), "OnSaveSelectCallback")]
+	internal class OnSaveSelectPatch
+	{
+		private static void Prefix(ref bool isLocal)
+		{
+			if (isLocal)
+			{
+				if (ModSettings.SavingEnabled)
+				{
+					SaveManager.SaveSaveFile();
+				}
+				CleanCustomData();
+			}
+		}
+
+		private static void Postfix(ref bool isLocal)
+		{
+			if (ModSettings.SavingEnabled && isLocal)
+			{
+				InjectCustomData();
+			}
+		}
+	}
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	private delegate IntPtr RecordBattleArgsDelegate(IntPtr instance, IntPtr args, IntPtr isSuccess, IntPtr nativeMethodInfo);
+
+	internal static bool? _hqPresent = null;
+
+	private static string OriginalNoNetText;
+
+	internal static readonly Logger Logger = new Logger("SavePatch");
+
+	internal static readonly string[] EvalToGrade = new string[7] { "D", "C", "B", "A", "S", "S", "S" };
+
+	private static readonly NativeHook<RecordBattleArgsDelegate> Hook = new NativeHook<RecordBattleArgsDelegate>();
+
+	internal static bool HQPresent
+	{
+		get
+		{
+			bool valueOrDefault = _hqPresent == true;
+			bool result;
+			if (!_hqPresent.HasValue)
+			{
+				valueOrDefault = MelonBase.FindMelon("Headquarters", "AshtonMemer") != null;
+				_hqPresent = valueOrDefault;
+				result = valueOrDefault;
+			}
+			else
+			{
+				result = valueOrDefault;
+			}
+			return result;
+		}
+	}
+
+	private static void SetPanelWithData(PnlRecord panel, ChartSave data, bool isFullCombo)
+	{
+		//IL_009e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0021: Unknown result type (might be due to invalid IL or missing references)
+		if (isFullCombo)
+		{
+			panel.imgIconFc.SetActive(true);
+			((Graphic)panel.txtCombo).color = ((Il2CppArrayBase<Color>)(object)panel.gradeColor)[6];
+		}
+		int evaluate = data.Evaluate;
+		panel.txtAccuracy.text = data.AccuracyStr;
+		panel.txtClear.text = data.Clear.ToStringInvariant();
+		panel.txtCombo.text = data.Combo.ToStringInvariant();
+		panel.txtGrade.text = EvalToGrade[evaluate];
+		((Graphic)panel.txtGrade).color = ((Il2CppArrayBase<Color>)(object)panel.gradeColor)[evaluate];
+		panel.txtScore.text = data.Score.ToStringInvariant();
+	}
+
+	private static void ClearAndRefreshPanels(PnlPreparation panelPreparation, bool reload)
+	{
+		panelPreparation.pnlRecord.Clear();
+		panelPreparation.pnlRecord.imgIconFc.SetActive(false);
+		foreach (PnlRank item in (Il2CppArrayBase<PnlRank>)(object)panelPreparation.pnlRanks)
+		{
+			item.Refresh(reload);
+		}
+	}
+
+	private static int GetDifficulty(string uid)
+	{
+		int selectedDiffTglIndex = GlobalDataBase.s_DbMusicTag.selectedDiffTglIndex;
+		Dictionary<string, HideBmsInfo> hideBmsInfos = Singleton<SpecialSongManager>.instance.m_HideBmsInfos;
+		if (hideBmsInfos == null || !hideBmsInfos.ContainsKey(uid))
+		{
+			return selectedDiffTglIndex;
+		}
+		Dictionary<string, bool> isInvokeHideDic = Singleton<SpecialSongManager>.instance.m_IsInvokeHideDic;
+		HideBmsInfo val = default(HideBmsInfo);
+		if (isInvokeHideDic == null || !isInvokeHideDic.ContainsKey(uid) || !hideBmsInfos.TryGetValue(uid, ref val) || val == null)
+		{
+			return selectedDiffTglIndex;
+		}
+		return (isInvokeHideDic[uid] && selectedDiffTglIndex == val.triggerDiff) ? val.m_HideDiff : selectedDiffTglIndex;
+	}
+
+	private static bool InjectPnlPreparation(PnlPreparation __instance, bool forceReload)
+	{
+		MusicInfo val = GlobalDataBase.s_DbMusicTag.CurMusicInfo();
+		if (val.albumJsonIndex != 1000)
+		{
+			return true;
+		}
+		ClearAndRefreshPanels(__instance, forceReload);
+		LongSongNameController designerLongNameController = __instance.designerLongNameController;
+		if (designerLongNameController != null)
+		{
+			designerLongNameController.Refresh(false);
+		}
+		if (!ModSettings.SavingEnabled)
+		{
+			return false;
+		}
+		PnlRecord pnlRecord = __instance.pnlRecord;
+		SaveExtensions.SaveData chartSaveDataFromUid = SaveManager.SaveData.GetChartSaveDataFromUid(val.uid);
+		Dictionary<int, ChartSave> highest = chartSaveDataFromUid.Highest;
+		if (highest == null || highest.Count == 0)
+		{
+			Logger.Msg("No save data found for " + val.uid + ", nothing to inject");
+			return false;
+		}
+		int difficulty = GetDifficulty(val.uid);
+		bool isFullCombo = chartSaveDataFromUid.FullCombo?.Contains(difficulty) ?? false;
+		ChartSave valueOrDefault = chartSaveDataFromUid.Highest.GetValueOrDefault(difficulty);
+		if (valueOrDefault == null)
+		{
+			Logger.Msg($"Save data was found for the chart, but not for difficulty {difficulty}");
+			return false;
+		}
+		SetPanelWithData(pnlRecord, valueOrDefault, isFullCombo);
+		Logger.Msg($"Injecting {val.uid} with difficulty {difficulty}");
+		return false;
+	}
+
+	private static void CleanCustomData()
+	{
+		DataHelper.hides.RemoveAll(Predicate<string>.op_Implicit((Func<string, bool>)((string uid) => uid.StartsWith($"{999}-"))));
+		DataHelper.history.RemoveAll(Predicate<string>.op_Implicit((Func<string, bool>)((string uid) => uid.StartsWith($"{999}-"))));
+		DataHelper.collections.RemoveAll(Predicate<string>.op_Implicit((Func<string, bool>)((string uid) => uid.StartsWith($"{999}-"))));
+		DataHelper.highest.RemoveAll(Predicate<IData>.op_Implicit((Func<IData, bool>)((IData data) => data.GetUid().StartsWith($"{999}-"))));
+		List<string> list = new List<string>();
+		Enumerator<string, IData> enumerator = DataHelper.dicLevelConfig.GetEnumerator();
+		while (enumerator.MoveNext())
+		{
+			KeyValuePair<string, IData> current = enumerator.Current;
+			if (current.key.StartsWith("999"))
+			{
+				list.Add(current.key);
+			}
+		}
+		foreach (string item in list)
+		{
+			DataHelper.dicLevelConfig.Remove(item);
+		}
+		if (DataHelper.selectedAlbumUid == "music_package_999")
+		{
+			DataHelper.selectedAlbumUid = "music_package_0";
+		}
+		if (DataHelper.selectedAlbumTagIndex == 999)
+		{
+			DataHelper.selectedAlbumTagIndex = 0;
+		}
+		if (DataHelper.selectedMusicUidFromInfoList.StartsWith($"{999}-"))
+		{
+			if (ModSettings.SavingEnabled)
+			{
+				SaveManager.SaveData.SelectedAlbum = AlbumManager.GetAlbumNameFromUid(DataHelper.selectedMusicUidFromInfoList);
+			}
+			DataHelper.selectedMusicUidFromInfoList = "0-0";
+		}
+	}
+
+	private static void InjectCustomData()
+	{
+		if (ModSettings.SavingEnabled)
+		{
+			DataHelper.hides.AddManagedRange(SaveManager.SaveData.Hides.GetAlbumUidsFromNames());
+			DataHelper.history.AddManagedRange(SaveManager.SaveData.History.GetAlbumUidsFromNames());
+			DataHelper.collections.AddManagedRange(SaveManager.SaveData.Collections.GetAlbumUidsFromNames());
+			if (SaveManager.SaveData.SelectedAlbum.StartsWith("album_"))
+			{
+				DataHelper.selectedAlbumUid = "music_package_999";
+				DataHelper.selectedAlbumTagIndex = 999;
+				DataHelper.selectedMusicUidFromInfoList = (AlbumManager.LoadedAlbums.TryGetValue(SaveManager.SaveData.SelectedAlbum, out var value) ? value.Uid : "0-0");
+			}
+		}
+	}
+
+	[UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
+	private static IntPtr RecordBattleArgsPatch(IntPtr instance, IntPtr args, IntPtr isSuccess, IntPtr nativeMethodInfo)
+	{
+		return (!GlobalDataBase.s_DbBattleStage.musicUid.StartsWith($"{999}-")) ? Hook.Trampoline(instance, args, isSuccess, nativeMethodInfo) : IntPtr.Zero;
+	}
+
+	internal unsafe static void AttachHook()
+	{
+		MethodInfo methodInfo = AccessTools.Method(typeof(AchievementManager), "RecordBattleArgs", new Type[2]
+		{
+			typeof(GlobalAchievementArgs).MakeByRefType(),
+			typeof(bool)
+		}, (Type[])null);
+		if ((object)methodInfo == null)
+		{
+			Logger.Error("FATAL ERROR: SavePatch failed.");
+			Thread.Sleep(1000);
+			Environment.Exit(1);
+		}
+		IntPtr target = *(IntPtr*)(void*)(IntPtr)Il2CppInteropUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod((MethodBase)methodInfo).GetValue(null);
+		delegate* unmanaged[Cdecl]<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr> delegate* = &RecordBattleArgsPatch;
+		Hook.Detour = (IntPtr)delegate*;
+		Hook.Target = target;
+		Hook.Attach();
+	}
+}
+You are not using the latest version of the tool, please update.
+Latest version is '10.1.0.8386' (yours is '10.0.0.8330')

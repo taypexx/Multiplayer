@@ -140,9 +140,11 @@ namespace Multiplayer.Patches
                                 4 => "Hidden",
                                 _ => "?"
                             };
-                            string levelStr = currentEntry.MusicInfo.HasDifficulty((uint)currentEntry.Difficulty) ? currentEntry.MusicInfo.GetLevelByDiff((uint)currentEntry.Difficulty) : "?";
+                            string levelStr = currentEntry.MusicInfo.GetMusicLevelStringByDiff(currentEntry.Difficulty);
+                            if (levelStr == "0" || string.IsNullOrEmpty(levelStr)) levelStr = "?";
 
-                            textObj.text = $"{currentEntry.MusicInfo.name}\n<size=27>{diffStr} - Level {levelStr}</size>";
+                            var songName = currentEntry.MusicInfo.GetLocal(Multiplayer.Static.Localization.LanguageIndex).name;
+                            textObj.text = $"{songName}\n<size=27>{diffStr} - Level {levelStr}</size>";
                             textObj.fontSize = 38;
                             textObj.lineSpacing = 0.8f;
                             textObj.alignment = TextAnchor.UpperRight;

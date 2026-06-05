@@ -1,0 +1,46 @@
+﻿using CustomAlbums.Managers;
+using CustomAlbums.Utilities;
+using HarmonyLib;
+using Il2Cpp;
+using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.Database.DataClass;
+
+namespace CustomAlbums.Patches;
+
+internal class TagPatch
+{
+	[HarmonyPatch(typeof(MusicTagManager), "InitAlbumTagInfo")]
+	internal class MusicTagPatch
+	{
+		private static void Postfix()
+		{
+			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0028: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0035: Expected O, but got Unknown
+			//IL_0035: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0057: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0069: Expected O, but got Unknown
+			AlbumTagInfo val = new AlbumTagInfo
+			{
+				name = AlbumManager.Languages["English"],
+				tagUid = "tag-custom-albums",
+				iconName = "IconCustomAlbums"
+			};
+			CustomTagInfo val2 = new CustomTagInfo
+			{
+				tag_name = AlbumManager.Languages.ToIl2Cpp(),
+				tag_picture = "https://cdn.mdmc.moe/static/melon.png",
+				music_list = AlbumManager.GetAllUid().ToIl2Cpp()
+			};
+			val.InitCustomTagInfo(val2);
+			GlobalDataBase.dbMusicTag.m_AlbumTagsSort.Insert(GlobalDataBase.dbMusicTag.m_AlbumTagsSort.Count - 4, 999);
+			GlobalDataBase.dbMusicTag.AddAlbumTagData(999, val);
+		}
+	}
+}
+You are not using the latest version of the tool, please update.
+Latest version is '10.1.0.8386' (yours is '10.0.0.8330')
