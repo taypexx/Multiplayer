@@ -1,4 +1,4 @@
-﻿using LocalizeLib;
+using LocalizeLib;
 using Multiplayer.Managers;
 using Multiplayer.Static;
 using Multiplayer.UI.Abstract;
@@ -55,7 +55,7 @@ namespace Multiplayer.UI
         }
 
         /// <summary>
-        /// Opens the main menu if connected to the server, otherwise tries to connect first.
+        /// Opens the main menu if connected to the server, otherwise tries to connect first but still opens the menu.
         /// </summary>
         internal void Open(BaseMultiplayerWindow windowToOpen = null)
         {
@@ -67,18 +67,25 @@ namespace Multiplayer.UI
                 if (PlayerManager.LocalPlayer.MultiplayerStats.Banned)
                 {
                     UIManager.WarnNotification(Localization.Get("MainMenu", "LocalPlayerBanned"));
-                }
-                else
-                {
-                    if (windowToOpen is null) windowToOpen = this;
-                    windowToOpen.Window.Show();
+                    return;
                 }
             }
-            else Client.Connect();
+            else 
+            {
+                Client.Connect();
+            }
+
+            if (windowToOpen is null) windowToOpen = this;
+            windowToOpen.Window.Show();
         }
 
         private async Task OnPlayerSearch()
         {
+            if (!Client.Connected) 
+            {
+                PopupUtils.ShowInfo(Localization.Get("Warning", "Offline"));
+                return;
+            }
             var query = SearchPlayerPrompt.Result;
             if (Utilities.IsValidString(query, Constants.NameCharactersMin, 32)) // 48 because query might be the UID
             {
@@ -108,10 +115,12 @@ namespace Multiplayer.UI
 
             if (button == MyProfileButton)
             {
+                if (!Client.Connected) { PopupUtils.ShowInfo(Localization.Get("Warning", "Offline")); return; }
                 _ = UIManager.OpenProfileWindow(PlayerManager.LocalPlayer, false);
             }
             else if (button == LobbiesButton)
             {
+                if (!Client.Connected) { PopupUtils.ShowInfo(Localization.Get("Warning", "Offline")); return; }
                 if (LobbyManager.IsInLobby) 
                 {
                     _ = UIManager.OpenLobbyWindow();

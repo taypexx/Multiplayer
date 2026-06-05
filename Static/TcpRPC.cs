@@ -46,6 +46,7 @@ namespace Multiplayer.Static
             };
             
             var json = JsonSerializer.Serialize(payload);
+            Main.Log($"TCP PostAsync [{path}]: {json}");
             var bytes = Encoding.UTF8.GetBytes(json);
             var lengthBytes = BitConverter.GetBytes(bytes.Length);
             
@@ -131,6 +132,7 @@ namespace Multiplayer.Static
                     }
                     
                     var json = Encoding.UTF8.GetString(body);
+                    // Main.Log($"TCP Received: {json}"); // 屏蔽日志防止刷屏
                     var doc = JsonDocument.Parse(json);
                     
                     if (doc.RootElement.TryGetProperty("ReqId", out var reqIdProp) && reqIdProp.ValueKind == JsonValueKind.String)
@@ -147,7 +149,10 @@ namespace Multiplayer.Static
                         if (type == "Sync")
                         {
                             var bodyObj = JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, JsonElement>>(doc.RootElement.GetProperty("Body").GetRawText());
-                            _ = Managers.LobbyManager.LocalLobby.UpdateFields(bodyObj, false, false);
+                            if (Managers.LobbyManager.LocalLobby != null)
+                            {
+                                _ = Managers.LobbyManager.LocalLobby.UpdateFields(bodyObj, false, false);
+                            }
                         }
                         else if (type == "Chat")
                         {
@@ -162,16 +167,49 @@ namespace Multiplayer.Static
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Main.Log($"TcpRPC ReceiveLoop exception: {ex}");
                     break;
                 }
             }
             Disconnect();
             if (Managers.LobbyManager.IsInLobby)
             {
-                Main.Dispatch(() => Managers.UIManager.WarnNotification(Localization.Get("Warning", "WebsocketFail")));
-                _ = Managers.LobbyManager.LeaveLobby(true);
+                _ = Task.Run(async () =>
+                {
+                    int tries = 0;
+                    bool reconnected = false;
+                    while (tries < 5)
+                    {
+                        tries++;
+                        Main.Log($"TCP connection lost, reconnecting... (attempt {tries})", Main.LogType.Warning);
+                        await Task.Delay(3000);
+                        try
+                        {
+                            var address = Multiplayer.Static.Client.APIAddress.Replace("http://", "").Replace("tcp://", "").TrimEnd('/');
+                            var parts = address.Split(':');
+                            var ip = parts[0];
+                            var port = int.Parse(parts[1]);
+                            await ConnectAsync(ip, port);
+                            
+                            var loginData = new { Uid = Managers.PlayerManager.LocalPlayerUid, Name = Managers.PlayerManager.LocalPlayer.MultiplayerStats.Name };
+                            await PostAsync("login", loginData);
+                            Main.Log("TCP reconnected successfully!", Main.LogType.Success);
+                            reconnected = true;
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            Main.Log($"Reconnect failed: {ex.Message}", Main.LogType.Warning);
+                        }
+                    }
+                    if (!reconnected)
+                    {
+                        Main.Dispatch(() => Managers.UIManager.WarnNotification(Localization.Get("Warning", "WebsocketFail")));
+                        _ = Managers.LobbyManager.LeaveLobby(true);
+                    }
+                });
             }
         }
     }

@@ -31,7 +31,8 @@ namespace Multiplayer.Static
             get
             {
                 var customIp = Settings.Get<string>("CustomServerIP");
-                if (!string.IsNullOrWhiteSpace(customIp)) return $"http://{customIp}/api/";
+                var useCustom = Settings.Get<bool>("UseCustomServer");
+                if (useCustom && !string.IsNullOrWhiteSpace(customIp)) return $"http://{customIp}/api/";
                 return $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/";
             }
         }
@@ -41,7 +42,8 @@ namespace Multiplayer.Static
             get
             {
                 var customIp = Settings.Get<string>("CustomServerIP");
-                if (!string.IsNullOrWhiteSpace(customIp)) return new Uri($"ws://{customIp}/ws");
+                var useCustom = Settings.Get<bool>("UseCustomServer");
+                if (useCustom && !string.IsNullOrWhiteSpace(customIp)) return new Uri($"ws://{customIp}/ws");
                 return new Uri($"wss://{Constants.ServerAddress}:{Constants.PortWebsocket}/ws");
             }
         }
@@ -144,7 +146,8 @@ namespace Multiplayer.Static
         internal static async Task WebsocketStart()
         {
             var customIp = Settings.Get<string>("CustomServerIP");
-            if (!string.IsNullOrWhiteSpace(customIp)) return; // TCP Server handles push natively, skip websocket setup
+            var useCustom = Settings.Get<bool>("UseCustomServer");
+            if (useCustom && !string.IsNullOrWhiteSpace(customIp)) return; // TCP Server handles push natively, skip websocket setup
 
             if (!LobbyManager.IsInLobby || (WebSocket != null && WebSocket.State == WebSocketState.Open)) return;
 
@@ -215,7 +218,8 @@ namespace Multiplayer.Static
         internal static async Task WebsocketSend(object payload, bool recordPing = false)
         {
             var customIp = Settings.Get<string>("CustomServerIP");
-            if (!string.IsNullOrWhiteSpace(customIp))
+            var useCustom = Settings.Get<bool>("UseCustomServer");
+            if (useCustom && !string.IsNullOrWhiteSpace(customIp))
             {
                 // TCP 模式: 提取 Type 和 Body, 通过 TcpRPC 即发即忘
                 var json = Newtonsoft.Json.JsonConvert.SerializeObject(payload);
@@ -240,7 +244,8 @@ namespace Multiplayer.Static
         internal static async Task WebsocketSend(byte[] bytes, bool recordPing = false)
         {
             var customIp = Settings.Get<string>("CustomServerIP");
-            if (!string.IsNullOrWhiteSpace(customIp))
+            var useCustom = Settings.Get<bool>("UseCustomServer");
+            if (useCustom && !string.IsNullOrWhiteSpace(customIp))
             {
                 // TCP 模式: 对战二进制数据用 base64 编码后即发即忘
                 if (recordPing) Stopwatch.Restart();
@@ -271,7 +276,8 @@ namespace Multiplayer.Static
         internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false, bool doAuth = true, bool getAnyway = false)
         {
             var customIp = Settings.Get<string>("CustomServerIP");
-            bool isCustomServer = !string.IsNullOrWhiteSpace(customIp);
+            var useCustom = Settings.Get<bool>("UseCustomServer");
+            bool isCustomServer = useCustom && !string.IsNullOrWhiteSpace(customIp);
 
             if (!isFullPath && isCustomServer)
             {
@@ -316,7 +322,8 @@ namespace Multiplayer.Static
         internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false, bool doAuth = true, bool getAnyway = false)
         {
             var customIp = Settings.Get<string>("CustomServerIP");
-            bool isCustomServer = !string.IsNullOrWhiteSpace(customIp);
+            var useCustom = Settings.Get<bool>("UseCustomServer");
+            bool isCustomServer = useCustom && !string.IsNullOrWhiteSpace(customIp);
 
             if (!isFullPath && isCustomServer)
             {
@@ -451,7 +458,8 @@ namespace Multiplayer.Static
             }
 
             var customIp = Settings.Get<string>("CustomServerIP");
-            bool isCustomServer = !string.IsNullOrWhiteSpace(customIp);
+            var useCustom = Settings.Get<bool>("UseCustomServer");
+            bool isCustomServer = useCustom && !string.IsNullOrWhiteSpace(customIp);
 
             var playerName = DataHelper.nickname?.Trim('\n', '\r');
             var uid = DataHelper.PeroUid;

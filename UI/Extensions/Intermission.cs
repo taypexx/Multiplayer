@@ -176,7 +176,12 @@ namespace Multiplayer.UI.Extensions
                             await LobbyManager.PlaylistAdd(entry.MusicInfo, entry.Difficulty);
                         }
 
-                        Chat.Send($"<color=#{Constants.Red}>{Localization.Get("SystemChatMessages", "GamePaused")}</color>");
+                        var sysMsgBody = new Multiplayer.Data.Chat.ChatMessage
+                        {
+                            Message = $"<color=#{Constants.Red}>{Localization.Get("SystemChatMessages", "GamePaused")}</color>",
+                            AuthorName = "System"
+                        };
+                        _ = Client.WebsocketSend(new { Type = "Chat", Body = sysMsgBody });
                     }
                 })
             ) : null;

@@ -47,7 +47,19 @@ namespace Multiplayer.Static
 
                 new Setting<bool>("JailbreakMode", SettingCategory.Global, true),
 
-                new Setting<string>("CustomServerIP", SettingCategory.Global, "", null, null),
+                new Setting<bool>("UseCustomServer", SettingCategory.Global, false, null, _ => {
+                    if (Client.Connected) {
+                        Client.Disconnect(false);
+                        Client.Connect(); // Re-trigger connection
+                    }
+                }),
+
+                new Setting<string>("CustomServerIP", SettingCategory.Global, "", null, _ => {
+                    if (Client.Connected) {
+                        Client.Disconnect(false);
+                        Client.Connect();
+                    }
+                }),
 
                 // Chat
 

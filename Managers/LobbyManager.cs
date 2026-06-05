@@ -123,7 +123,6 @@ namespace Multiplayer.Managers
             // If that was the last chart in the playlist
             else
             {
-                LocalLobby.Playlist.Clear();
                 return await LockLobby(false);
             }
         }
@@ -160,9 +159,13 @@ namespace Multiplayer.Managers
             }
 
             bool success = result == 0;
-            if (success && !LocalLobby.HasInPlaylist(entry))
+            if (success)
             {
-                LocalLobby.Playlist.Add(new(musicInfo, difficulty, entry));
+                if (!LocalLobby.HasInPlaylist(entry))
+                {
+                    LocalLobby.Playlist.Add(new(musicInfo, difficulty, entry));
+                }
+                
                 Main.Dispatch(() => 
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "PlaylistAdded"));
