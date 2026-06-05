@@ -1,4 +1,4 @@
-﻿using CustomAlbums.Utilities;
+using CustomAlbums.Utilities;
 using Multiplayer.Data;
 using Multiplayer.Static;
 using UnityEngine;
@@ -70,7 +70,16 @@ namespace Multiplayer.Managers
                 var image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(bytes);
                 newAsset = new(image, true);
             }
-            else newAsset = new(bytes);
+            else
+            {
+                var tcs = new TaskCompletionSource<CustomImageAsset>();
+                Main.Dispatch(() => 
+                {
+                    try { tcs.SetResult(new CustomImageAsset(bytes)); }
+                    catch (Exception ex) { tcs.SetException(ex); }
+                });
+                newAsset = await tcs.Task;
+            }
 
             if (newAsset == null) return null;
 

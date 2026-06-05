@@ -19,6 +19,7 @@ namespace Multiplayer.Static
         internal static async Task ConnectAsync(string ip, int port)
         {
             Client = new TcpClient();
+            Client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             await Client.ConnectAsync(ip, port);
             Stream = Client.GetStream();
             _ = Task.Run(ReceiveLoop);
@@ -119,6 +120,7 @@ namespace Multiplayer.Static
                         if (r == 0) break;
                         read += r;
                     }
+                    if (read < 4) break;
                     
                     int length = BitConverter.ToInt32(header, 0);
                     if (length <= 0 || length > 1024 * 1024 * 10) break; // 10MB max to prevent OOM
@@ -130,6 +132,7 @@ namespace Multiplayer.Static
                         if (r == 0) break;
                         read += r;
                     }
+                    if (read < length) break;
                     
                     var json = Encoding.UTF8.GetString(body);
                     // Main.Log($"TCP Received: {json}"); // 屏蔽日志防止刷屏

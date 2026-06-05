@@ -628,6 +628,7 @@ namespace Multiplayer.Static
         {
             HttpHandler = new HttpClientHandler();
             Http = new(HttpHandler);
+            Http.Timeout = TimeSpan.FromSeconds(15);
             Http.DefaultRequestHeaders.ConnectionClose = false;
             Http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 

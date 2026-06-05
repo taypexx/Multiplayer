@@ -68,11 +68,8 @@ namespace Multiplayer.Data
 
         internal CustomImageAsset(byte[] bytes)
         {
-            Main.Dispatch(() =>
-            {
-                LoadTexture(bytes);
-                Init();
-            });
+            LoadTexture(bytes);
+            Init();
         }
 
         internal CustomImageAsset(Texture2D texture2D)

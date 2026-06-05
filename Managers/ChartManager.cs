@@ -34,11 +34,15 @@ namespace Multiplayer.Managers
         }
 
         /// <returns>A nice formatted <see cref="string"/> of the given <paramref name="musicInfo"/> and <paramref name="difficulty"/>.</returns>
-        internal static string GetNiceChartName(MusicInfo musicInfo, int difficulty) => String.Format(
-            "{0} {1}★",
-            musicInfo.GetLocal(Localization.LanguageIndex).name,
-            musicInfo.GetMusicLevelStringByDiff(difficulty)
-        );
+        internal static string GetNiceChartName(MusicInfo musicInfo, int difficulty)
+        {
+            if (musicInfo == null) return String.Format("Unknown Chart {0}★", difficulty);
+            return String.Format(
+                "{0} {1}★",
+                musicInfo.GetLocal(Localization.LanguageIndex).name,
+                musicInfo.GetMusicLevelStringByDiff(difficulty)
+            );
+        }
 
         /// <returns>A <see cref="string"/> representation of the future playlist entry.</returns>
         internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}", GetEntryKey(musicInfo), difficulty);
