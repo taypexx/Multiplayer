@@ -116,18 +116,18 @@ namespace Multiplayer.Static
                     while (read < 4)
                     {
                         int r = await Stream.ReadAsync(header, read, 4 - read);
-                        if (r == 0) return;
+                        if (r == 0) break;
                         read += r;
                     }
                     
                     int length = BitConverter.ToInt32(header, 0);
-                    if (length <= 0) return;
+                    if (length <= 0 || length > 1024 * 1024 * 10) break; // 10MB max to prevent OOM
                     var body = new byte[length];
                     read = 0;
                     while (read < length)
                     {
                         int r = await Stream.ReadAsync(body, read, length - read);
-                        if (r == 0) return;
+                        if (r == 0) break;
                         read += r;
                     }
                     
@@ -151,7 +151,7 @@ namespace Multiplayer.Static
                             var bodyObj = JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, JsonElement>>(doc.RootElement.GetProperty("Body").GetRawText());
                             if (Managers.LobbyManager.LocalLobby != null)
                             {
-                                _ = Managers.LobbyManager.LocalLobby.UpdateFields(bodyObj, false, false);
+                                Main.Dispatch(() => _ = Managers.LobbyManager.LocalLobby.UpdateFields(bodyObj, false, false));
                             }
                         }
                         else if (type == "Chat")

@@ -125,7 +125,7 @@ namespace Multiplayer.Static
                         switch (message["Type"].GetString())
                         {
                             case "Sync":
-                                _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true);
+                                Main.Dispatch(() => _ = LobbyManager.LocalLobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message["Body"]), false, true));
                                 break;
                             case "Chat":
                                 Main.Dispatch(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));

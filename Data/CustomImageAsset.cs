@@ -1,4 +1,4 @@
-﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using UnityEngine;
@@ -68,8 +68,11 @@ namespace Multiplayer.Data
 
         internal CustomImageAsset(byte[] bytes)
         {
-            LoadTexture(bytes);
-            Init();
+            Main.Dispatch(() =>
+            {
+                LoadTexture(bytes);
+                Init();
+            });
         }
 
         internal CustomImageAsset(Texture2D texture2D)

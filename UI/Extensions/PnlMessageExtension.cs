@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.UI.Panels;
+using Il2CppAssets.Scripts.UI.Panels;
 using Multiplayer.Managers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,7 +9,7 @@ namespace Multiplayer.UI.Extensions
     {
         private static PnlMessage PnlMessage;
         private static TimeSpan CellDelay = TimeSpan.FromMilliseconds(300);
-        internal static bool Visible = PnlMessage != null && PnlMessage.gameObject.active;
+        internal static bool Visible => PnlMessage != null && PnlMessage.gameObject.active;
 
         private static void AddEntry(string text, bool checkmarkIcon = true, Sprite icon = null, bool useTrophy = false)
         {
