@@ -60,7 +60,7 @@ namespace Multiplayer.Static
         internal static string Token { get; 
             private set 
             {
-                if (value is null)
+                if (value is null && Http != null)
                 {
                     Http.DefaultRequestHeaders.Authorization = null;
                 } 
@@ -143,6 +143,9 @@ namespace Multiplayer.Static
         /// </summary>
         internal static async Task WebsocketStart()
         {
+            var customIp = Settings.Get<string>("CustomServerIP");
+            if (!string.IsNullOrWhiteSpace(customIp)) return; // TCP Server handles push natively, skip websocket setup
+
             if (!LobbyManager.IsInLobby || (WebSocket != null && WebSocket.State == WebSocketState.Open)) return;
 
             WebSocket = new();
@@ -211,7 +214,22 @@ namespace Multiplayer.Static
         /// <param name="recordPing">(Optional) Whether to record ping when sending (Stopwatch will be stopped upon receiving).</param>
         internal static async Task WebsocketSend(object payload, bool recordPing = false)
         {
-            if (WebSocket.State != WebSocketState.Open) return;
+            var customIp = Settings.Get<string>("CustomServerIP");
+            if (!string.IsNullOrWhiteSpace(customIp))
+            {
+                // TCP 模式: 提取 Type 和 Body, 通过 TcpRPC 即发即忘
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(payload);
+                using var doc = JsonDocument.Parse(json);
+                var type = doc.RootElement.GetProperty("Type").GetString().ToLower();
+                var bodyNode = System.Text.Json.Nodes.JsonNode.Parse(
+                    doc.RootElement.GetProperty("Body").GetRawText());
+
+                if (recordPing) Stopwatch.Restart();
+                await TcpRPC.SendAsync(type, bodyNode);
+                return;
+            }
+
+            if (WebSocket == null || WebSocket.State != WebSocketState.Open) return;
 
             byte[] bytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(payload));
 
@@ -221,13 +239,26 @@ namespace Multiplayer.Static
 
         internal static async Task WebsocketSend(byte[] bytes, bool recordPing = false)
         {
-            if (WebSocket.State != WebSocketState.Open) return;
+            var customIp = Settings.Get<string>("CustomServerIP");
+            if (!string.IsNullOrWhiteSpace(customIp))
+            {
+                // TCP 模式: 对战二进制数据用 base64 编码后即发即忘
+                if (recordPing) Stopwatch.Restart();
+                await TcpRPC.SendAsync("battle", new { Payload = Convert.ToBase64String(bytes) });
+                return;
+            }
+
+            if (WebSocket == null || WebSocket.State != WebSocketState.Open) return;
 
             if (recordPing) Stopwatch.Restart();
             await WebSocket.SendAsync(bytes, WebSocketMessageType.Binary, true, CancellationToken.None);
         }
 
-        internal static async Task WebsocketClose() => await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+        internal static async Task WebsocketClose() 
+        {
+            if (WebSocket != null && WebSocket.State == WebSocketState.Open) 
+                await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+        }
 
         /// <summary>
         /// Performs an <see langword="async"/> GET request.
@@ -239,6 +270,15 @@ namespace Multiplayer.Static
         /// <returns><see cref="HttpContent"/> if the request was successful, otherwise <see langword="null"/>.</returns>
         internal static async Task<HttpResponseMessage> GetAsync(string path, bool isFullPath = false, bool doAuth = true, bool getAnyway = false)
         {
+            var customIp = Settings.Get<string>("CustomServerIP");
+            bool isCustomServer = !string.IsNullOrWhiteSpace(customIp);
+
+            if (!isFullPath && isCustomServer)
+            {
+                // GET request without payload in TCP mode
+                return await PostAsync(path, new { }, isFullPath, doAuth, getAnyway);
+            }
+
             var address = isFullPath ? path : APIAddress + path;
             try
             {
@@ -273,17 +313,37 @@ namespace Multiplayer.Static
             }
         }
 
-        /// <summary>
-        /// Performs an <see langword="async"/> POST request.
-        /// </summary>
-        /// <param name="path">Path of the request relative to the API endpoint.</param>
-        /// <param name="data">Data to be serialized as JSON and sent.</param>
-        /// <param name="isFullPath">(Optional) Makes the <paramref name="path">path</paramref> absolute if <see langword="true"/>.</param>
-        /// <param name="getAnyway">(Optional) Will return the <see cref="HttpResponseMessage"/> regardless of it being unsuccessful.</param>
-        /// <param name="doAuth">(Optional) Whether to include the Authorization header.</param>
-        /// <returns><see langword="true"/> if the request was successful, otherwise <see langword="false"/>.</returns>
         internal static async Task<HttpResponseMessage> PostAsync(string path, object data, bool isFullPath = false, bool doAuth = true, bool getAnyway = false)
         {
+            var customIp = Settings.Get<string>("CustomServerIP");
+            bool isCustomServer = !string.IsNullOrWhiteSpace(customIp);
+
+            if (!isFullPath && isCustomServer)
+            {
+                var jsonStr = await TcpRPC.PostAsync(path, data);
+                if (jsonStr == null) 
+                {
+                    Main.Log($"POST request timeout at TCP {path}!", Main.LogType.Error);
+                    Disconnect(true);
+                    return null;
+                }
+                
+                var doc = JsonDocument.Parse(jsonStr);
+                bool success = false;
+                if (doc.RootElement.TryGetProperty("Success", out var successProp)) success = successProp.GetBoolean();
+                
+                var response = new HttpResponseMessage(success ? HttpStatusCode.OK : HttpStatusCode.BadRequest);
+                if (doc.RootElement.TryGetProperty("Body", out var bodyProp))
+                {
+                    response.Content = new StringContent(bodyProp.GetRawText(), Encoding.UTF8, "application/json");
+                }
+                else
+                {
+                    response.Content = new StringContent("{}");
+                }
+                return response;
+            }
+
             var address = isFullPath ? path : APIAddress + path;
             try
             {
@@ -432,13 +492,34 @@ namespace Multiplayer.Static
 
             Task.Run(async () => 
             {
+                if (isCustomServer)
+                {
+                    try
+                    {
+                        var parts = customIp.Split(':');
+                        string ip = parts[0];
+                        int port = parts.Length > 1 ? int.Parse(parts[1]) : 10423;
+                        await TcpRPC.ConnectAsync(ip, port);
+                    }
+                    catch
+                    {
+                        Main.Dispatch(() => PnlCloudExtension.Finish(false));
+                        UIManager.WarningChooseAction = ReconnectOption;
+                        Main.Dispatch(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "Offline")));
+                        Main.Log("Failed to connect to the TCP server!", Main.LogType.Error);
+                        Debounce = false;
+                        return;
+                    }
+                }
+
                 string loginUrl = isCustomServer 
-                    ? $"http://{customIp}/api/login"
+                    ? "login"
                     : $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login";
 
-                var response = await PostAsync(loginUrl, payload, true, code is null, true);
-                Main.Dispatch(() => PnlCloudExtension.Finish(response.IsSuccessStatusCode));
-                if (response.IsSuccessStatusCode)
+                var response = await PostAsync(loginUrl, payload, !isCustomServer, code is null, true);
+                
+                Main.Dispatch(() => PnlCloudExtension.Finish(response?.IsSuccessStatusCode ?? false));
+                if (response != null && response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
 
@@ -449,7 +530,10 @@ namespace Multiplayer.Static
                         if (newToken != null)
                         {
                             Token = newToken;
-                            File.WriteAllText(TokenPath, Cipher.Encrypt(Token, Constants.TokenCipherShift));
+                            if (!isCustomServer)
+                            {
+                                File.WriteAllText(TokenPath, Cipher.Encrypt(Token, Constants.TokenCipherShift));
+                            }
                         }
 
                         Connected = true;
@@ -465,7 +549,7 @@ namespace Multiplayer.Static
                         Main.Log("Outdated version of the mod, cannot proceed!", Main.LogType.Error);
                     }
                 }
-                else if (response.StatusCode == HttpStatusCode.Unauthorized)
+                else if (response != null && response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     UIManager.WarningChooseAction = LoginOption;
                     Main.Dispatch(() => UIManager.WarnChooseNotification(Localization.Get("Warning", "LoginRequired")));
@@ -491,6 +575,7 @@ namespace Multiplayer.Static
             if (LobbyManager.IsInLobby) _ = LobbyManager.LeaveLobby(true);
 
             Connected = false;
+            TcpRPC.Disconnect();
             Main.Log("Disconneced from the server.", Main.LogType.Warning);
 
             if (lost)
