@@ -9,30 +9,20 @@ namespace Multiplayer.Data
     public class CustomChartData
     {
         public Album Album;
-        private MusicInfo _musicInfo;
         public MusicInfo MusicInfo
         {
             get
             {
-                // IL2CPP objects may appear non-null but have invalid pointers after hot-reload
-                if (_musicInfo == null || _musicInfo.Pointer == IntPtr.Zero)
-                {
-                    _musicInfo = GlobalDataBase.dbMusicTag.GetMusicInfoFromAll(Album.Uid);
-                }
-                return _musicInfo;
+                return GlobalDataBase.dbMusicTag.GetMusicInfoFromAll(Album.Uid);
             }
-            set => _musicInfo = value;
         }
         public bool? IsOnWebsite { get; internal set; } = null;
         public string? WebsiteId { get; internal set; } = null;
         public bool? IsRanked { get; internal set; } = null;
 
-        public Dictionary<int, string> MapDifficulties;
-
         public CustomChartData(Album album)
         {
             Album = album;
-            MapDifficulties = new();
         }
 
         /// <summary>
@@ -55,19 +45,6 @@ namespace Multiplayer.Data
                         var chartData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body["chart"]);
                         WebsiteId = chartData["id"].GetString();
                         IsRanked = chartData["ranked"].GetBoolean();
-                        MapDifficulties[body["map"].GetInt32()] = body["difficulty"].GetString();
-
-                        var thisSheetId = body["id"].GetString();
-                        foreach (var sheetId in JsonSerializer.Deserialize<List<string>>(chartData["sheets"]))
-                        {
-                            if (sheetId == thisSheetId) continue;
-
-                            var otherSheet = await Client.GetAsync(Constants.MDMCAPIEndpoint + "sheets/" + sheetId, true, false, true);
-                            if (!otherSheet.IsSuccessStatusCode) continue;
-
-                            var otherBody = await otherSheet.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
-                            MapDifficulties[otherBody["map"].GetInt32()] = otherBody["difficulty"].GetString();
-                        }
                     }
                 }
             }
