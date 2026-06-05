@@ -47,6 +47,8 @@ namespace Multiplayer.Static
 
                 new Setting<bool>("JailbreakMode", SettingCategory.Global, true),
 
+                new Setting<string>("CustomServerIP", SettingCategory.Global, "", null, null),
+
                 // Chat
 
                 new Setting<bool>("EnableChat", SettingCategory.Chat, true, null,

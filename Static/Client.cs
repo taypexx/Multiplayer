@@ -1,4 +1,4 @@
-﻿using Multiplayer.Managers;
+using Multiplayer.Managers;
 using LocalizeLib;
 using System.Text;
 using System.Text.Json;
@@ -26,8 +26,25 @@ namespace Multiplayer.Static
         private static Stopwatch Stopwatch = new Stopwatch();
         internal static ushort PingMS { get; private set; }
 
-        internal static readonly string APIAddress = $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/";
-        internal static readonly Uri WebsocketAddress = new($"wss://{Constants.ServerAddress}:{Constants.PortWebsocket}/ws");
+        internal static string APIAddress 
+        {
+            get
+            {
+                var customIp = Settings.Get<string>("CustomServerIP");
+                if (!string.IsNullOrWhiteSpace(customIp)) return $"http://{customIp}/api/";
+                return $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/api/";
+            }
+        }
+        
+        internal static Uri WebsocketAddress 
+        {
+            get
+            {
+                var customIp = Settings.Get<string>("CustomServerIP");
+                if (!string.IsNullOrWhiteSpace(customIp)) return new Uri($"ws://{customIp}/ws");
+                return new Uri($"wss://{Constants.ServerAddress}:{Constants.PortWebsocket}/ws");
+            }
+        }
 
         internal static Version ServerVersion { get; private set; }
         internal static bool Outdated => ServerVersion != null && ServerVersion > Constants.Version_;
@@ -373,19 +390,28 @@ namespace Multiplayer.Static
                 return;
             }
 
-            var playerName = DataHelper.nickname.Trim('\n', '\r');
+            var customIp = Settings.Get<string>("CustomServerIP");
+            bool isCustomServer = !string.IsNullOrWhiteSpace(customIp);
+
+            var playerName = DataHelper.nickname?.Trim('\n', '\r');
             var uid = DataHelper.PeroUid;
-            if (uid == null) return;
+
+            if (isCustomServer)
+            {
+                if (string.IsNullOrWhiteSpace(playerName)) playerName = "Player" + UnityEngine.Random.Range(1000, 9999);
+                if (string.IsNullOrWhiteSpace(uid)) uid = System.Guid.NewGuid().ToString("N");
+            }
+            else if (uid == null) return;
 
             // PeroPero account check
-            if (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace() || uid == null)
+            if (!isCustomServer && (!DataHelper.isLogin || DataHelper.PeroUid.IsNullOrWhitespace() || uid == null))
             {
                 UIManager.WarnNotification(Localization.Get("Warning", "NoAccount"));
                 return;
             }
 
             // Headquarters check
-            if (!AuthManager.IsAuthenticated)
+            if (!isCustomServer && !AuthManager.IsAuthenticated)
             {
                 UIManager.WarnNotification(Localization.Get("Warning", "HeadquartersFail"));
                 return;
@@ -406,7 +432,11 @@ namespace Multiplayer.Static
 
             Task.Run(async () => 
             {
-                var response = await PostAsync($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login", payload, true, code is null, true);
+                string loginUrl = isCustomServer 
+                    ? $"http://{customIp}/api/login"
+                    : $"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/login";
+
+                var response = await PostAsync(loginUrl, payload, true, code is null, true);
                 Main.Dispatch(() => PnlCloudExtension.Finish(response.IsSuccessStatusCode));
                 if (response.IsSuccessStatusCode)
                 {
