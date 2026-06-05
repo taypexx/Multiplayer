@@ -344,6 +344,8 @@ namespace Multiplayer.Patches
 
                 FinishCurrentChart();
                 CanExitRegardless = true;
+
+                _ = LobbyManager.PlaylistContinue();
             }
         }
 
