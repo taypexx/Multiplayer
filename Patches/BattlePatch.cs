@@ -131,30 +131,36 @@ namespace Multiplayer.Patches
 
                             var textObj = textGo.AddComponent<Text>();
                             var currentEntry = LobbyManager.LocalLobby.Playlist[LobbyManager.LocalLobby.CurrentPlaylistEntryIndex];
-                            textObj.text = ChartManager.GetNiceChartName(currentEntry.MusicInfo, currentEntry.Difficulty);
-                            textObj.fontSize = 28;
-                            textObj.color = Color.white;
-                            textObj.fontStyle = FontStyle.Normal;
-                            textObj.alignment = TextAnchor.UpperRight;
-                            textObj.horizontalOverflow = HorizontalWrapMode.Overflow;
-                            textObj.verticalOverflow = VerticalWrapMode.Overflow;
 
+                            string diffStr = currentEntry.Difficulty switch
+                            {
+                                1 => "Easy",
+                                2 => "Hard",
+                                3 => "Master",
+                                4 => "Hidden",
+                                _ => "?"
+                            };
+                            string levelStr = currentEntry.MusicInfo.HasDifficulty((uint)currentEntry.Difficulty) ? currentEntry.MusicInfo.GetLevelByDiff((uint)currentEntry.Difficulty) : "?";
+
+                            textObj.text = $"{currentEntry.MusicInfo.name}\n<size=27>{diffStr} - Level {levelStr}</size>";
+                            textObj.fontSize = 38;
+                            textObj.lineSpacing = 0.8f;
+                            textObj.alignment = TextAnchor.UpperRight;
+
+                            // Trying to get the font from another text component
                             var djmaxText = activePanel.Find("Score/Djmax/TxtScore_djmax")?.GetComponent<Text>();
                             var fallbackText = activePanel.Find("Score/Other/TxtScore")?.GetComponent<Text>();
                             var sourceText = djmaxText ?? fallbackText;
                             if (sourceText != null)
                             {
                                 textObj.font = sourceText.font;
+                                textObj.fontStyle = sourceText.fontStyle;
                             }
                             else
                             {
                                 var existingText = activePanel.GetComponentInChildren<Text>(true);
                                 if (existingText != null) textObj.font = existingText.font;
                             }
-
-                            var outline = textGo.AddComponent<Outline>();
-                            outline.effectColor = Color.black;
-                            outline.effectDistance = new Vector2(2f, 2f);
 
                             var rect = textGo.GetComponent<RectTransform>();
                             rect.anchorMin = new Vector2(0.5f, 0.5f);
@@ -166,6 +172,7 @@ namespace Multiplayer.Patches
                             rect.localScale = Vector3.one;
 
                             textGo.transform.localPosition = new Vector3(720f, 470f, 0f);
+                            textGo.transform.localScale = new Vector3(1f, 0.95f, 1f);
                         }
                     }
                 }
