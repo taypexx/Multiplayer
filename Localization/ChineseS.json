@@ -193,7 +193,7 @@
     "IncorrectID": "这个房间不存在！"
   },
   "PublicLobbies": {
-    "Title": "公开房间",
+    "Title": "加入公开房间",
     "Description": "选一个你最喜欢的吧！\n\n (^.^)",
     "EmptyDescription": "现在没有任何公开房间呢\n\n 〜(＞.＜)〜"
   },

@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.Database;
+using Il2CppAssets.Scripts.Database;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -98,7 +98,7 @@ namespace Multiplayer.Data.Stats
         public MultiplayerStats(Player player)
         {
             Player = player;
-            HQUid = player != PlayerManager.LocalPlayer ? 0 : AuthManager.User.Uid;
+            HQUid = player != PlayerManager.LocalPlayer ? 0 : (AuthManager.User?.Uid ?? 0);
             Status = PlayerStatus.Offline;
 
             Name = "Player" + player.Uid;

@@ -76,7 +76,7 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = LocalPlayerUid,
-                HQUid = AuthManager.User.Uid,
+                HQUid = AuthManager.User?.Uid ?? 0,
                 Status = localStats.Status,
                 Name = localStats.Name,
                 AvatarName = localStats.AvatarName,
