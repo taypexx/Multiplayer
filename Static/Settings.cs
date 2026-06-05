@@ -27,6 +27,7 @@ namespace Multiplayer.Static
             {
                 setting.Load();
             }
+            MelonCategory.SaveToFile(false);
         }
 
         static Settings()
