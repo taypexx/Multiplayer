@@ -144,10 +144,11 @@ namespace Multiplayer.Managers
             foreach (var pair in CustomAlbums.Managers.AlbumManager.LoadedAlbums)
             {
                 var album = pair.Value;
-                if (!album.Sheets.TryGetValue(2, out var sheet)) continue;
-                if (!ChartManager.CustomCharts.ContainsKey(sheet.Md5))
+                string md5 = ChartManager.GetMD5(album.Uid);
+                if (string.IsNullOrEmpty(md5)) continue;
+                if (!ChartManager.CustomCharts.ContainsKey(md5))
                 {
-                    ChartManager.CustomCharts.Add(sheet.Md5, new Multiplayer.Data.CustomChartData(album));
+                    ChartManager.CustomCharts.Add(md5, new Multiplayer.Data.CustomChartData(album));
                 }
             }
 

@@ -263,9 +263,17 @@ namespace Multiplayer.Managers
             };
 
             var response = await Client.PostAsync("lobbyLock", payload);
-            bool success = response != null;
-            if (success) LocalLobby.Locked = isLocked;
-            return success;
+            if (response != null && response.IsSuccessStatusCode)
+            {
+                int result = 0;
+                try { result = await response.Content.ReadFromJsonAsync<int>(); } catch { }
+                if (result == 0 || response.Content.Headers.ContentLength == 2) // Check 0 or {} for backward compatibility
+                {
+                    LocalLobby.Locked = isLocked;
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>

@@ -440,15 +440,15 @@ namespace Multiplayer.Static
             if (Connected || Debounce) return;
 
             // Level unlock check
-            if (DataHelper.Level < Constants.ModUnlockLevel)
-            {
-                if (LowLevelWarning is null)
-                {
-                    LowLevelWarning = new(String.Format(Localization.Get("Warning", "LowLevel").ToString(), Constants.ModUnlockLevel));
-                }
-                UIManager.WarnNotification(LowLevelWarning);
-                return;
-            }
+            // if (DataHelper.Level < Constants.ModUnlockLevel)
+            // {
+            //     if (LowLevelWarning is null)
+            //     {
+            //         LowLevelWarning = new(String.Format(Localization.Get("Warning", "LowLevel").ToString(), Constants.ModUnlockLevel));
+            //     }
+            //     UIManager.WarnNotification(LowLevelWarning);
+            //     return;
+            // }
 
             // Internet check
             if (Application.internetReachability == NetworkReachability.NotReachable)

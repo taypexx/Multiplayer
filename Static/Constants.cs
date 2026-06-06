@@ -1,4 +1,4 @@
-﻿using Multiplayer.Data.Lobbies;
+using Multiplayer.Data.Lobbies;
 using Multiplayer.Data.Players;
 using UnityEngine;
 
@@ -18,7 +18,7 @@ namespace Multiplayer.Static
             "<color=1eff00ff>AshtonMemer</color> — Custom Albums & Headquarters\n" +
             "<color=1eff00ff>PBalint817</color> — Additional libraries\n" +
             "<color=fff700ff>Bubu</color> — Traditional Chinese translation\n" +
-            "<color=fff700ff>???</color> — Simplified Chinese translation\n" +
+            "<color=fff700ff>Suzimo</color> — Simplified Chinese translation\n" +
             "<color=fff700ff>???</color> — Korean translation\n" +
             "<color=fff700ff>isei</color> — Japanese translation\n\n" +
             "[ TESTER TEAM ]\n\n" +

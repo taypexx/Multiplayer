@@ -1,4 +1,4 @@
-﻿using Multiplayer.UI;
+using Multiplayer.UI;
 using Multiplayer.UI.Displays;
 using Multiplayer.UI.LobbyWindows;
 using Multiplayer.UI.ProfileWindows;
@@ -239,10 +239,17 @@ namespace Multiplayer.Managers
             }
 
             Debounce = true;
-            await LobbyManager.LockLobby(true);
+            bool success = await LobbyManager.LockLobby(true);
             Debounce = false;
 
-            _ = Intermission.Start();
+            if (success)
+            {
+                _ = Intermission.Start();
+            }
+            else
+            {
+                PopupUtils.ShowInfo("开始游戏失败，谱面不统一");
+            }
         }
 
         /// <summary>
