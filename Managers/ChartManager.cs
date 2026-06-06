@@ -22,7 +22,26 @@ namespace Multiplayer.Managers
         // [MD5] = data
         internal static Dictionary<string, CustomChartData> CustomCharts;
 
-        internal static int CurrentDifficulty => GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
+        internal static int CurrentDifficulty
+        {
+            get
+            {
+                int diff = GlobalDataBase.dbMusicTag.selectedDiffTglIndex;
+                if (diff == 3)
+                {
+                    var musicInfo = GlobalDataBase.dbMusicTag.m_CurSelectedMusicInfo;
+                    if (musicInfo != null)
+                    {
+                        var ssm = Il2CppAssets.Scripts.PeroTools.Commons.Singleton<Il2Cpp.SpecialSongManager>.instance;
+                        if (ssm != null && ssm.IsInvokeHideBms(musicInfo.uid))
+                        {
+                            return 4;
+                        }
+                    }
+                }
+                return diff;
+            }
+        }
 
         /// <summary>
         /// Gets the <see cref="CustomChartData"/> by the <paramref name="uid"/>.
@@ -33,7 +52,7 @@ namespace Multiplayer.Managers
             if (md5 == null) return null;
             if (!CustomCharts.TryGetValue(md5, out CustomChartData data))
             {
-                var album = AlbumManager.GetByUid(uid);
+                var album = CustomAlbums.Managers.AlbumManager.GetByUid(uid);
                 if (album == null) return null;
                 data = new CustomChartData(album);
                 CustomCharts.Add(md5, data);
@@ -46,10 +65,22 @@ namespace Multiplayer.Managers
         internal static string GetNiceChartName(MusicInfo musicInfo, int difficulty)
         {
             if (musicInfo == null) return String.Format("Unknown Chart {0}★", difficulty);
+
+            string levelStr = musicInfo.GetMusicLevelStringByDiff(difficulty);
+            
+            if (difficulty == 4)
+            {
+                var album = CustomAlbums.Managers.AlbumManager.GetByUid(musicInfo.uid);
+                if (album != null && !string.IsNullOrEmpty(album.Info.HideBmsDifficulty) && album.Info.HideBmsDifficulty != "0")
+                {
+                    levelStr = album.Info.HideBmsDifficulty;
+                }
+            }
+
             return String.Format(
                 "{0} {1}★",
                 musicInfo.GetLocal(Localization.LanguageIndex).name,
-                musicInfo.GetMusicLevelStringByDiff(difficulty)
+                levelStr
             );
         }
 
@@ -114,7 +145,7 @@ namespace Multiplayer.Managers
         /// <param name="str">MD5 hash or vanilla uid.</param>
         internal static MusicInfo GetMusicInfo(string str)
         {
-            if (str.Length >= 16)
+            if (str.Length >= 16 && !str.StartsWith(CustomAlbums.Managers.AlbumManager.Uid.ToString() + "-"))
             {
                 if (CustomCharts.TryGetValue(str, out var data))
                 {

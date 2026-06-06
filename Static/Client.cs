@@ -51,7 +51,7 @@ namespace Multiplayer.Static
         internal static Version ServerVersion { get; private set; }
         internal static bool Outdated => ServerVersion != null && ServerVersion > Constants.Version_;
         private static LocalString OutdatedWarning;
-        private static LocalString LowLevelWarning;
+
 
         private static HttpMessageHandler HttpHandler;
         private static HttpClient Http;
@@ -580,9 +580,10 @@ namespace Multiplayer.Static
         {
             if (!Connected) return;
 
+            Connected = false;
+
             if (LobbyManager.IsInLobby) _ = LobbyManager.LeaveLobby(true);
 
-            Connected = false;
             TcpRPC.Disconnect();
             Main.Log("Disconneced from the server.", Main.LogType.Warning);
 

@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.UI.Tips;
+using Il2CppAssets.Scripts.UI.Tips;
 using LocalizeLib;
 using Multiplayer.Data;
 using Multiplayer.Managers;
@@ -154,6 +154,7 @@ namespace Multiplayer.UI.Abstract
         protected virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow _, int objectIndex)
         {
             if (!Window.Activated) return;
+            if (objectIndex < 0 || objectIndex >= Window.ForumObjects.Count) return;
             ForumObject button = Window.ForumObjects[objectIndex];
 
             Window.ForceClose();

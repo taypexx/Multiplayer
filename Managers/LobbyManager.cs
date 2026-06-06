@@ -206,6 +206,12 @@ namespace Multiplayer.Managers
             if (!Client.Connected || !IsInLobby) return false;
 
             string entry = ChartManager.GetEntry(musicInfo, difficulty);
+            var playlistEntry = LocalLobby.GetFromPlaylist(entry);
+            if (playlistEntry != null)
+            {
+                entry = playlistEntry.Entry;
+            }
+
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,

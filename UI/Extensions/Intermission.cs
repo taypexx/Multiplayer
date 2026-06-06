@@ -143,7 +143,7 @@ namespace Multiplayer.UI.Extensions
                 new Action(() =>
                 {
                     SoundManager.PlayClick();
-                    if (IsTopComboEquipped || !Active) return;
+                    if (IsTopComboEquipped || !Active || CurrentTopGirlID < 0 || CurrentTopElfinID < 0) return;
 
                     DataHelper.selectedRoleIndex = CurrentTopGirlID;
                     DataHelper.selectedElfinIndex = CurrentTopElfinID;
@@ -221,6 +221,16 @@ namespace Multiplayer.UI.Extensions
 
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
             if (entry == null) return;
+            
+            if (entry.MusicInfo == null)
+            {
+                Main.Dispatch(() => UIManager.WarnNotification(Localization.Get("Lobby", "ChartNotSynced")));
+                _ = LobbyManager.LeaveLobby(true);
+                return;
+            }
+
+            UIManager.JumpToChart(entry.MusicInfo.uid);
+
             var specialSongManager = Singleton<SpecialSongManager>.instance;
             var currentHiddenUnlocked = specialSongManager.IsInvokeHideBms(entry.MusicInfo.uid);
 
@@ -232,10 +242,12 @@ namespace Multiplayer.UI.Extensions
             // If the current chart's hidden is unlocked and entry diff is 3
             else if (entry.Difficulty == 3 && currentHiddenUnlocked)
             {
-                // TODO: figure this out
+                if (specialSongManager.m_IsInvokeHideDic.ContainsKey(entry.MusicInfo.uid))
+                {
+                    specialSongManager.m_IsInvokeHideDic[entry.MusicInfo.uid] = false;
+                }
             }
 
-            UIManager.JumpToChart(entry.MusicInfo.uid);
             GlobalDataBase.dbMusicTag.selectedDiffTglIndex = entry.Difficulty == 4 ? 3 : entry.Difficulty;
             GlobalDataBase.dbMusicTag.pnlSelectMusicUid = entry.MusicInfo.uid;
 

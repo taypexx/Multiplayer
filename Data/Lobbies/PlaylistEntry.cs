@@ -6,12 +6,16 @@ namespace Multiplayer.Data.Lobbies
 {
     public class PlaylistEntry
     {
+        private MusicInfo _musicInfo;
         public MusicInfo MusicInfo
         {
             get
             {
-                if (string.IsNullOrEmpty(EntryKey)) return null;
-                return ChartManager.GetMusicInfo(EntryKey);
+                if (_musicInfo == null && !string.IsNullOrEmpty(EntryKey))
+                {
+                    _musicInfo = ChartManager.GetMusicInfo(EntryKey);
+                }
+                return _musicInfo;
             }
         }
 
@@ -28,16 +32,16 @@ namespace Multiplayer.Data.Lobbies
             if (musicInfo != null)
             {
                 EntryKey = ChartManager.GetEntryKey(musicInfo);
-                IsCustom = musicInfo.albumIndex == AlbumManager.Uid;
+                IsCustom = musicInfo.albumIndex == CustomAlbums.Managers.AlbumManager.Uid;
             }
             else
             {
-                string[] str = entry.Split("#");
+                string[] str = entry.Split('#');
                 EntryKey = str.Length > 0 ? str[0] : string.Empty;
                 IsCustom = true;
             }
             
-            string[] parts = entry.Split("#");
+            string[] parts = entry.Split('#');
             OwnerName = parts.Length > 2 ? parts[2] : "Unknown";
         }
 

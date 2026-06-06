@@ -216,7 +216,9 @@ namespace Multiplayer.Patches
                 Sprite sprite = null;
                 if (Settings.Get<bool>("DisplayAvatars"))
                 {
-                    sprite = player.HQStats.HasAvatar ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(player.MultiplayerStats.AvatarName);
+                    string avatarName = player.MultiplayerStats.AvatarName;
+                    if (string.IsNullOrEmpty(avatarName)) avatarName = "head_0";
+                    sprite = player.HQStats.HasAvatar ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(avatarName);
                 }
                 else if (player.BattleStats.Alive) sprite = sprites[(int)player.BattleStats.Grade];
                 playerSprites[player.Uid] = sprite;
@@ -326,7 +328,6 @@ namespace Multiplayer.Patches
                 FinishCurrentChart();
 
                 _ = AwaitForFinish();
-                _ = LobbyManager.PlaylistContinue();
             }
         }
 
@@ -344,8 +345,6 @@ namespace Multiplayer.Patches
 
                 FinishCurrentChart();
                 CanExitRegardless = true;
-
-                _ = LobbyManager.PlaylistContinue();
             }
         }
 
@@ -412,6 +411,7 @@ namespace Multiplayer.Patches
                 }
 
                 AwaitingForReady = false;
+                _ = LobbyManager.PlaylistContinue();
             }
         }
     }

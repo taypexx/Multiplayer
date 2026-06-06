@@ -154,12 +154,24 @@ namespace Multiplayer.Data.Lobbies
         /// </summary>
         internal bool HasInPlaylist(string entry)
         {
+            string[] parts = entry.Split('#');
+            if (parts.Length >= 2 && int.TryParse(parts[1], out int diff))
+            {
+                string md5 = parts[0];
+                return Playlist.Exists(e => e.EntryKey == md5 && e.Difficulty == diff);
+            }
             return Playlist.Exists(e => e.Entry == entry);
         }
 
         /// <returns>A <see cref="PlaylistEntry"/> which has the given <paramref name="entry"/>.</returns>
         internal PlaylistEntry GetFromPlaylist(string entry)
         {
+            string[] parts = entry.Split('#');
+            if (parts.Length >= 2 && int.TryParse(parts[1], out int diff))
+            {
+                string md5 = parts[0];
+                return Playlist.Find(e => e.EntryKey == md5 && e.Difficulty == diff);
+            }
             return Playlist.Find(e => e.Entry == entry);
         }
 
