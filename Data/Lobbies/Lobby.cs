@@ -303,7 +303,7 @@ namespace Multiplayer.Data.Lobbies
                     bool shouldPlay = false;
                     lock (_transitionLock)
                     {
-                        if (this.Locked && this.Host == PlayerManager.LocalPlayer && this.HasPlayedCurrentSong)
+                        if (this.Locked && this.Host?.Uid == PlayerManager.LocalPlayer?.Uid && this.HasPlayedCurrentSong)
                         {
                             this.HasPlayedCurrentSong = false;
                             shouldPlay = true;
@@ -315,7 +315,7 @@ namespace Multiplayer.Data.Lobbies
                         _ = Task.Run(async () => 
                         {
                             await Task.Delay(2000);
-                            if (LobbyManager.LocalLobby != null && LobbyManager.LocalLobby.Locked && LobbyManager.LocalLobby.Host == PlayerManager.LocalPlayer)
+                            if (LobbyManager.LocalLobby != null && LobbyManager.LocalLobby.Locked && LobbyManager.LocalLobby.Host?.Uid == PlayerManager.LocalPlayer?.Uid)
                             {
                                 _ = LobbyManager.PlaylistContinue();
                             }
