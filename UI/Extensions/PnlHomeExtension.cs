@@ -541,23 +541,32 @@ namespace Multiplayer.UI.Extensions
             ReplaceGirl(RightMuseShow, RightGirlIndex);
         }
 
+        private static void SetStoreActiveToggle(bool active, Transform parent)
+        {
+            if (parent == null) return;
+
+            string name = parent.name;
+            if (name == "BtnTrove" || name == "BtnDLC" || name == "BtnDlc")
+            {
+                parent.gameObject.SetActive(active);
+                return;
+            }
+
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                SetStoreActiveToggle(active, parent.GetChild(i));
+            }
+        }
+
         private static void SetStoreActive(bool active)
         {
             try
             {
+                var pnlMenu = GameObject.Find("UI/Standerd/PnlMenu");
+                if (pnlMenu != null) SetStoreActiveToggle(active, pnlMenu.transform);
+
                 var pnlHome = GameObject.Find("UI/Standerd/PnlHome");
-                if (pnlHome != null)
-                {
-                    var buttons = pnlHome.GetComponentsInChildren<Button>(true);
-                    foreach (var button in buttons)
-                    {
-                        var btnName = button.gameObject.name.ToLower();
-                        if (btnName.Contains("shop") || btnName.Contains("store") || btnName.Contains("dlc"))
-                        {
-                            button.gameObject.SetActive(active);
-                        }
-                    }
-                }
+                if (pnlHome != null) SetStoreActiveToggle(active, pnlHome.transform);
             }
             catch { }
         }

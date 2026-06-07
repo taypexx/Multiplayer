@@ -91,7 +91,7 @@ namespace Multiplayer.UI.Extensions
             if (!Active || !LobbyManager.IsInLobby) return;
 
             var entry = LobbyManager.LocalLobby.CurrentPlaylistEntry;
-            if (entry == null)
+            if (entry == null || !LobbyManager.LocalLobby.Locked)
             {
                 Active = false;
                 return;
@@ -110,14 +110,14 @@ namespace Multiplayer.UI.Extensions
             }
 
             bool isReady = LobbyManager.LocalLobby.ReadyPlayers.Contains(PlayerManager.LocalPlayerUid);
-            string readyText = isReady ? 
+            string readyText = LobbyManager.LocalLobby.IsPlaying ? "Playing" : (isReady ? 
                 $"{LobbyManager.LocalLobby.ReadyPlayers.Count} / {LobbyManager.LocalLobby.Players.Count}" : 
-                "准备";
+                "准备");
 
             var dynamicButtonPlayTuple = new Tuple<string, Color, Color>(
                 readyText,
-                isReady ? new Color(0.5f, 0.5f, 0.5f, 1f) : new Color(0f, 0.82f, 0.28f, 1f),
-                isReady ? new Color(0.6f, 0.6f, 0.6f, 1f) : new Color(0.536f, 1f, 0.05f, 1f)
+                (isReady || LobbyManager.LocalLobby.IsPlaying) ? new Color(0.5f, 0.5f, 0.5f, 1f) : new Color(0f, 0.82f, 0.28f, 1f),
+                (isReady || LobbyManager.LocalLobby.IsPlaying) ? new Color(0.6f, 0.6f, 0.6f, 1f) : new Color(0.536f, 1f, 0.05f, 1f)
             );
 
             string nextUpStr = Localization.Get("Battle", "Next").ToString();
@@ -139,7 +139,7 @@ namespace Multiplayer.UI.Extensions
                 new Action(() => 
                 {
                     SoundManager.PlayClick();
-                    if (!Active) return;
+                    if (!Active || LobbyManager.LocalLobby.IsPlaying) return;
 
                     bool isReady = LobbyManager.LocalLobby.ReadyPlayers.Contains(PlayerManager.LocalPlayerUid);
                     _ = LobbyManager.SetReady(!isReady);
@@ -291,6 +291,7 @@ namespace Multiplayer.UI.Extensions
 
             GlobalDataBase.dbMusicTag.selectedDiffTglIndex = entry.Difficulty == 4 ? 3 : entry.Difficulty;
             GlobalDataBase.dbMusicTag.pnlSelectMusicUid = entry.MusicInfo.uid;
+            GlobalDataBase.dbMusicTag.m_CurSelectedMusicInfo = entry.MusicInfo;
 
             // DB music tag will trick the CurMusicInfo to return the current playlist entry
             BattleHelper.GameBattleStart(new Il2CppSystem.Object());
@@ -325,7 +326,12 @@ namespace Multiplayer.UI.Extensions
             if (Active)
             {
                 LobbyManager.LocalLobby.StartedPlaylistEntryIndex = LobbyManager.LocalLobby.CurrentPlaylistEntryIndex;
+                LobbyManager.LocalLobby.HasPlayedCurrentSong = true;
                 Main.Dispatch(StartBattle);
+            }
+            else
+            {
+                _ = LobbyManager.SetReady(false);
             }
 
             Main.Dispatch(DisableNotification);

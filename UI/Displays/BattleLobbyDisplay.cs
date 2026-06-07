@@ -1,4 +1,4 @@
-﻿using Multiplayer.Data.Stats;
+using Multiplayer.Data.Stats;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -50,15 +50,23 @@ namespace Multiplayer.UI.Displays
                 {
                     battleInfo = $"<color=#{Utilities.GetPingColor(player.PingMS)}>{player.PingMS}ms</color>";
                 }
-                else if (!Lobby.ReadyPlayers.Contains(player.Uid) || (Lobby.EveryoneReady && player.SinceLastUpdate >= Constants.PlayerBattleInactivity))
+                else if (BattleManager.Synchronizing)
+                {
+                    if (!player.BattleStats.Alive)
+                        battleInfo = LobbyManager.LocalLobby.GetBattleInfo(player);
+                    else if (player.SinceLastUpdate >= Constants.PlayerBattleInactivity)
+                        battleInfo = Localization.Get("Global", "Loading").ToString();
+                    else
+                        battleInfo = LobbyManager.LocalLobby.GetBattleInfo(player);
+                }
+                else if (!Lobby.ReadyPlayers.Contains(player.Uid))
                 {
                     battleInfo = Localization.Get("Global", "Loading").ToString();
                 }
-                else if (!Lobby.EveryoneReady)
+                else
                 {
                     battleInfo = $"<color=#{Constants.Green}>Ready ✓</color>";
                 }
-                else battleInfo = LobbyManager.LocalLobby.GetBattleInfo(player);
 
                 text.text = $"{PositionList.Count - PositionList.IndexOf(key)}) {(player == PlayerManager.LocalPlayer ? $"<color=#{Constants.Yellow}>{player.MultiplayerStats.Name}</color>" : player.MultiplayerStats.Name)} — {battleInfo}";
 

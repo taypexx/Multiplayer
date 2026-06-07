@@ -42,6 +42,8 @@ namespace Multiplayer.Patches
         {
             private static bool Prefix(ref MusicInfo __result)
             {
+                if (!Main.IsUIScene) return true;
+
                 if (LobbyManager.IsPlaylistChartComingUp)
                 {
                     var musicInfo = LobbyManager.LocalLobby.CurrentPlaylistEntry.MusicInfo;

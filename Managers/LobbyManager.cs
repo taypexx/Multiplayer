@@ -47,7 +47,7 @@ namespace Multiplayer.Managers
                 });
 
                 // Start condition (for everyone)
-                if (Main.IsUIScene && LocalLobby.Locked && LocalLobby.EveryoneFinished && LocalLobby.CurrentPlaylistEntry != null && !Intermission.Active)
+                if (Main.IsUIScene && LocalLobby.Locked && LocalLobby.CurrentPlaylistEntry != null && !Intermission.Active)
                 {
                     if (LocalLobby.CurrentGlobalPlaylistEntryIndex > LocalLobby.StartedPlaylistEntryIndex)
                     {

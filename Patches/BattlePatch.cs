@@ -195,12 +195,12 @@ namespace Multiplayer.Patches
                 }
                 Main.Dispatch(() =>
                 {
-                    var nextIndex = localLobby.CurrentPlaylistEntryIndex + 1;
+                    var nextIndex = localLobby.CurrentPlaylistEntryIndex;
                     if (nextIndex >= localLobby.Playlist.Count) return;
 
                     var nextEntry = localLobby.Playlist[nextIndex];
                     var chartName = ChartManager.GetNiceChartName(nextEntry.MusicInfo, nextEntry.Difficulty);
-                    if (localLobby.CurrentPlaylistEntryIndex + 1 < localLobby.Playlist.Count)
+                    if (localLobby.CurrentPlaylistEntryIndex < localLobby.Playlist.Count)
                     {
                         _ = PnlMessageExtension.AddOne(
                             $"{Localization.Get("Battle", "Next")}: {chartName}", 

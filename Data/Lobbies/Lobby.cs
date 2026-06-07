@@ -26,10 +26,13 @@ namespace Multiplayer.Data.Lobbies
 
         public bool IsPrivate { get; private set; }
         public bool Locked { get; internal set; }
+        public bool IsPlaying { get; internal set; }
+        public bool HasPlayedCurrentSong { get; set; } = false;
+        private readonly object _transitionLock = new object();
 
         public HashSet<string> ReadyPlayers { get; private set; }
         public bool EveryoneReady => ReadyPlayers.Count == Players.Count;
-        public bool EveryoneFinished => ReadyPlayers.Count == 0;
+        public bool EveryoneFinished => !IsPlaying;
 
         public Player Host { get; private set; }
         public HashSet<string> Players { get; private set; }
@@ -187,7 +190,19 @@ namespace Multiplayer.Data.Lobbies
         {
             Name = updatedData["Name"].GetString();
             IsPrivate = updatedData["IsPrivate"].GetBoolean();
-            Locked = updatedData["Locked"].GetBoolean();
+            
+            bool newLocked = updatedData["Locked"].GetBoolean();
+            if (!newLocked)
+            {
+                StartedPlaylistEntryIndex = -1;
+                HasPlayedCurrentSong = false;
+            }
+            Locked = newLocked;
+
+            if (updatedData.TryGetValue("IsPlaying", out JsonElement isPlayingElement))
+            {
+                IsPlaying = isPlayingElement.GetBoolean();
+            }
             MaxPlayers = updatedData["MaxPlayers"].GetUInt16();
             PlaylistSize = updatedData["PlaylistSize"].GetUInt16();
             CurrentGlobalPlaylistEntryIndex = updatedData["CurrentPlaylistEntry"].GetUInt16();
@@ -253,7 +268,20 @@ namespace Multiplayer.Data.Lobbies
                     }
 
                     // Remove entries that were removed by other players
-                    Playlist.RemoveAll(playlistEntry => !newPlaylist.Contains(playlistEntry.Entry));
+                    int removedBeforeStarted = 0;
+                    Playlist.RemoveAll(playlistEntry => 
+                    {
+                        if (!newPlaylist.Contains(playlistEntry.Entry))
+                        {
+                            if (Playlist.IndexOf(playlistEntry) <= StartedPlaylistEntryIndex)
+                            {
+                                removedBeforeStarted++;
+                            }
+                            return true;
+                        }
+                        return false;
+                    });
+                    StartedPlaylistEntryIndex -= removedBeforeStarted;
                 }
                 catch { }
 
@@ -262,9 +290,36 @@ namespace Multiplayer.Data.Lobbies
                 {
                     if (UIManager.BattleLobbyDisplay != null) Main.Dispatch(UIManager.BattleLobbyDisplay.Destroy);
 
-                    if (this.Locked && this.Host == PlayerManager.LocalPlayer)
+                    Main.Dispatch(() =>
                     {
-                        _ = LobbyManager.PlaylistContinue();
+                        Multiplayer.Static.Chat.Recieve(new()
+                        {
+                            Message = "<color=#00ff00>全员已就位！</color>",
+                            AuthorName = "system",
+                            AuthorUid = PlayerManager.LocalPlayerUid
+                        });
+                    });
+
+                    bool shouldPlay = false;
+                    lock (_transitionLock)
+                    {
+                        if (this.Locked && this.Host == PlayerManager.LocalPlayer && this.HasPlayedCurrentSong)
+                        {
+                            this.HasPlayedCurrentSong = false;
+                            shouldPlay = true;
+                        }
+                    }
+
+                    if (shouldPlay)
+                    {
+                        _ = Task.Run(async () => 
+                        {
+                            await Task.Delay(2000);
+                            if (LobbyManager.LocalLobby != null && LobbyManager.LocalLobby.Locked && LobbyManager.LocalLobby.Host == PlayerManager.LocalPlayer)
+                            {
+                                _ = LobbyManager.PlaylistContinue();
+                            }
+                        });
                     }
                 }
             }
