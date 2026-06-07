@@ -234,7 +234,14 @@ namespace Multiplayer.Managers
                 if (curMusicInfo != null && curMusicInfo.uid == currentEntry.MusicInfo.uid)
                 {
                     int localDiff = ChartManager.CurrentDifficulty;
-                    if (localDiff != currentEntry.Difficulty)
+                    bool diffMatch = localDiff == currentEntry.Difficulty;
+                    
+                    if (!diffMatch && currentEntry.Difficulty == 4 && (localDiff == 2 || localDiff == 3))
+                    {
+                        diffMatch = true;
+                    }
+
+                    if (!diffMatch)
                     {
                         PopupUtils.ShowInfo((LocalString)"当前选择的难度与列表不一致 / Difficulty not synced");
                         LobbyWindow.Window.Show();
