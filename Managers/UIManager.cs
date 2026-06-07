@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using Il2Cpp;
 using Il2CppAssets.Scripts.UI;
 using Il2CppAssets.Scripts.UI.Panels;
+using Il2CppAssets.Scripts.Database;
 using Il2CppArcadeController.UI.Panel.PnlHome;
 using PopupLib.UI;
 using PopupLib.UI.Windows;
@@ -223,6 +224,23 @@ namespace Multiplayer.Managers
                 PopupUtils.ShowInfo(Localization.Get("Lobby", "PlaylistEmpty"));
                 LobbyWindow.Window.Show();
                 return;
+            }
+
+            // Sync check: Ensure local difficulty matches playlist difficulty
+            var currentEntry = localLobby.CurrentPlaylistEntry;
+            if (currentEntry != null)
+            {
+                var curMusicInfo = GlobalDataBase.dbMusicTag.m_CurSelectedMusicInfo;
+                if (curMusicInfo != null && curMusicInfo.uid == currentEntry.MusicInfo.uid)
+                {
+                    int localDiff = ChartManager.CurrentDifficulty;
+                    if (localDiff != currentEntry.Difficulty)
+                    {
+                        PopupUtils.ShowInfo((LocalString)"当前选择的难度与列表不一致 / Difficulty not synced");
+                        LobbyWindow.Window.Show();
+                        return;
+                    }
+                }
             }
 
             // Sleepwalker check

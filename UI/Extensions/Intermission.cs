@@ -9,6 +9,7 @@ using Multiplayer.Data.Lobbies;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Il2Cpp;
+using System.Linq;
 
 namespace Multiplayer.UI.Extensions
 {
@@ -238,13 +239,34 @@ namespace Multiplayer.UI.Extensions
             if (entry.Difficulty == 4 && !currentHiddenUnlocked)
             {
                 specialSongManager.InvokeHideBms(entry.MusicInfo, true);
+
+                // Force ActivateHidden via Reflection for CustomAlbums to ensure clients apply the mask values
+                try
+                {
+                    var customAlbumsAssembly = System.AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "CustomAlbums");
+                    if (customAlbumsAssembly != null)
+                    {
+                        var patchType = customAlbumsAssembly.GetType("CustomAlbums.Patches.HiddenSupportPatch+InvokeHideBmsPatch");
+                        if (patchType != null)
+                        {
+                            var activateHiddenMethod = patchType.GetMethod("ActivateHidden", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                            if (activateHiddenMethod != null && specialSongManager.m_HideBmsInfos.ContainsKey(entry.MusicInfo.uid))
+                            {
+                                var hideBmsInfo = specialSongManager.m_HideBmsInfos[entry.MusicInfo.uid];
+                                activateHiddenMethod.Invoke(null, new object[] { hideBmsInfo });
+                                specialSongManager.m_IsInvokeHideDic[entry.MusicInfo.uid] = true;
+                            }
+                        }
+                    }
+                }
+                catch (System.Exception) { }
             }
             // If the current chart's hidden is unlocked and entry diff is 3
             else if (entry.Difficulty == 3 && currentHiddenUnlocked)
             {
                 if (specialSongManager.m_IsInvokeHideDic.ContainsKey(entry.MusicInfo.uid))
                 {
-                    specialSongManager.m_IsInvokeHideDic[entry.MusicInfo.uid] = false;
+                    specialSongManager.m_IsInvokeHideDic.Remove(entry.MusicInfo.uid);
                 }
             }
 
