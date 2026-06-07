@@ -188,6 +188,12 @@ namespace Multiplayer.Data.Lobbies
         /// <param name="playersUpdated">Treats <paramref name="updatedData"/>["Players"] as a <see cref="Dictionary{TKey,TValue}"/> if <see langword="true"/>, or as <see cref="List{T}"/> if <see langword="false"/>.</param>
         internal async Task UpdateFields(Dictionary<string, JsonElement> updatedData, bool updatePlayers = false, bool playersUpdated = false)
         {
+            bool wasEveryoneFinished = false;
+            if (this == LobbyManager.LocalLobby)
+            {
+                wasEveryoneFinished = this.EveryoneFinished;
+            }
+
             Name = updatedData["Name"].GetString();
             IsPrivate = updatedData["IsPrivate"].GetBoolean();
             
@@ -244,7 +250,6 @@ namespace Multiplayer.Data.Lobbies
 
             if (this == LobbyManager.LocalLobby)
             {
-                bool wasEveryoneFinished = this.EveryoneFinished;
                 try
                 {
                     ReadyPlayers = JsonSerializer.Deserialize<HashSet<string>>(updatedData["ReadyPlayers"]);

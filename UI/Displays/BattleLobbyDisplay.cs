@@ -50,11 +50,11 @@ namespace Multiplayer.UI.Displays
                 {
                     battleInfo = $"<color=#{Utilities.GetPingColor(player.PingMS)}>{player.PingMS}ms</color>";
                 }
-                else if (BattleManager.Synchronizing)
+                else if (LobbyManager.LocalLobby.IsPlaying)
                 {
                     if (!player.BattleStats.Alive)
                         battleInfo = LobbyManager.LocalLobby.GetBattleInfo(player);
-                    else if (player.SinceLastUpdate >= Constants.PlayerBattleInactivity)
+                    else if (player.SinceLastUpdate >= Constants.PlayerBattleInactivity && Lobby.ReadyPlayers.Contains(player.Uid))
                         battleInfo = Localization.Get("Global", "Loading").ToString();
                     else
                         battleInfo = LobbyManager.LocalLobby.GetBattleInfo(player);
