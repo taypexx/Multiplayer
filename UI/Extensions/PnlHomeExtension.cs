@@ -1,4 +1,5 @@
-﻿using Il2CppAssets.Scripts.Database;
+using HarmonyLib;
+using Il2CppAssets.Scripts.Database;
 using Il2CppAssets.Scripts.PeroTools.Commons;
 using Il2CppAssets.Scripts.UI;
 using Il2CppAssets.Scripts.UI.Panels;
@@ -396,6 +397,9 @@ namespace Multiplayer.UI.Extensions
             OriginalButton = GameObject.Find("UI/Standerd/PnlMenu/Panels/PnlRole/MainShow/FancyScrollView/BtnPrevious");
 
             if (OriginalMuseShow is null || OriginalButton is null) return;
+
+            SetStoreActive(false);
+
             if (!PnlRole.m_IsInit)
             {
                 PnlRole.Init();
@@ -537,6 +541,27 @@ namespace Multiplayer.UI.Extensions
             ReplaceGirl(RightMuseShow, RightGirlIndex);
         }
 
+        private static void SetStoreActive(bool active)
+        {
+            try
+            {
+                var pnlHome = GameObject.Find("UI/Standerd/PnlHome");
+                if (pnlHome != null)
+                {
+                    var buttons = pnlHome.GetComponentsInChildren<Button>(true);
+                    foreach (var button in buttons)
+                    {
+                        var btnName = button.gameObject.name.ToLower();
+                        if (btnName.Contains("shop") || btnName.Contains("store") || btnName.Contains("dlc"))
+                        {
+                            button.gameObject.SetActive(active);
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
         /// <summary>
         /// Disables the extension.
         /// </summary>
@@ -545,6 +570,8 @@ namespace Multiplayer.UI.Extensions
             Enabled = false;
             try
             {
+                SetStoreActive(true);
+
                 var bgSwitchBtn = PnlHome.transform.Find("PnlBgSwitchFsv");
                 if (bgSwitchBtn != null) bgSwitchBtn.gameObject.SetActive(true);
 
@@ -575,6 +602,15 @@ namespace Multiplayer.UI.Extensions
                 UnityEngine.Object.Destroy(RightButton);
             }
             catch { }
+        }
+    }
+
+    [HarmonyPatch(typeof(Il2CppAssets.Scripts.UI.Panels.PnlDLC.OpenDlc), nameof(Il2CppAssets.Scripts.UI.Panels.PnlDLC.OpenDlc.OpenShop))]
+    internal static class OpenDlcPatch
+    {
+        private static bool Prefix()
+        {
+            return !LobbyManager.IsInLobby;
         }
     }
 }

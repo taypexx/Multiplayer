@@ -100,7 +100,7 @@ namespace Multiplayer.Patches
                             if (string.IsNullOrEmpty(selectedByStr)) selectedByStr = "Selected by: {0}";
                             string ownerFormatted = string.Format(selectedByStr, $"<color=#00e6ffff>{currentEntry.OwnerName}</color>");
 
-                            textObj.text = $"\n<size=22>{ownerFormatted}</size>";
+                            textObj.text = $"<size=22>{ownerFormatted}</size>";
                             textObj.fontSize = 32;
                             textObj.lineSpacing = 0.8f;
                             textObj.alignment = TextAnchor.UpperRight;
@@ -118,7 +118,7 @@ namespace Multiplayer.Patches
                             rect.sizeDelta = new Vector2(100f, 100f);
                             rect.localScale = Vector3.one;
 
-                            textGo.transform.localPosition = new Vector3(720f, 470f, 0f);
+                            textGo.transform.localPosition = new Vector3(720f, 395f, 0f);
                             textGo.transform.localScale = new Vector3(1f, 0.95f, 1f);
                         }
                     }
