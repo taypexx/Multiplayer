@@ -64,6 +64,7 @@ namespace Multiplayer.Managers
                 player.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 20));
                 player.RefreshLastUpdated();
             }
+            if (UIManager.BattleLobbyDisplay != null) UIManager.BattleLobbyDisplay.UpdateTexts();
         }
 
         /// <summary>
