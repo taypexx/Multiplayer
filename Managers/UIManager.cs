@@ -358,6 +358,11 @@ namespace Multiplayer.Managers
                 MainLobbyDisplay.Create(LobbyManager.LocalLobby);
                 ChatLobbyDisplay.Create(LobbyManager.LocalLobby, true, true);
                 PnlHomeExtension.Create();
+
+                if (LobbyManager.LocalLobby.Locked && !LobbyManager.LocalLobby.EveryoneFinished)
+                {
+                    BattleLobbyDisplay.Create(LobbyManager.LocalLobby, false);
+                }
             }
 
             var updateLobbyDisplayAction = (UnityAction)new Action(MainLobbyDisplay.UpdateTexts);

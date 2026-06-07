@@ -97,8 +97,6 @@ namespace Multiplayer.UI.Extensions
                 return;
             }
             var chartTitle = ChartManager.GetNiceChartName(entry.MusicInfo, entry.Difficulty);
-            var secondsLeft = (int)Math.Ceiling(Constants.IntermissionTimeMS / 1000 - Stopwatch.Elapsed.TotalSeconds);
-
             string topGirl, topElfin;
             if (CurrentTopGirlID >= 0 && CurrentTopElfinID >= 0)
             {
@@ -111,14 +109,23 @@ namespace Multiplayer.UI.Extensions
                 topElfin = topGirl;
             }
 
+            bool isReady = LobbyManager.LocalLobby.ReadyPlayers.Contains(PlayerManager.LocalPlayerUid);
+            string readyText = isReady ? 
+                $"{LobbyManager.LocalLobby.ReadyPlayers.Count} / {LobbyManager.LocalLobby.Players.Count}" : 
+                "准备";
+
+            var dynamicButtonPlayTuple = new Tuple<string, Color, Color>(
+                readyText,
+                isReady ? new Color(0.5f, 0.5f, 0.5f, 1f) : new Color(0f, 0.82f, 0.28f, 1f),
+                isReady ? new Color(0.6f, 0.6f, 0.6f, 1f) : new Color(0.536f, 1f, 0.05f, 1f)
+            );
+
+            string nextUpStr = Localization.Get("Battle", "Next").ToString();
+            string text = $"<color=#{Constants.Yellow}>{nextUpStr}:</color>\n{chartTitle}\n<color=#{Constants.Pink}>{topGirl} {topElfin}</color>";
+
             SideNotification.Update(
-                String.Format(
-                    Localization.Get("Intermission", "Label").ToString(),
-                    Constants.Yellow, chartTitle,
-                    Constants.Pink, topGirl, topElfin,
-                    Constants.Yellow, secondsLeft
-                ),
-                ButtonPlayTuple,
+                text,
+                dynamicButtonPlayTuple,
                 IsTopComboEquipped ? ButtonEquippedTuple : ButtonEquipTuple
             );
         }
@@ -127,14 +134,15 @@ namespace Multiplayer.UI.Extensions
         {
             var buttonMain = new Tuple<string, Color, Color, Action>
             (
-                Localization.Get("Intermission", "ButtonPlay").ToString(),
+                "准备",
                 new(), new(),
                 new Action(() => 
                 {
                     SoundManager.PlayClick();
                     if (!Active) return;
 
-                    Active = false;
+                    bool isReady = LobbyManager.LocalLobby.ReadyPlayers.Contains(PlayerManager.LocalPlayerUid);
+                    _ = LobbyManager.SetReady(!isReady);
                 })
             );
             var buttonSecondary = new Tuple<string, Color, Color, Action>
@@ -233,40 +241,51 @@ namespace Multiplayer.UI.Extensions
             UIManager.JumpToChart(entry.MusicInfo.uid);
 
             var specialSongManager = Singleton<SpecialSongManager>.instance;
-            var currentHiddenUnlocked = specialSongManager.IsInvokeHideBms(entry.MusicInfo.uid);
+            
+            string checkUid = entry.MusicInfo.uid;
+            if (checkUid.StartsWith("999-"))
+            {
+                var customData = ChartManager.GetCustomChartData(checkUid);
+                if (customData != null) checkUid = customData.Album.Uid; // Resolves to Custom_md5
+            }
+
+            var currentHiddenUnlocked = specialSongManager.IsInvokeHideBms(checkUid);
 
             // If the current chart's hidden is not unlocked and entry diff is 4
             if (entry.Difficulty == 4 && !currentHiddenUnlocked)
             {
                 specialSongManager.InvokeHideBms(entry.MusicInfo, true);
 
-                // Force ActivateHidden via Reflection for CustomAlbums to ensure clients apply the mask values
-                try
+                // Only use the Reflection bypass for Custom Albums (uid starts with 999-)
+                if (entry.MusicInfo.uid.StartsWith("999-"))
                 {
-                    var customAlbumsAssembly = System.AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "CustomAlbums");
-                    if (customAlbumsAssembly != null)
+                    try
                     {
-                        var patchType = customAlbumsAssembly.GetType("CustomAlbums.Patches.HiddenSupportPatch+InvokeHideBmsPatch");
-                        if (patchType != null)
+                        var customAlbumsAssembly = System.AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "CustomAlbums");
+                        if (customAlbumsAssembly != null)
                         {
-                            var activateHiddenMethod = patchType.GetMethod("ActivateHidden", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-                            if (activateHiddenMethod != null && specialSongManager.m_HideBmsInfos.ContainsKey(entry.MusicInfo.uid))
+                            var patchType = customAlbumsAssembly.GetType("CustomAlbums.Patches.HiddenSupportPatch+InvokeHideBmsPatch");
+                            if (patchType != null)
                             {
-                                var hideBmsInfo = specialSongManager.m_HideBmsInfos[entry.MusicInfo.uid];
-                                activateHiddenMethod.Invoke(null, new object[] { hideBmsInfo });
-                                specialSongManager.m_IsInvokeHideDic[entry.MusicInfo.uid] = true;
+                                var activateHiddenMethod = patchType.GetMethod("ActivateHidden", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                                if (activateHiddenMethod != null && specialSongManager.m_HideBmsInfos.ContainsKey(checkUid))
+                                {
+                                    var hideBmsInfo = specialSongManager.m_HideBmsInfos[checkUid];
+                                    activateHiddenMethod.Invoke(null, new object[] { hideBmsInfo });
+                                    specialSongManager.m_IsInvokeHideDic[checkUid] = true;
+                                }
                             }
                         }
                     }
+                    catch (System.Exception) { }
                 }
-                catch (System.Exception) { }
             }
             // If the current chart's hidden is unlocked and entry diff is 3
             else if (entry.Difficulty == 3 && currentHiddenUnlocked)
             {
-                if (specialSongManager.m_IsInvokeHideDic.ContainsKey(entry.MusicInfo.uid))
+                if (specialSongManager.m_IsInvokeHideDic.ContainsKey(checkUid))
                 {
-                    specialSongManager.m_IsInvokeHideDic.Remove(entry.MusicInfo.uid);
+                    specialSongManager.m_IsInvokeHideDic.Remove(checkUid);
                 }
             }
 
@@ -283,24 +302,32 @@ namespace Multiplayer.UI.Extensions
         internal static async Task Start()
         {
             if (Active || !Main.IsUIScene || !UIManager.Initialized || !LobbyManager.IsInLobby) return;
+            if (!LobbyManager.LocalLobby.EveryoneFinished) return;
+
             Active = true;
 
             UIManager.Debounce = true;
             LobbyManager.LocalLobby.SyncPlaylistEntry();
             _ = UpdateTopCombo(LobbyManager.LocalLobby.CurrentPlaylistEntry);
 
-            Stopwatch.Restart();
             Main.Dispatch(EnableNotification);
 
-            while (Stopwatch.ElapsedMilliseconds < Constants.IntermissionTimeMS && Active)
+            if (UIManager.BattleLobbyDisplay != null) Main.Dispatch(UIManager.BattleLobbyDisplay.Destroy);
+
+            while (Active && !LobbyManager.LocalLobby.EveryoneReady)
             {
                 Main.Dispatch(UpdateNotification);
                 await Task.Delay(500);
             }
-            Stopwatch.Stop();
 
             UIManager.Debounce = false;
-            Main.Dispatch(StartBattle);
+            
+            if (Active)
+            {
+                LobbyManager.LocalLobby.StartedPlaylistEntryIndex = LobbyManager.LocalLobby.CurrentPlaylistEntryIndex;
+                Main.Dispatch(StartBattle);
+            }
+
             Main.Dispatch(DisableNotification);
             Active = false;
         }

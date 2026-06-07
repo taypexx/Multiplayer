@@ -32,8 +32,15 @@ namespace Multiplayer.Managers
                     var musicInfo = GlobalDataBase.dbMusicTag.m_CurSelectedMusicInfo;
                     if (musicInfo != null)
                     {
+                        string checkUid = musicInfo.uid;
+                        if (checkUid.StartsWith("999-"))
+                        {
+                            var customData = GetCustomChartData(checkUid);
+                            if (customData != null) checkUid = customData.Album.Uid;
+                        }
+
                         var ssm = Il2CppAssets.Scripts.PeroTools.Commons.Singleton<Il2Cpp.SpecialSongManager>.instance;
-                        if (ssm != null && ssm.IsInvokeHideBms(musicInfo.uid))
+                        if (ssm != null && ssm.IsInvokeHideBms(checkUid))
                         {
                             return 4;
                         }

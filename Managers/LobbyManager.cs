@@ -46,10 +46,13 @@ namespace Multiplayer.Managers
                     PnlHomeExtension.UpdateAllPages();
                 });
 
-                // Start condition (for everyone except host)
-                if (Main.IsUIScene && LocalLobby.Locked && LocalLobby.Host != PlayerManager.LocalPlayer && LocalLobby.CurrentPlaylistEntry != null)
+                // Start condition (for everyone)
+                if (Main.IsUIScene && LocalLobby.Locked && LocalLobby.EveryoneFinished && LocalLobby.CurrentPlaylistEntry != null && !Intermission.Active)
                 {
-                    _ = Intermission.Start();
+                    if (LocalLobby.CurrentGlobalPlaylistEntryIndex > LocalLobby.StartedPlaylistEntryIndex)
+                    {
+                        _ = Intermission.Start();
+                    }
                 }
             }
         }

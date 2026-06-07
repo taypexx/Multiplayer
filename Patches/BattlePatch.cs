@@ -17,16 +17,13 @@ namespace Multiplayer.Patches
 {
     internal static class BattlePatch
     {
-        private static bool AwaitingForReady = false;
         private static bool CanExitRegardless = false;
-        private static bool Started = false;
 
         /// <summary>
         /// Runs when the GameMain scene loads.
         /// </summary>
         internal static void SceneLoaded()
         {
-            Started = false;
             CanExitRegardless = false;
 
             if (!LobbyManager.IsInLobby) return;
@@ -35,61 +32,17 @@ namespace Multiplayer.Patches
             GameObject.Find("UI_2D/Standard/PnlBattle/PnlBattleUI/PnlBattleOthers/Up/BtnPause").SetActive(false);
         }
 
-        /// <summary>
-        /// Runs a loop and waits until everyone loads.
-        /// </summary>
-        private static async Task AwaitForReady()
-        {
-            if (AwaitingForReady) return;
-            AwaitingForReady = true;
-
-            while (!LobbyManager.LocalLobby.EveryoneReady)
-            {
-                if (!LobbyManager.IsInLobby) 
-                {
-                    AwaitingForReady = false; 
-                    return; 
-                }
-                await Task.Delay(Constants.AwaitBattleIntervalMS);
-            }
-
-            AwaitingForReady = false;
-            Main.Dispatch(SingletonMonoBehaviour<PnlBattle>.instance.GameStart);
-        }
-
-        /// <summary>
-        /// Yields the game start until everyone loads up.
-        /// </summary>
         [HarmonyPatch(typeof(PnlBattle), nameof(PnlBattle.GameStart))]
         [HarmonyPriority(Priority.First)]
         internal static class BattleStartPatch
         {
             /// <summary>
-            /// Skips the method execution if awaiting for other players.
-            /// </summary>
-            private static bool Prefix()
-            {
-                if (!LobbyManager.IsInLobby) return true;
-
-                if (!Started)
-                {
-                    Started = true;
-                    _ = LobbyManager.SetReady(true);
-
-                    PnlAwait.Create();
-                    _ = AwaitForReady();
-                }
-                return !AwaitingForReady;
-            }
-
-            /// <summary>
-            /// Removes the awaiting panel and starts synchronizing with the server.
+            /// Starts synchronizing with the server.
             /// </summary>
             private static void Postfix()
             {
-                if (!LobbyManager.IsInLobby || AwaitingForReady) return;
+                if (!LobbyManager.IsInLobby) return;
 
-                PnlAwait.Destroy();
                 _ = BattleManager.SyncStart();
 
                 // Fail screen adjustments
@@ -147,8 +100,7 @@ namespace Multiplayer.Patches
                             if (string.IsNullOrEmpty(selectedByStr)) selectedByStr = "Selected by: {0}";
                             string ownerFormatted = string.Format(selectedByStr, $"<color=#00e6ffff>{currentEntry.OwnerName}</color>");
 
-                            var songName = currentEntry.MusicInfo.GetLocal(Multiplayer.Static.Localization.LanguageIndex).name;
-                            textObj.text = $"<color=#ffffff>{songName}</color> <color=#ff00d4ff><size=24>{diffStr} - {levelStr}</size></color>\n<size=22>{ownerFormatted}</size>";
+                            textObj.text = $"\n<size=22>{ownerFormatted}</size>";
                             textObj.fontSize = 32;
                             textObj.lineSpacing = 0.8f;
                             textObj.alignment = TextAnchor.UpperRight;
@@ -379,11 +331,6 @@ namespace Multiplayer.Patches
             {
                 return !LobbyManager.IsInLobby;// || HasFailed;
             }
-
-            private static void Postfix()
-            {
-                AwaitingForReady = false;
-            }
         }
 
         /// <summary>
@@ -409,9 +356,6 @@ namespace Multiplayer.Patches
                     if (player == null) continue;
                     player.BattleStats.Reset();
                 }
-
-                AwaitingForReady = false;
-                _ = LobbyManager.PlaylistContinue();
             }
         }
     }

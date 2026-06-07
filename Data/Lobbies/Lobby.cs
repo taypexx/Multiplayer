@@ -39,12 +39,14 @@ namespace Multiplayer.Data.Lobbies
         public ushort PlaylistSize { get; private set; }
         public bool IsPlaylistFull => Playlist.Count >= PlaylistSize;
 
-        private ushort CurrentGlobalPlaylistEntryIndex { get; set; }
+        internal ushort CurrentGlobalPlaylistEntryIndex { get; set; }
         public ushort CurrentPlaylistEntryIndex { get; private set; }
         public PlaylistEntry? CurrentPlaylistEntry => 
             Playlist.Count > 0
             ? Playlist[CurrentPlaylistEntryIndex]
             : null;
+
+        internal int StartedPlaylistEntryIndex { get; set; } = -1;
 
         private DateTime LastUpdated { get; set; }
         internal TimeSpan SinceLastUpdate => DateTime.Now - LastUpdated;
@@ -227,6 +229,7 @@ namespace Multiplayer.Data.Lobbies
 
             if (this == LobbyManager.LocalLobby)
             {
+                bool wasEveryoneFinished = this.EveryoneFinished;
                 try
                 {
                     ReadyPlayers = JsonSerializer.Deserialize<HashSet<string>>(updatedData["ReadyPlayers"]);
@@ -253,6 +256,17 @@ namespace Multiplayer.Data.Lobbies
                     Playlist.RemoveAll(playlistEntry => !newPlaylist.Contains(playlistEntry.Entry));
                 }
                 catch { }
+
+                bool isEveryoneFinished = this.EveryoneFinished;
+                if (!wasEveryoneFinished && isEveryoneFinished)
+                {
+                    if (UIManager.BattleLobbyDisplay != null) Main.Dispatch(UIManager.BattleLobbyDisplay.Destroy);
+
+                    if (this.Locked && this.Host == PlayerManager.LocalPlayer)
+                    {
+                        _ = LobbyManager.PlaylistContinue();
+                    }
+                }
             }
 
             RefreshLastUpdated();
