@@ -195,7 +195,7 @@ namespace Multiplayer.Patches
                 }
                 Main.Dispatch(() =>
                 {
-                    var nextIndex = localLobby.CurrentPlaylistEntryIndex;
+                    var nextIndex = localLobby.CurrentPlaylistEntryIndex + 1;
                     if (nextIndex >= localLobby.Playlist.Count) return;
 
                     var nextEntry = localLobby.Playlist[nextIndex];

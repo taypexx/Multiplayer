@@ -49,6 +49,8 @@ namespace Multiplayer.Data.Lobbies
             ? Playlist[CurrentPlaylistEntryIndex]
             : null;
 
+        internal bool ShowEveryoneFinishedMessage { get; set; } = false;
+
         internal int StartedPlaylistEntryIndex { get; set; } = -1;
 
         private DateTime LastUpdated { get; set; }
@@ -207,7 +209,12 @@ namespace Multiplayer.Data.Lobbies
 
             if (updatedData.TryGetValue("IsPlaying", out JsonElement isPlayingElement))
             {
-                IsPlaying = isPlayingElement.GetBoolean();
+                bool newIsPlaying = isPlayingElement.GetBoolean();
+                if (newIsPlaying && !IsPlaying)
+                {
+                    ShowEveryoneFinishedMessage = false;
+                }
+                IsPlaying = newIsPlaying;
             }
             MaxPlayers = updatedData["MaxPlayers"].GetUInt16();
             PlaylistSize = updatedData["PlaylistSize"].GetUInt16();
@@ -295,15 +302,7 @@ namespace Multiplayer.Data.Lobbies
                 {
                     if (UIManager.BattleLobbyDisplay != null) Main.Dispatch(UIManager.BattleLobbyDisplay.Destroy);
 
-                    Main.Dispatch(() =>
-                    {
-                        Multiplayer.Static.Chat.Recieve(new()
-                        {
-                            Message = "<color=#00ff00>全员已就位！</color>",
-                            AuthorName = "system",
-                            AuthorUid = PlayerManager.LocalPlayerUid
-                        });
-                    });
+                    ShowEveryoneFinishedMessage = true;
 
                     bool shouldPlay = false;
                     lock (_transitionLock)
