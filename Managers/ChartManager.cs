@@ -75,7 +75,7 @@ namespace Multiplayer.Managers
 
             string levelStr = musicInfo.GetMusicLevelStringByDiff(difficulty);
             
-            if (difficulty == 4)
+            if (difficulty == 4 && musicInfo.uid.StartsWith(CustomAlbums.Managers.AlbumManager.Uid.ToString() + "-"))
             {
                 var album = CustomAlbums.Managers.AlbumManager.GetByUid(musicInfo.uid);
                 if (album != null && !string.IsNullOrEmpty(album.Info.HideBmsDifficulty) && album.Info.HideBmsDifficulty != "0")
