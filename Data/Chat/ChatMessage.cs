@@ -36,23 +36,21 @@ namespace Multiplayer.Data.Chat
 
                     if (Message == "PlaylistAdd" || Message == "PlaylistRemove")
                     {
-                        string chartKey = param.Length > 0 ? param[0] : "";
+                        string chartKey = "";
                         int difficulty = 0;
-                        if (param.Length > 1) int.TryParse(param[1], out difficulty);
                         string chooserName = "Unknown";
-                        if (param.Length > 2)
+                        string chartName = "Unknown Chart";
+
+                        // Server format: p.Name#ChartKey#Difficulty#OwnerName#NiceChartName
+                        // Old server format: p.Name#ChartKey#Difficulty
+                        if (param.Length >= 3)
                         {
-                            chooserName = param[2];
-                            if (param.Length > 3)
-                            {
-                                // The new 4-segment format: ChartKey#Difficulty#ChooserName#ChartName
-                                // If the format is PlayerName#ChartKey#Difficulty#ChooserName#ChartName (server broadcast bug)
-                                // We should safely handle it
-                            }
+                            chooserName = param[0];
+                            chartKey = param[1];
+                            int.TryParse(param[2], out difficulty);
                         }
 
                         MusicInfo musicInfo = ChartManager.GetMusicInfo(chartKey);
-                        string chartName = "Unknown Chart";
                         if (musicInfo != null)
                         {
                             chartName = ChartManager.GetNiceChartName(musicInfo, difficulty);
@@ -60,8 +58,16 @@ namespace Multiplayer.Data.Chat
                         }
                         else
                         {
-                            var loc = Localization.Get("Lobby", "UnknownCustomChart");
-                            chartName = loc != null ? loc.ToString() : "Unknown Custom Chart";
+                            if (param.Length >= 5)
+                            {
+                                // New format includes the nice chart name
+                                chartName = string.Join("#", param.Skip(4));
+                            }
+                            else
+                            {
+                                var loc = Localization.Get("Lobby", "UnknownCustomChart");
+                                chartName = loc != null ? loc.ToString() : "Unknown Custom Chart";
+                            }
                         }
                         
                         param = new string[] { chooserName, chartName };
