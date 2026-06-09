@@ -476,7 +476,7 @@ namespace Multiplayer.Static
         private static void UpdateModOption(bool doUpdate)
         {
             if (!doUpdate) return;
-            Utilities.OpenBrowserLink($"{Constants.ServerHTTPScheme}://{Constants.ServerAddress}/download");
+            Utilities.OpenBrowserLink($"https://github.com/taypexx/{Constants.ModName}/releases/latest");
         }
 
         /// <summary>
