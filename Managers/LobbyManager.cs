@@ -466,9 +466,12 @@ namespace Multiplayer.Managers
             try
             {
                 var lobbies = await response.Content.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
+                var receivedIds = new HashSet<int>();
+
                 foreach ((string id_, var body) in lobbies)
                 {
                     var id = int.Parse(id_);
+                    receivedIds.Add(id);
                     if (IsInLobby && LocalLobby.Id == id) continue;
 
                     Lobby lobby = GetCachedLobby(id);
@@ -478,6 +481,16 @@ namespace Multiplayer.Managers
                         CacheLobby(lobby);
                     }
                     await lobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body));
+                }
+
+                var idsToRemove = CachedLobbies.Keys.Where(id => !receivedIds.Contains(id) && (!IsInLobby || LocalLobby.Id != id)).ToList();
+                foreach (var id in idsToRemove)
+                {
+                    var cachedLobby = CachedLobbies[id];
+                    if (!cachedLobby.IsPrivate)
+                    {
+                        ClearLobbyFromCache(cachedLobby);
+                    }
                 }
             }
             catch { return; }
