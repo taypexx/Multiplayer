@@ -84,14 +84,28 @@ namespace Multiplayer.Managers
                 }
             }
 
+            string chartName = musicInfo.name;
+            if (!musicInfo.uid.StartsWith("999-"))
+            {
+                try
+                {
+                    var local = musicInfo.GetLocal(Localization.LanguageIndex);
+                    if (local != null && !string.IsNullOrEmpty(local.name))
+                    {
+                        chartName = local.name;
+                    }
+                }
+                catch { }
+            }
+
             return String.Format(
                 "{0} {1}★",
-                musicInfo.GetLocal(Localization.LanguageIndex).name,
+                chartName,
                 levelStr
             );
         }
 
-        internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}#{2}", GetEntryKey(musicInfo), difficulty, Multiplayer.Managers.PlayerManager.LocalPlayer?.MultiplayerStats?.Name ?? "Unknown");
+        internal static string GetEntry(MusicInfo musicInfo, int difficulty) => String.Format("{0}#{1}#{2}#{3}", GetEntryKey(musicInfo), difficulty, Multiplayer.Managers.PlayerManager.LocalPlayer?.MultiplayerStats?.Name ?? "Unknown", GetNiceChartName(musicInfo, difficulty));
 
         /// <summary>
         /// Gets the MD5 hash of a custom chart by its <see cref="MusicInfo"/>.

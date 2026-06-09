@@ -1,4 +1,4 @@
-﻿namespace Multiplayer.Static
+namespace Multiplayer.Static
 {
     internal class TrieNode
     {
@@ -30,6 +30,7 @@
         /// <returns>Filtered text.</returns>
         internal static string Filter(string text)
         {
+            if (string.IsNullOrEmpty(text)) return text;
             var lower = text.ToLower();
             var result = text.ToCharArray();
 

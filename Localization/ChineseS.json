@@ -240,7 +240,7 @@
     "JoinPrompt": "是否加入房间？",
     "PasswordPrompt": "请输入房间密码：",
     "LeavePrompt": "确认离开房间吗？",
-    "DisbandPrompt": "确认解散房间吗？所有人都会被移出。",
+    "DisbandPrompt": "确认解散房间吗？房主会被移交。",
     "FullMessage": "此房间已满！",
     "JoinSuccess": "已加入房间！",
     "LeaveSuccess": "已离开房间！",

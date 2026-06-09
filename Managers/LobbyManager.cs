@@ -298,6 +298,23 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
+        /// Sends a request to the server to stop the current <see cref="Lobby"/> without unlocking it.
+        /// </summary>
+        /// <returns><see langword="true"/> if the state was changed, otherwise <see langword="false"/>.</returns>
+        internal static async Task<bool> StopLobby()
+        {
+            if (!Client.Connected || !IsInLobby || LocalLobby.Host != PlayerManager.LocalPlayer) return false;
+
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid
+            };
+
+            var response = await Client.PostAsync("lobbyStop", payload);
+            return response != null && response.IsSuccessStatusCode;
+        }
+
+        /// <summary>
         /// Tries to restore the <see cref="Lobby"/> of the local player.
         /// </summary>
         /// <param name="lobbyId">Id of the <see cref="Lobby"/> current local player is in.</param>

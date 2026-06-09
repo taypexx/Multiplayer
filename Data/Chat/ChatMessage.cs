@@ -18,7 +18,7 @@ namespace Multiplayer.Data.Chat
                 else field = value;
             } 
         }
-        public string AuthorName { get; set { field = value.Trim('\n','\r'); } }
+        public string AuthorName { get; set { field = value?.Trim('\n','\r'); } }
         public string AuthorUid { get; set; }
         public string ExtraData { get; set; }
         internal bool IsSystemMessage => AuthorName != null && AuthorName.ToLower() == "system";
@@ -36,21 +36,39 @@ namespace Multiplayer.Data.Chat
 
                     if (Message == "PlaylistAdd" || Message == "PlaylistRemove")
                     {
-                        MusicInfo musicInfo = ChartManager.GetMusicInfo(param[1]);
+                        string chartKey = param.Length > 0 ? param[0] : "";
+                        int difficulty = 0;
+                        if (param.Length > 1) int.TryParse(param[1], out difficulty);
+                        string chooserName = "Unknown";
+                        if (param.Length > 2)
+                        {
+                            chooserName = param[2];
+                            if (param.Length > 3)
+                            {
+                                // The new 4-segment format: ChartKey#Difficulty#ChooserName#ChartName
+                                // If the format is PlayerName#ChartKey#Difficulty#ChooserName#ChartName (server broadcast bug)
+                                // We should safely handle it
+                            }
+                        }
+
+                        MusicInfo musicInfo = ChartManager.GetMusicInfo(chartKey);
+                        string chartName = "Unknown Chart";
                         if (musicInfo != null)
                         {
-                            param[1] = ChartManager.GetNiceChartName(musicInfo, int.Parse(param[2]));
-                            param[2] = null;
+                            chartName = ChartManager.GetNiceChartName(musicInfo, difficulty);
                             ExtraData = musicInfo.uid;
                         }
                         else
                         {
-                            param[1] = Localization.Get("Lobby", "UnknownCustomChart").ToString();
-                            param[2] = null;
+                            var loc = Localization.Get("Lobby", "UnknownCustomChart");
+                            chartName = loc != null ? loc.ToString() : "Unknown Custom Chart";
                         }
+                        
+                        param = new string[] { chooserName, chartName };
                     }
 
-                    return string.Format(Localization.Get("SystemChatMessages", Message).ToString() ?? "Unknown system message", param);
+                    var locMsg = Localization.Get("SystemChatMessages", Message);
+                    return string.Format(locMsg != null ? locMsg.ToString() : Message, param);
                 }
                 else return Message;
             }

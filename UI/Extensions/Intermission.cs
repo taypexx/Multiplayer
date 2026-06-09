@@ -171,25 +171,10 @@ namespace Multiplayer.UI.Extensions
                     SoundManager.PlayClick();
                     if (!Active) return;
 
-                    // The server completely clears the playlist when we unlock the lobby.
-                    // We must back up the remaining playlist entries and re-add them.
-                    var remainingEntries = LobbyManager.LocalLobby.Playlist
-                        .Skip(LobbyManager.LocalLobby.CurrentPlaylistEntryIndex)
-                        .ToList();
-
-                    var success = await LobbyManager.LockLobby(false);
+                    Active = false;
+                    var success = await LobbyManager.StopLobby();
                     if (success)
                     {
-                        Active = false;
-
-                        // Wait a bit for the server to propagate the clear before we add back
-                        await Task.Delay(200);
-
-                        foreach (var entry in remainingEntries)
-                        {
-                            await LobbyManager.PlaylistAdd(entry.MusicInfo, entry.Difficulty);
-                        }
-
                         var sysMsgBody = new Multiplayer.Data.Chat.ChatMessage
                         {
                             Message = $"<color=#{Constants.Red}>{Localization.Get("SystemChatMessages", "GamePaused")}</color>",
