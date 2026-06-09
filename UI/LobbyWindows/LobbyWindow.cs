@@ -1,4 +1,4 @@
-﻿using LocalizeLib;
+using LocalizeLib;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Data.Players;
 using Multiplayer.Managers;
@@ -85,7 +85,16 @@ namespace Multiplayer.UI.LobbyWindows
             int prevPlayers = lobby.Players.Count;
 
             Lobby = lobby;
-            if (updateLobby) await lobby.Update(updatePlayers);
+            try
+            {
+                if (updateLobby) await lobby.Update(updatePlayers);
+            }
+            catch (Exception ex)
+            {
+                Main.Log($"Failed to update lobby: {ex.Message}", Main.LogType.Warning);
+                UpdateDebounce = false;
+                return;
+            }
 
             Main.Dispatch(() =>
             {

@@ -372,6 +372,12 @@ namespace Multiplayer.Static
                 {
                     response.Content = new StringContent("{}");
                 }
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (!getAnyway) return null;
+                }
+                
                 return response;
             }
 

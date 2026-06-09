@@ -32,6 +32,8 @@ namespace Multiplayer.Managers
             {
                 await Task.Delay(Settings.Get<int>("LobbyUpdateIntervalMS"));
 
+                if (!IsAutoUpdating || !Client.Connected) break;
+
                 // Websocket handles the lobby update (if local lobby), we just update the window without lobby
                 await UIManager.LobbyWindow.Update(lobby, lobby != LocalLobby);
 
@@ -470,17 +472,24 @@ namespace Multiplayer.Managers
 
                 foreach ((string id_, var body) in lobbies)
                 {
-                    var id = int.Parse(id_);
-                    receivedIds.Add(id);
-                    if (IsInLobby && LocalLobby.Id == id) continue;
-
-                    Lobby lobby = GetCachedLobby(id);
-                    if (lobby == null)
+                    try
                     {
-                        lobby = new(id);
-                        CacheLobby(lobby);
+                        var id = int.Parse(id_);
+                        receivedIds.Add(id);
+                        if (IsInLobby && LocalLobby.Id == id) continue;
+
+                        Lobby lobby = GetCachedLobby(id);
+                        if (lobby == null)
+                        {
+                            lobby = new(id);
+                            CacheLobby(lobby);
+                        }
+                        await lobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body.GetRawText()));
                     }
-                    await lobby.UpdateFields(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body));
+                    catch (Exception ex)
+                    {
+                        Main.Log($"Failed to update public lobby {id_}: {ex.Message}");
+                    }
                 }
 
                 var idsToRemove = CachedLobbies.Keys.Where(id => !receivedIds.Contains(id) && (!IsInLobby || LocalLobby.Id != id)).ToList();
