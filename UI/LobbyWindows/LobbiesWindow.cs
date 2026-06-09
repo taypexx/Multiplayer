@@ -1,4 +1,4 @@
-﻿using LocalizeLib;
+using LocalizeLib;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -47,6 +47,7 @@ namespace Multiplayer.UI.LobbyWindows
             Main.Dispatch(() =>
             {
                 UIManager.Debounce = false;
+                Window.ForceClose();
                 UIManager.PublicLobbiesWindow.Window.Show();
             });
         }
@@ -79,14 +80,16 @@ namespace Multiplayer.UI.LobbyWindows
 
         protected override void OnButtonClick(IListWindow window, int objectIndex)
         {
-            base.OnButtonClick(window, objectIndex);
+            if (UIManager.Debounce) return;
 
             if (LobbyManager.IsInLobby)
             {
+                base.OnButtonClick(window, objectIndex);
                 _ = UIManager.OpenLobbyWindow();
                 return;
             }
 
+            if (objectIndex < 0 || objectIndex >= Window.ForumObjects.Count) return;
             ForumObject button = Window.ForumObjects[objectIndex];
             if (button == PublicLobbiesButton)
             {
@@ -94,10 +97,17 @@ namespace Multiplayer.UI.LobbyWindows
             }
             else if (button == PrivateLobbyButton)
             {
+                base.OnButtonClick(window, objectIndex);
                 IDPrompt.Show();
-            } else if (button == CreateLobbyButton)
+            } 
+            else if (button == CreateLobbyButton)
             {
+                base.OnButtonClick(window, objectIndex);
                 UIManager.LobbyCreationWindow.Window.Show();
+            }
+            else
+            {
+                base.OnButtonClick(window, objectIndex);
             }
         }
     }

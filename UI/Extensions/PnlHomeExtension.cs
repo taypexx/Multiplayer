@@ -110,12 +110,16 @@ namespace Multiplayer.UI.Extensions
                 await Task.Delay(msgDurationMs, token);
                 token.ThrowIfCancellationRequested();
 
-                Main.Dispatch(bubble.EndTalk);
+                Main.Dispatch(() => {
+                    try { if (bubble != null) bubble.EndTalk(); } catch { }
+                });
 
                 await Task.Delay(300, token);
                 token.ThrowIfCancellationRequested();
 
-                Main.Dispatch(() => bubble.gameObject.SetActive(false));
+                Main.Dispatch(() => {
+                    try { if (bubble != null) bubble.gameObject.SetActive(false); } catch { }
+                });
             }
             catch (OperationCanceledException) { }
         }
@@ -526,8 +530,14 @@ namespace Multiplayer.UI.Extensions
             var buttonLeft = LeftButton.GetComponent<Button>();
             var buttonRight = RightButton.GetComponent<Button>();
 
-            buttonLeft.onClick.RemoveAllListeners();
-            buttonRight.onClick.RemoveAllListeners();
+            buttonLeft.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
+            buttonRight.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
+
+            var eventTriggerLeft = LeftButton.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+            if (eventTriggerLeft != null) UnityEngine.Object.DestroyImmediate(eventTriggerLeft);
+            var eventTriggerRight = RightButton.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+            if (eventTriggerRight != null) UnityEngine.Object.DestroyImmediate(eventTriggerRight);
+
 
             buttonLeft.onClick.AddListener((UnityAction)new Action(LeftButtonClick));
             buttonRight.onClick.AddListener((UnityAction)new Action(RightButtonClick));

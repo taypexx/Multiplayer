@@ -40,7 +40,7 @@ namespace Multiplayer.UI.Extensions
                 ButtonMain.GetComponent<Image>().color = buttonMain.Item3;
 
                 var button = ButtonMain.GetComponent<Button>();
-                button.onClick.RemoveAllListeners();
+                button.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
                 button.onClick.AddListener((UnityAction)buttonMain.Item4);
             }
 
@@ -52,7 +52,7 @@ namespace Multiplayer.UI.Extensions
                 ButtonSecondary.GetComponent<Image>().color = buttonSecondary.Item3;
 
                 var button = ButtonSecondary.GetComponent<Button>();
-                button.onClick.RemoveAllListeners();
+                button.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
                 button.onClick.AddListener((UnityAction)buttonSecondary.Item4);
             }
 
@@ -64,7 +64,7 @@ namespace Multiplayer.UI.Extensions
                 ButtonTertiary.GetComponent<Image>().color = buttonTertiary.Item3;
 
                 var button = ButtonTertiary.GetComponent<Button>();
-                button.onClick.RemoveAllListeners();
+                button.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
                 button.onClick.AddListener((UnityAction)buttonTertiary.Item4);
             }
 

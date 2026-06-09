@@ -37,6 +37,7 @@ namespace Multiplayer.UI.Displays
         internal override void UpdateTexts()
         {
             if (!LobbyManager.IsInLobby) return;
+            if (Managers.UIManager.PnlPreparation != null && Managers.UIManager.PnlPreparation.gameObject.activeInHierarchy) return;
 
             foreach ((object key, Text text) in TextList)
             {

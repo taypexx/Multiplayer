@@ -49,7 +49,7 @@ namespace Multiplayer.Data.Lobbies
             ? Playlist[CurrentPlaylistEntryIndex]
             : null;
 
-        internal bool ShowEveryoneFinishedMessage { get; set; } = false;
+        internal bool HasSentReturned { get; set; } = false;
 
         internal int StartedPlaylistEntryIndex { get; set; } = -1;
 
@@ -212,7 +212,7 @@ namespace Multiplayer.Data.Lobbies
                 bool newIsPlaying = isPlayingElement.GetBoolean();
                 if (newIsPlaying && !IsPlaying)
                 {
-                    ShowEveryoneFinishedMessage = false;
+                    HasSentReturned = false;
                 }
                 IsPlaying = newIsPlaying;
             }
@@ -302,7 +302,7 @@ namespace Multiplayer.Data.Lobbies
                 {
                     if (UIManager.BattleLobbyDisplay != null) Main.Dispatch(UIManager.BattleLobbyDisplay.Destroy);
 
-                    ShowEveryoneFinishedMessage = true;
+
 
                     bool shouldPlay = false;
                     lock (_transitionLock)

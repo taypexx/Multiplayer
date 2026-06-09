@@ -40,16 +40,10 @@ namespace Multiplayer.Managers
                 await SyncLobby();
                 Main.Dispatch(() => 
                 {
-                    if (LocalLobby.ShowEveryoneFinishedMessage && UIManager.PnlPreparation != null && UIManager.PnlPreparation.gameObject.activeInHierarchy)
+                    if (!LocalLobby.IsPlaying && !LocalLobby.HasSentReturned && UIManager.PnlPreparation != null && UIManager.PnlPreparation.gameObject.activeInHierarchy)
                     {
-                        LocalLobby.ShowEveryoneFinishedMessage = false;
-                        PopupUtils.ShowInfo("<color=#00ff00>全员已就位！</color>");
-                        Multiplayer.Static.Chat.Recieve(new()
-                        {
-                            Message = "<color=#00ff00>全员已就位！</color>",
-                            AuthorName = "system",
-                            AuthorUid = PlayerManager.LocalPlayerUid
-                        });
+                        LocalLobby.HasSentReturned = true;
+                        _ = Client.PostAsync("lobbyReturned", new { Uid = PlayerManager.LocalPlayerUid });
                     }
 
                     UIManager.LobbyPlaylistWindow.Update(lobby);

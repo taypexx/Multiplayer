@@ -2,6 +2,9 @@ using Multiplayer.Managers;
 using LocalizeLib;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using PopupLib.UI;
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
 using System.Diagnostics;
@@ -129,6 +132,27 @@ namespace Multiplayer.Static
                                 break;
                             case "Chat":
                                 Main.Dispatch(() => Chat.Recieve(JsonSerializer.Deserialize<ChatMessage>(message["Body"])));
+                                break;
+                            case "LobbyAllReturned":
+                                Main.Dispatch(() =>
+                                {
+                                    if (LobbyManager.LocalLobby != null)
+                                    {
+                                        var localPlayer = PlayerManager.LocalPlayer;
+                                        bool diedEarly = localPlayer != null && (!localPlayer.BattleStats.Alive || !localPlayer.BattleStats.PrevAlive);
+
+                                        if (diedEarly)
+                                        {
+                                            Chat.Recieve(new ChatMessage()
+                                            {
+                                                Message = "EveryoneReady",
+                                                AuthorName = "system",
+                                                AuthorUid = PlayerManager.LocalPlayerUid
+                                            });
+                                            Patches.BattlePatch.ShowPlayResults(true);
+                                        }
+                                    }
+                                });
                                 break;
                         }
                     }

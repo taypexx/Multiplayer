@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.PeroTools.UI;
+using Il2CppAssets.Scripts.PeroTools.UI;
 using Multiplayer.Data;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -87,8 +87,12 @@ namespace Multiplayer.UI.Abstract
             ButtonIcon.SetActive(true);
 
             ButtonComponent = Button.GetComponent<Button>();
-            ButtonComponent.onClick.RemoveAllListeners();
+            ButtonComponent.onClick = new Button.ButtonClickedEvent();
             ButtonComponent.onClick.AddListener(ButtonAction);
+
+            var eventTrigger = Button.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+            if (eventTrigger != null) GameObject.Destroy(eventTrigger);
+
 
             Button.SetActive(Settings.Get<bool>("ShowNavigationButtons") || AlwaysVisible);
         }

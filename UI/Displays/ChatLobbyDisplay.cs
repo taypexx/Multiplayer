@@ -1,4 +1,4 @@
-﻿using Multiplayer.Data.Chat;
+using Multiplayer.Data.Chat;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -78,6 +78,29 @@ namespace Multiplayer.UI.Displays
             if (chatMessage.Message == "PlaylistAdd")
             {
                 clickAction = new(() => UIManager.JumpToChart(chatMessage.ExtraData));
+            }
+            else if (chatMessage.Message == "PlayerMissingChart")
+            {
+                clickAction = new(() => {
+                    var parts = chatMessage.ExtraData?.Split('#');
+                    if (parts != null && parts.Length >= 2)
+                    {
+                        var chartName = string.Join("#", parts.Skip(1));
+                        // Remove rich text tags like <color=xxx> and <b>
+                        chartName = System.Text.RegularExpressions.Regex.Replace(chartName, "<.*?>", string.Empty);
+                        // Remove category names like 【Flash专场】 or [Custom]
+                        chartName = System.Text.RegularExpressions.Regex.Replace(chartName, @"^([【\[].*?[\]】]\s*)", string.Empty);
+                        // Remove difficulty suffix like " 11★"
+                        int lastSpace = chartName.LastIndexOf(" ");
+                        if (lastSpace > 0 && chartName.EndsWith("★"))
+                        {
+                            chartName = chartName.Substring(0, lastSpace);
+                        }
+                        chartName = chartName.Trim();
+                        UnityEngine.GUIUtility.systemCopyBuffer = chartName;
+                        PopupLib.UI.PopupUtils.ShowInfo(string.Format(Localization.Get("SystemChatMessages", "ChartNameCopied")?.ToString() ?? "Copied chart name: {0}", chartName));
+                    }
+                });
             }
             else if (!chatMessage.IsSystemMessage && chatMessage.AuthorUid != null)
             {

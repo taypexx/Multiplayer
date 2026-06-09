@@ -142,20 +142,23 @@ namespace Multiplayer.Patches
         /// <summary>
         /// Shows all player results by displaying them as achievements.
         /// </summary>
-        private static void ShowPlayResults()
+        internal static void ShowPlayResults(bool forceShow = false)
         {
             var localLobby = LobbyManager.LocalLobby;
-            if (!localLobby.EveryoneFinished) return;
+            if (!localLobby.EveryoneFinished && !forceShow) return;
 
             DisplayedPlayers.Clear();
             PnlMessageExtension.Enable(true);
 
-            var gradeObjects = GameObject.Find("UI_3D/PnlVictory/Default/PnlVictory/PnlVictory_2D/Info/Grade").GetComponent<GameMainGrade>().gradeObjects;
+            var gradeObjects = GameObject.Find("UI_3D/PnlVictory/Default/PnlVictory/PnlVictory_2D/Info/Grade")?.GetComponent<GameMainGrade>()?.gradeObjects;
 
-            var sprites = new Sprite[gradeObjects.Count];
-            for (int i = 0; i < gradeObjects.Count; i++)
+            var sprites = new Sprite[7]; // There are usually 7 grades
+            if (gradeObjects != null)
             {
-                sprites[i] = gradeObjects[i].GetComponent<Image>().sprite;
+                for (int i = 0; i < gradeObjects.Count; i++)
+                {
+                    sprites[i] = gradeObjects[i].GetComponent<Image>().sprite;
+                }
             }
 
             var positionList = localLobby.GetPlayerList();
@@ -172,7 +175,7 @@ namespace Multiplayer.Patches
                     if (string.IsNullOrEmpty(avatarName)) avatarName = "head_0";
                     sprite = player.HQStats.HasAvatar ? player.HQStats.Avatar.Sprite : PnlHead.GetSprite(avatarName);
                 }
-                else if (player.BattleStats.Alive) sprite = sprites[(int)player.BattleStats.Grade];
+                else if (player.BattleStats.Alive && gradeObjects != null) sprite = sprites[(int)player.BattleStats.Grade];
                 playerSprites[player.Uid] = sprite;
             }
 
@@ -228,8 +231,8 @@ namespace Multiplayer.Patches
             if (finished)
             {
                 restartButton.transform.Find("TxtRestart").GetComponent<Text>().text = Localization.Get("Battle", "Results").ToString();
-                restartButton.onClick.RemoveAllListeners();
-                restartButton.onClick.AddListener((UnityAction)new Action(ShowPlayResults));
+                restartButton.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
+                restartButton.onClick.AddListener((UnityAction)new Action(() => ShowPlayResults()));
             }
         }
 
@@ -254,7 +257,7 @@ namespace Multiplayer.Patches
             {
                 await Task.Delay(Constants.AwaitBattleIntervalMS);
             }
-            Main.Dispatch(ShowPlayResults);
+            Main.Dispatch(() => ShowPlayResults());
         }
 
         /// <summary>
@@ -292,6 +295,11 @@ namespace Multiplayer.Patches
             private static void Postfix()
             {
                 if (!LobbyManager.IsInLobby) return;
+
+                if (PlayerManager.LocalPlayer != null && PlayerManager.LocalPlayer.BattleStats != null)
+                {
+                    PlayerManager.LocalPlayer.BattleStats.Alive = false;
+                }
 
                 BattleManager.SyncStop();
 
@@ -354,6 +362,7 @@ namespace Multiplayer.Patches
                 {
                     Player player = PlayerManager.GetCachedPlayer(playerUid);
                     if (player == null) continue;
+                    player.BattleStats.UpdatePrevious();
                     player.BattleStats.Reset();
                 }
             }

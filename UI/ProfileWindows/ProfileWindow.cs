@@ -1,4 +1,4 @@
-﻿using Il2Cpp;
+using Il2Cpp;
 using Il2CppAssets.Scripts.UI.Panels;
 using Il2CppSirenix.Serialization.Utilities;
 using LocalizeLib;
@@ -54,43 +54,51 @@ namespace Multiplayer.UI.ProfileWindows
 
         internal ProfileWindow() : base(Localization.Get("ProfileWindow", "Title"), UIManager.MainMenu, "Profile.png")
         {
-            AvatarStatusSprites = new()
+            try
             {
-                [PlayerStatus.Offline] = AssetManager.GetImageAsset("UI.Statuses.Offline.png").Sprite,
-                [PlayerStatus.Online] = AssetManager.GetImageAsset("UI.Statuses.Online.png").Sprite,
-                [PlayerStatus.InLobby] = AssetManager.GetImageAsset("UI.Statuses.InLobby.png").Sprite,
-                [PlayerStatus.InBattle] = AssetManager.GetImageAsset("UI.Statuses.InBattle.png").Sprite,
-            };
+                AvatarStatusSprites = new()
+                {
+                    [PlayerStatus.Offline] = AssetManager.GetImageAsset("UI.Statuses.Offline.png")?.Sprite,
+                    [PlayerStatus.Online] = AssetManager.GetImageAsset("UI.Statuses.Online.png")?.Sprite,
+                    [PlayerStatus.InLobby] = AssetManager.GetImageAsset("UI.Statuses.InLobby.png")?.Sprite,
+                    [PlayerStatus.InBattle] = AssetManager.GetImageAsset("UI.Statuses.InBattle.png")?.Sprite,
+                };
 
-            FriendButtonTitles = new()
+                FriendButtonTitles = new()
+                {
+                    [0] = Localization.Get("ProfileWindow", "DecideFriendRequest"),
+                    [1] = Localization.Get("ProfileWindow", "CancelFriendRequest"),
+                    [2] = Localization.Get("ProfileWindow", "RemoveFriend"),
+                    [3] = Localization.Get("ProfileWindow", "RequestSend"),
+                    [4] = Localization.Get("Window", "Empty"),
+                };
+
+                FriendButtonResponses = new()
+                {
+                    [0] = Localization.Get("ProfileWindow", "AddedFriend"),
+                    [1] = Localization.Get("ProfileWindow", "CancelFriendRequestSuccess"),
+                    [2] = Localization.Get("ProfileWindow", "RemoveFriendSuccess"),
+                    [3] = Localization.Get("ProfileWindow", "RequestSendSuccess"),
+                    [4] = Localization.Get("Window", "Empty"),
+                };
+
+                FriendRequestPrompt = new(Localization.Get("ProfileWindow", "DecideFriendRequestPrompt"));
+                FriendRequestPrompt.AutoReset = true;
+                FriendRequestPrompt.OnCompletion += (BaseWindow window) => _ = OnFriendActionDecided(window);
+
+                UnfriendPrompt = new(Localization.Get("ProfileWindow", "DecideUnfriendPrompt"));
+                UnfriendPrompt.AutoReset = true;
+                UnfriendPrompt.OnCompletion += (BaseWindow window) => _ = OnFriendActionDecided(window);
+
+                BioWindow = new(Localization.Get("ProfileWindow", "BioDescription"));
+                BioWindow.AutoReset = true;
+                BioWindow.OnCompletion += (BaseWindow window) => _ = OnBioCompletion();
+            }
+            catch (Exception ex)
             {
-                [0] = Localization.Get("ProfileWindow", "DecideFriendRequest"),
-                [1] = Localization.Get("ProfileWindow", "CancelFriendRequest"),
-                [2] = Localization.Get("ProfileWindow", "RemoveFriend"),
-                [3] = Localization.Get("ProfileWindow", "RequestSend"),
-                [4] = Localization.Get("Window", "Empty"),
-            };
-
-            FriendButtonResponses = new()
-            {
-                [0] = Localization.Get("ProfileWindow", "AddedFriend"),
-                [1] = Localization.Get("ProfileWindow", "CancelFriendRequestSuccess"),
-                [2] = Localization.Get("ProfileWindow", "RemoveFriendSuccess"),
-                [3] = Localization.Get("ProfileWindow", "RequestSendSuccess"),
-                [4] = Localization.Get("Window", "Empty"),
-            };
-
-            FriendRequestPrompt = new(Localization.Get("ProfileWindow", "DecideFriendRequestPrompt"));
-            FriendRequestPrompt.AutoReset = true;
-            FriendRequestPrompt.OnCompletion += (BaseWindow window) => _ = OnFriendActionDecided(window);
-
-            UnfriendPrompt = new(Localization.Get("ProfileWindow", "DecideUnfriendPrompt"));
-            UnfriendPrompt.AutoReset = true;
-            UnfriendPrompt.OnCompletion += (BaseWindow window) => _ = OnFriendActionDecided(window);
-
-            BioWindow = new(Localization.Get("ProfileWindow", "BioDescription"));
-            BioWindow.AutoReset = true;
-            BioWindow.OnCompletion += (BaseWindow window) => _ = OnBioCompletion();
+                Main.Log($"[ProfileWindow..ctor] CRITICAL ERROR: {ex.Message}\n{ex.StackTrace}", Main.LogType.Error);
+                throw;
+            }
         }
 
         internal void CreateButtons()
@@ -140,8 +148,12 @@ namespace Multiplayer.UI.ProfileWindows
             rect.anchoredPosition = new(-600f, -95f);
 
             var button = AvatarBox.GetComponent<Button>();
-            button.onClick.RemoveAllListeners();
+            button.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
             button.onClick.AddListener((UnityAction)new Action(OpenPnlHead));
+
+            var eventTrigger = AvatarBox.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+            if (eventTrigger != null) UnityEngine.Object.DestroyImmediate(eventTrigger);
+            
 
             AvatarHeadItem = AvatarBox.GetComponent<HeadItem>();
             AvatarHeadItem.m_ImgLock.gameObject.SetActive(false);

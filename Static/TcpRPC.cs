@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using PopupLib.UI;
+using LocalizeLib;
 
 namespace Multiplayer.Static
 {
@@ -161,6 +163,28 @@ namespace Multiplayer.Static
                         {
                             var chatMsg = JsonSerializer.Deserialize<Data.Chat.ChatMessage>(doc.RootElement.GetProperty("Body").GetRawText());
                             Main.Dispatch(() => Chat.Recieve(chatMsg));
+                        }
+                        else if (type == "LobbyAllReturned")
+                        {
+                            Main.Dispatch(() =>
+                            {
+                                if (Managers.LobbyManager.LocalLobby != null)
+                                {
+                                    var localPlayer = Managers.PlayerManager.LocalPlayer;
+                                    bool diedEarly = localPlayer != null && (!localPlayer.BattleStats.Alive || !localPlayer.BattleStats.PrevAlive);
+                                    
+                                    if (diedEarly)
+                                    {
+                                        Chat.Recieve(new Data.Chat.ChatMessage()
+                                        {
+                                            Message = "EveryoneReady",
+                                            AuthorName = "system",
+                                            AuthorUid = Managers.PlayerManager.LocalPlayerUid
+                                        });
+                                        Patches.BattlePatch.ShowPlayResults(true);
+                                    }
+                                }
+                            });
                         }
                         else if (type == "Battle")
                         {

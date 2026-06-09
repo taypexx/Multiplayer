@@ -1,4 +1,4 @@
-﻿using LocalizeLib;
+using LocalizeLib;
 using Multiplayer.Data.Lobbies;
 using Multiplayer.Managers;
 using Multiplayer.Static;
@@ -93,6 +93,7 @@ namespace Multiplayer.UI.LobbyWindows
         {
             base.OnButtonClick(window, objectIndex);
 
+            if (objectIndex < 0 || objectIndex >= Window.ForumObjects.Count) return;
             ForumObject button = Window.ForumObjects[objectIndex];
 
             if (ButtonsLobbies.TryGetValue(button, out Lobby lobby))

@@ -34,6 +34,11 @@ namespace Multiplayer.Data.Chat
                 {
                     string[] param = ExtraData.Split("#");
 
+                    if (Message == "PlayerMissingChart" && param.Length > 2)
+                    {
+                        param = new string[] { param[0], string.Join("#", param.Skip(1)) };
+                    }
+
                     if (Message == "PlaylistAdd" || Message == "PlaylistRemove")
                     {
                         string chartKey = "";

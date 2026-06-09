@@ -48,7 +48,7 @@ namespace Multiplayer.UI.Abstract
             Window = new();
             Window.AutoReset = true;
 
-            Window.OnSelectionChanged += OnButtonClick;
+            Window.OnSelectionChanged += InternalOnButtonClick;
             Window.OnInternalShow += OnShow;
             Window.OnCompletion += OnCompletion;
         }
@@ -151,10 +151,15 @@ namespace Multiplayer.UI.Abstract
             Window.Show();
         }
 
-        protected virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow _, int objectIndex)
+        private void InternalOnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow window, int objectIndex)
         {
             if (!Window.Activated) return;
             if (objectIndex < 0 || objectIndex >= Window.ForumObjects.Count) return;
+            OnButtonClick(window, objectIndex);
+        }
+
+        protected virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow _, int objectIndex)
+        {
             ForumObject button = Window.ForumObjects[objectIndex];
 
             Window.ForceClose();

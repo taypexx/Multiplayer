@@ -44,6 +44,10 @@ namespace Multiplayer.Patches
                     // Clean up unneeded components
                     var keyBinding = _multiplayerBtn.GetComponent("InputKeyBinding");
                     if (keyBinding != null) GameObject.DestroyImmediate(keyBinding);
+                    
+                    var eventTrigger = _multiplayerBtn.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+                    if (eventTrigger != null) GameObject.DestroyImmediate(eventTrigger);
+                    
 
                     var localizations = _multiplayerBtn.GetComponentsInChildren<Component>(true);
                     if (localizations != null)
@@ -67,7 +71,7 @@ namespace Multiplayer.Patches
                     var button = _multiplayerBtn.GetComponent<Button>();
                     if (button != null)
                     {
-                        button.onClick.RemoveAllListeners();
+                        button.onClick = new Button.ButtonClickedEvent();
                         button.onClick.AddListener((UnityAction)new Action(() =>
                         {
                             bool current = Multiplayer.Static.Settings.Get<bool>("JailbreakMode");

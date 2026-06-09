@@ -27,7 +27,7 @@ namespace Multiplayer.UI.Extensions
         internal static void BindCustomPnlPreparationClick(PnlPreparation pnlPreparation)
         {
             var pnlPreparationButton = pnlPreparation.transform.Find("Start/BtnStart").GetComponent<Button>();
-            pnlPreparationButton.onClick.RemoveAllListeners();
+            pnlPreparationButton.onClick = new UnityEngine.UI.Button.ButtonClickedEvent();
             pnlPreparationButton.onClick.AddListener((UnityAction)new Action(OnPnlPreparationClick));
 
             UpdatePnlPreparation();
@@ -91,9 +91,19 @@ namespace Multiplayer.UI.Extensions
                     _ = LobbyManager.PlaylistAdd(musicInfo, difficulty);
                 }
             }
-            else if (LobbyManager.LocalLobby.Locked)
+            else if (!LobbyManager.CanChangePlaylist)
             {
-                PopupUtils.ShowInfo(Localization.Get("Lobby", "LobbyIsLocked"));
+                var msg = Localization.Get("SystemChatMessages", "StopGameFirst")?.ToString() ?? "请先停止游戏！";
+                PopupUtils.ShowInfo(msg);
+                Main.Dispatch(() =>
+                {
+                    Chat.Recieve(new Data.Chat.ChatMessage()
+                    {
+                        Message = msg,
+                        AuthorName = "system",
+                        AuthorUid = PlayerManager.LocalPlayerUid
+                    });
+                });
             }
         }
 
