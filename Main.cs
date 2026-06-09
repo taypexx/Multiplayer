@@ -19,7 +19,7 @@ namespace Multiplayer
 
         internal static Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
         private static readonly string[] Dependencies = { "CustomAlbums", "Headquarters", "LocalizeLib", "PopupLib" };
-        private static readonly string[] AdditionalDependencies = { "FavGirl" };
+        private static readonly string[] AdditionalDependencies = { "FavGirl", "Playlists" };
         private static Dictionary<string, Assembly> AdditionalDependenciesInstalled = new();
 
         internal static Assembly GetDependency(string dependencyName)

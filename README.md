@@ -20,6 +20,7 @@ We also share our progress and make polls here.
 - **[7OU](https://github.com/real-7OU)** — Backend development
 - **[AshtonMemer](https://github.com/ALLMarvelous)** — Custom Albums & Headquarters
 - **[PBalint817](https://github.com/Balint817)** — Additional libraries
+- **[Suzimo](https://github.com/Suzimo506)** — Contribution & Simplified Chinese translation
 - **Bubu** — Traditional Chinese translation
 - **isei** — Japanese translation
 

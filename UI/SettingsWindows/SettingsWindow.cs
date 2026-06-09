@@ -62,7 +62,7 @@ namespace Multiplayer.UI.SettingsWindows
                         break;
                     case Setting<string>:
                         var value = ((Setting<string>)setting).Value;
-                        bool isColor = setting.Name.Contains("color", StringComparison.InvariantCultureIgnoreCase);
+                        bool isColor = setting.Name.Contains("color", StringComparison.OrdinalIgnoreCase);
 
                         valueString = $"<color={(isColor ? value : Constants.Yellow)}>{value}</color>";
                         break;

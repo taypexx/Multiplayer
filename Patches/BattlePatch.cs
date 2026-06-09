@@ -127,7 +127,7 @@ namespace Multiplayer.Patches
         private static void ShowPlayResults()
         {
             var localLobby = LobbyManager.LocalLobby;
-            if (!localLobby.EveryoneFinished) return;
+            if (!LobbyManager.IsInLobby || !localLobby.EveryoneFinished) return;
 
             DisplayedPlayers.Clear();
             PnlMessageExtension.Enable(true);
@@ -189,7 +189,7 @@ namespace Multiplayer.Patches
         /// </summary>
         private static void SetVictoryButtons()
         {
-            var finished = LobbyManager.LocalLobby.EveryoneFinished;
+            var finished = LobbyManager.IsInLobby ? LobbyManager.LocalLobby.EveryoneFinished : true;
 
             var btnContinue = UIManager.PnlVictory.m_CurControls.btnContinue;
             btnContinue.transform.Find("TxtContinue/ImgBtnA").gameObject.SetActive(finished);
@@ -217,9 +217,9 @@ namespace Multiplayer.Patches
             }
             CanExitRegardless = true;
 
-            Main.Dispatch(SetVictoryButtons);
-
             BattleManager.SyncStop();
+
+            Main.Dispatch(SetVictoryButtons);
 
             // TODO: check stage achievements count only
             //var messageManager = SingletonMonoBehaviour<MessageManager>.instance;

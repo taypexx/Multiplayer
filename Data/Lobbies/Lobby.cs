@@ -38,6 +38,7 @@ namespace Multiplayer.Data.Lobbies
         public List<PlaylistEntry> Playlist { get; private set; }
         public ushort PlaylistSize { get; private set; }
         public bool IsPlaylistFull => Playlist.Count >= PlaylistSize;
+        public HashSet<string> SharedCustoms { get; private set; } 
 
         private ushort CurrentGlobalPlaylistEntryIndex { get; set; }
         public ushort CurrentPlaylistEntryIndex { get; private set; }
@@ -70,6 +71,8 @@ namespace Multiplayer.Data.Lobbies
             PlaylistSize = 5;
             CurrentGlobalPlaylistEntryIndex = 0;
             CurrentPlaylistEntryIndex = 0;
+
+            SharedCustoms = new();
         }
 
         /// <summary>
@@ -244,6 +247,11 @@ namespace Multiplayer.Data.Lobbies
 
                         Playlist.Remove(playlistEntry);
                     }
+                }
+                catch { }
+                try
+                {
+                    SharedCustoms = JsonSerializer.Deserialize<HashSet<string>>(updatedData["SharedCustoms"]);
                 }
                 catch { }
             }
