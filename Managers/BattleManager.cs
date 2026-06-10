@@ -1,4 +1,4 @@
-﻿using Il2CppAssets.Scripts.GameCore.HostComponent;
+using Il2CppAssets.Scripts.GameCore.HostComponent;
 using Il2CppFormulaBase;
 using Multiplayer.Data.Players;
 using Multiplayer.Data.Stats;
@@ -45,7 +45,10 @@ namespace Multiplayer.Managers
             for (int i = 0; i < packet.Length / (UidSize + BattleStatsSize); i++)
             {
                 int startAt = i * (UidSize + BattleStatsSize);
-                string uid = Encoding.UTF8.GetString(packet.Slice(startAt, UidSize)).TrimEnd('\0'); // Trimming because of lua null padding (not necessary)
+                // UID field is fixed at UidSize (32) bytes. If the actual UID exceeds this,
+                // it will be truncated — ensure we only read what fits.
+                int uidBytes = Math.Min(UidSize, packet.Length - startAt);
+                string uid = Encoding.UTF8.GetString(packet.Slice(startAt, uidBytes)).TrimEnd('\0');
 
                 Player player = PlayerManager.GetCachedPlayer(uid);
                 if (player is null) continue;
@@ -64,6 +67,7 @@ namespace Multiplayer.Managers
                 player.PingMS = BinaryPrimitives.ReadUInt16LittleEndian(packet.Slice(startAt + UidSize + 20));
                 player.RefreshLastUpdated();
             }
+            if (UIManager.BattleLobbyDisplay != null) UIManager.BattleLobbyDisplay.UpdateTexts();
         }
 
         /// <summary>
@@ -71,14 +75,8 @@ namespace Multiplayer.Managers
         /// </summary>
         private static void Send()
         {
-            // This shit needs to be calculated properly bruh
-            int num1 = TaskStageTarget.GetHitCountByResult(2u)
-                + TaskStageTarget.GetHitCountByResult(4u)
-                + TaskStageTarget.GetHitCountByResult(5u)
-                + TaskStageTarget.m_Block + TaskStageTarget.m_MusicCount + TaskStageTarget.m_EnergyCount;
-            int num2 = TaskStageTarget.GetHitCountByResult(3u);
-            int num3 = TaskStageTarget.GetHitCountByResult(1u);
-            float accuracy = (float)((num1 + num2 / 2.0) / (num1 + num2 + num3) * 100.0);
+            // Calculate accuracy using AccuracyManager
+            float accuracy = AccuracyManager.GetCalculatedAccuracy();
 
             // Updating battle stats
             BattleStats.Score = (uint)TaskStageTarget.GetScore();
@@ -98,7 +96,13 @@ namespace Multiplayer.Managers
             var packet = new byte[UidSize + BattleStatsSize];
             Span<byte> span = packet;
 
-            Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(0, UidSize));
+            // Warn if the UID would be truncated (exceeds fixed field size)
+            var uidBytes = Encoding.UTF8.GetByteCount(BattleStats.Player.Uid);
+            if (uidBytes > UidSize)
+            {
+                Main.Log($"BattleManager: UID '{BattleStats.Player.Uid}' is {uidBytes} bytes, truncating to {UidSize}!", Main.LogType.Warning);
+            }
+            Encoding.UTF8.GetBytes(BattleStats.Player.Uid, span.Slice(0, Math.Min(uidBytes, UidSize)));
             BinaryPrimitives.WriteUInt32LittleEndian(span.Slice(UidSize), BattleStats.Score);
             BinaryPrimitives.WriteSingleLittleEndian(span.Slice(UidSize + 4), BattleStats.Accuracy);
             BinaryPrimitives.WriteUInt16LittleEndian(span.Slice(UidSize + 8), BattleStats.Perfects);
@@ -126,6 +130,9 @@ namespace Multiplayer.Managers
             BattleRoleAttributeComponent = BattleRoleAttributeComponent.instance;
             StageBattleComponent = StageBattleComponent.instance;
 
+            // Initialize accuracy manager stats
+            AccuracyManager.Init();
+
             Synchronizing = true;
             Main.Log("Battle synchronization started!");
 
@@ -140,6 +147,19 @@ namespace Multiplayer.Managers
                     Main.Log(ex);
                 }
                 await Task.Delay(Settings.Get<int>("BattleUpdateIntervalMS"));
+            }
+
+            // Send final battle stats when synchronization stops
+            if (LobbyManager.IsInLobby && PlayerManager.LocalPlayer != null)
+            {
+                try
+                {
+                    Main.Dispatch(Send);
+                }
+                catch (Exception ex)
+                {
+                    Main.Log(ex);
+                }
             }
         }
 
