@@ -24,7 +24,7 @@ namespace Multiplayer.Managers
         } = true;
 
         /// <summary>
-        /// Performs an input check each times it gets called.
+        /// Performs an input check each time it gets called.
         /// </summary>
         internal static void Update()
         {

@@ -19,8 +19,8 @@ namespace Multiplayer.Static
             "<color=1eff00ff>PBalint817</color> — Additional libraries\n" +
             "<color=1eff00ff>Suzimo</color> — Contribution & Simplified Chinese translation\n" +
             "<color=fff700ff>Bubu</color> — Traditional Chinese translation\n" +
-            "<color=fff700ff>isei</color> — Japanese translation\n\n" +
-            "<color=fff700ff>???</color> — Korean translation\n" +
+            "<color=fff700ff>isei</color> — Japanese translation\n" +
+            "<color=fff700ff>???</color> — Korean translation\n\n" +
             "[ TESTER TEAM ]\n\n" +
             "Slawter, Medeyah, PBalint817, WallKitty,\n" +
             "Nickicchi, Bubu, Yarshmellow, Fran艾林, ame,\n" +
