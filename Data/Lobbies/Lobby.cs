@@ -35,6 +35,9 @@ namespace Multiplayer.Data.Lobbies
         public HashSet<string> Players { get; private set; }
         public ushort MaxPlayers { get; private set; }
 
+        public Tuple<byte,byte> DifficultyRange { get; private set; }
+        public bool IsValidDifficulty(int difficulty) => difficulty >= DifficultyRange.Item1 && difficulty <= DifficultyRange.Item2;
+
         public List<PlaylistEntry> Playlist { get; private set; }
         public ushort PlaylistSize { get; private set; }
         public bool IsPlaylistFull => Playlist.Count >= PlaylistSize;
@@ -49,7 +52,7 @@ namespace Multiplayer.Data.Lobbies
 
         private DateTime LastUpdated { get; set; }
         internal TimeSpan SinceLastUpdate => DateTime.Now - LastUpdated;
-        internal void RefreshLastUpdated() { LastUpdated = DateTime.Now; }
+        internal void RefreshLastUpdated() => LastUpdated = DateTime.Now;
 
         internal Lobby(int id)
         {
@@ -66,6 +69,8 @@ namespace Multiplayer.Data.Lobbies
             ReadyPlayers = new();
             Players = new();
             MaxPlayers = 2;
+
+            DifficultyRange = new(1, 13);
 
             Playlist = new();
             PlaylistSize = 5;
@@ -186,6 +191,14 @@ namespace Multiplayer.Data.Lobbies
             PlayType = (LobbyPlayType)updatedData["PlayType"].GetByte();
             ChartSelection = (LobbyChartSelection)updatedData["ChartSelection"].GetByte();
             Goal = (LobbyGoal)updatedData["Goal"].GetByte();
+
+            var diffLowest = updatedData["DifficultyLowest"].GetByte();
+            var diffHighest = updatedData["DifficultyHighest"].GetByte();
+
+            if (diffLowest != DifficultyRange.Item1 || diffHighest != DifficultyRange.Item2)
+            {
+                DifficultyRange = new(diffLowest, diffHighest);
+            }
 
             try // Loves to error
             {

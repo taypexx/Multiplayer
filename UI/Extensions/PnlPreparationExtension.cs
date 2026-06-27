@@ -40,6 +40,8 @@ namespace Multiplayer.UI.Extensions
         {
             if (IsRetrieving || PlaylistDebounce) return;
 
+            var lobby = LobbyManager.LocalLobby;
+
             if (!LobbyManager.IsInLobby)
             {
                 UIManager.PnlPreparation.OnBattleStart();
@@ -58,7 +60,7 @@ namespace Multiplayer.UI.Extensions
                 }
                 else if (musicInfo.albumIndex == AlbumManager.Uid)
                 {
-                    if (LobbyManager.LocalLobby.PlayType == LobbyPlayType.VanillaOnly)
+                    if (lobby.PlayType == LobbyPlayType.VanillaOnly)
                     {
                         PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "VanillaOnly"));
                         return;
@@ -69,9 +71,18 @@ namespace Multiplayer.UI.Extensions
                         return;
                     }
                 }
-                else if (LobbyManager.LocalLobby.PlayType == LobbyPlayType.CustomOnly)
+                else if (lobby.PlayType == LobbyPlayType.CustomOnly)
                 {
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "CustomOnly"));
+                    return;
+                }
+                else if (!lobby.IsValidDifficulty(musicInfo.GetDifficultyLevel(difficulty)))
+                {
+                    PopupUtils.ShowInfo(String.Format(
+                        Localization.Get("PnlPreparation", "InvalidDifficulty").ToString(), 
+                        lobby.DifficultyRange.Item1, 
+                        lobby.DifficultyRange.Item2
+                    ));
                     return;
                 }
                 else if (Constants.UnsupportedChartUids.Contains(musicInfo.uid))
@@ -82,16 +93,16 @@ namespace Multiplayer.UI.Extensions
 
                 _ = DoPlaylistDebounce();
 
-                if (LobbyManager.LocalLobby.HasInPlaylist(ChartManager.GetEntry(musicInfo, difficulty)))
+                if (lobby.HasInPlaylist(ChartManager.GetEntry(musicInfo, difficulty)))
                 {
                     _ = LobbyManager.PlaylistRemove(musicInfo, difficulty);
                 }
-                else if (!LobbyManager.LocalLobby.IsPlaylistFull)
+                else if (!lobby.IsPlaylistFull)
                 {
                     _ = LobbyManager.PlaylistAdd(musicInfo, difficulty);
                 }
             }
-            else if (LobbyManager.LocalLobby.Locked)
+            else if (lobby.Locked)
             {
                 PopupUtils.ShowInfo(Localization.Get("Lobby", "LobbyIsLocked"));
             }

@@ -180,7 +180,8 @@
     "PlaylistFull": "Playlist is full",
     "RetrievingInfo": "Retrieving info...",
     "TouhouNotSupported": "Touhou charts are not supported!",
-    "ChartNotSupported": "This chart is not supported!"
+    "ChartNotSupported": "This chart is not supported!",
+    "InvalidDifficulty": "Chart difficulty must be within the valid range! ({0} ~ {1})"
   },
   "Lobbies": {
     "Title": "Lobbies",
@@ -217,11 +218,21 @@
     "ChartSelection": "Chart Selection",
     "ChartSelectionDescription": "Define the way charts are going to be queued and played.",
     "PlaylistSize": "Playlist Size",
-    "PlaylistSizeInvalid": "Playlist size must be between {0} and {1}!"
+    "PlaylistSizeInvalid": "Playlist size must be between {0} and {1}!",
+    "DifficultyRange": "Difficulty Range",
+    "CustomDifficultyRange": "Set Custom Difficulty Range",
+    "InvalidDifficultyRange": "Invalid difficulty range!"
+  },
+  "DifficultyRanges": {
+    "Beginner": "Beginner",
+    "Casual": "Casual",
+    "Intermediate": "Intermediate",
+    "Skilled": "Skilled",
+    "Advanced": "Advanced"
   },
   "Lobby": {
     "Title": "Lobby",
-    "Description": "<color={0}>{1}</color> <color={2}>({3})</color> <color={4}>({5})</color>\n<u>ID: {6}</u>\n\n[ Host ]: <color={7}>{8}</color>\n[ Goal ]: <color={9}>{10}</color>\n[ Charts ]: <color={11}>{12}</color>\n[ Locked ]: {13}",
+    "Description": "<color={0}>{1}</color> <color={2}>({3})</color> <color={4}>({5})</color>\n<u>ID: {6}</u>\n\n[ Host ]: <color={7}>{8}</color>\n[ Goal ]: <color={9}>{10}</color>\n[ Charts ]: <color={11}>{12}</color>\n[ Locked ]: {13}\n[ Difficulty Range ]: <color={14}>{15} ~ {16}</color>",
     "Accuracy": "Accuracy",
     "Score": "Score",
     "Custom": "Custom",

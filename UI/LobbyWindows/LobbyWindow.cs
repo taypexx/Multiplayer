@@ -129,7 +129,8 @@ namespace Multiplayer.UI.LobbyWindows
                     Constants.Yellow, lobby.Host.MultiplayerStats.Name,
                     Constants.GoalColors[lobby.Goal], Localization.Get("Lobby", lobby.Goal.ToString()),
                     Constants.PlayTypeColors[lobby.PlayType], Localization.Get("Lobby", lobby.PlayType.ToString()),
-                    lobby.Locked ? Localization.Get("Global", "Yes").ToString() : Localization.Get("Global", "No").ToString()
+                    lobby.Locked ? Localization.Get("Global", "Yes").ToString() : Localization.Get("Global", "No").ToString(),
+                    Constants.Yellow, lobby.DifficultyRange.Item1, lobby.DifficultyRange.Item2
                 ));
 
                 Title = (LocalString)lobby.Name;
