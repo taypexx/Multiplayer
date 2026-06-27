@@ -17,8 +17,8 @@ namespace Multiplayer.Static
             "<color=f542adff>7OU</color> — Backend development\n" +
             "<color=1eff00ff>AshtonMemer</color> — Custom Albums & Headquarters\n" +
             "<color=1eff00ff>PBalint817</color> — Additional libraries\n" +
-            "<color=1eff00ff>Suzimo</color> — Contribution & Simplified Chinese translation\n" +
             "<color=fff700ff>Bubu</color> — Traditional Chinese translation\n" +
+            "<color=fff700ff>Suzimo</color> — Simplified Chinese translation\n" +
             "<color=fff700ff>isei</color> — Japanese translation\n" +
             "<color=fff700ff>???</color> — Korean translation\n\n" +
             "[ TESTER TEAM ]\n\n" +
