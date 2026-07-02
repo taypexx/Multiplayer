@@ -75,7 +75,7 @@ namespace Multiplayer.UI.Displays
             if (Lobby is null) return;
 
             Action clickAction = null;
-            if (chatMessage.Message == "PlaylistAdd")
+            if (chatMessage.Message == "PlaylistAdd" && chatMessage.ExtraData != null)
             {
                 clickAction = new(() => UIManager.JumpToChart(chatMessage.ExtraData));
             }

@@ -22,6 +22,7 @@ namespace Multiplayer.UI.LobbyWindows
         private ForumObject PlayTypeButton;
         private ForumObject ChartSelectionButton;
         private ForumObject PlaylistSizeButton;
+        private ForumObject DifficultyRangeButton;
         private ForumObject CreateButton;
 
         private PromptWindow CreatePrompt;
@@ -34,6 +35,8 @@ namespace Multiplayer.UI.LobbyWindows
         private int MaxPlayersField = 5;
         private string PasswordField;
         private int PlaylistSizeField = 5;
+        private byte DifficultyLowestField => UIManager.LobbyDifficultyRangeWindow.ValueLowest;
+        private byte DifficultyHighestField => UIManager.LobbyDifficultyRangeWindow.ValueHighest;
         private LobbyGoal GoalField => UIManager.LobbyGoalWindow.Value;
         private LobbyPlayType PlayTypeField => UIManager.LobbyPlayTypeWindow.Value;
         private LobbyChartSelection ChartSelectionField => UIManager.LobbyChartSelectionWindow.Value;
@@ -77,6 +80,7 @@ namespace Multiplayer.UI.LobbyWindows
             PlayTypeButton = AddButton(Localization.Get("LobbyCreation", "PlayType"), UIManager.LobbyPlayTypeWindow);
             ChartSelectionButton = AddButton(Localization.Get("LobbyCreation", "ChartSelection"), UIManager.LobbyChartSelectionWindow);
             PlaylistSizeButton = AddButton(Localization.Get("LobbyCreation", "PlaylistSize"), PlaylistSizePrompt);
+            DifficultyRangeButton = AddButton(Localization.Get("LobbyCreation", "DifficultyRange"), UIManager.LobbyDifficultyRangeWindow);
 
             UpdateDescription();
         }
@@ -99,7 +103,7 @@ namespace Multiplayer.UI.LobbyWindows
             Main.Dispatch(() => PnlCloudExtension.Start(Localization.Get("PnlCloudMessage", "Creating").ToString()));
             UIManager.Debounce = true;
 
-            bool success = await LobbyManager.CreateLobby(MaxPlayersField,GoalField,PlayTypeField,ChartSelectionField,NameField,PlaylistSizeField,PasswordField);
+            bool success = await LobbyManager.CreateLobby(MaxPlayersField,GoalField,PlayTypeField,ChartSelectionField,NameField,PlaylistSizeField,PasswordField,DifficultyLowestField,DifficultyHighestField);
 
             Main.Dispatch(() =>
             {
@@ -186,7 +190,8 @@ namespace Multiplayer.UI.LobbyWindows
                     Constants.GoalColors[GoalField], GoalField,
                     Constants.PlayTypeColors[PlayTypeField], PlayTypeField,
                     Constants.ChartSelectionColors[ChartSelectionField], ChartSelectionField,
-                    Constants.Yellow, PlaylistSizeField
+                    Constants.Yellow, PlaylistSizeField,
+                    Constants.Yellow, DifficultyLowestField, DifficultyHighestField
                  )
             );
 

@@ -139,7 +139,7 @@ namespace Multiplayer.UI.Abstract
         internal void OnReturn()
         {
             Window.ForceClose();
-            if (HasReturnWindow) ReturnWindow.Window.Show();
+            if (HasReturnWindow && Client.Connected) ReturnWindow.Window.Show();
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace Multiplayer.UI.Abstract
         internal virtual void OnRefresh()
         {
             Window.ForceClose();
-            Window.Show();
+            if (Client.Connected) Window.Show();
         }
 
         protected virtual void OnButtonClick(PopupLib.UI.Windows.Interfaces.IListWindow _, int objectIndex)

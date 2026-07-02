@@ -218,7 +218,7 @@ namespace Multiplayer.Data.Stats
         /// </summary>
         internal async Task CacheFriends()
         {
-            PnlCloudExtension.Start();
+            Main.Dispatch(() => PnlCloudExtension.Start());
 
             var response = await Client.PostAsync("getFriends", new
             {
@@ -227,7 +227,7 @@ namespace Multiplayer.Data.Stats
             });
             if (response is null)
             {
-                PnlCloudExtension.Finish(false);
+                Main.Dispatch(() => PnlCloudExtension.Finish(false));
                 return;
             }
 
@@ -249,7 +249,7 @@ namespace Multiplayer.Data.Stats
             }
             catch {}
 
-            PnlCloudExtension.Finish(FriendsCached);
+            Main.Dispatch(() => PnlCloudExtension.Finish(FriendsCached));
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Multiplayer.Data.Stats
         /// </summary>
         internal async Task CacheFriendRequests()
         {
-            PnlCloudExtension.Start();
+            Main.Dispatch(() => PnlCloudExtension.Start());
 
             var response = await Client.PostAsync("getFriendRequests", new
             {
@@ -265,7 +265,7 @@ namespace Multiplayer.Data.Stats
             });
             if (response is null)
             {
-                PnlCloudExtension.Finish(false);
+                Main.Dispatch(() => PnlCloudExtension.Finish(false));
                 return;
             }
 
@@ -287,7 +287,7 @@ namespace Multiplayer.Data.Stats
             }
             catch {}
 
-            PnlCloudExtension.Finish(FriendRequestsCached);
+            Main.Dispatch(() => PnlCloudExtension.Finish(FriendRequestsCached));
         }
     }
 }

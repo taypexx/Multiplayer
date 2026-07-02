@@ -134,21 +134,6 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
-        /// Syncs the current list of loaded custom charts of the local <see cref="Player"/>.
-        /// </summary>
-        internal static void SyncCustoms()
-        {
-            if (!Client.Connected) return;
-
-            var payload = new
-            {
-                Uid = LocalPlayerUid,
-                Customs = ChartManager.CustomCharts.Keys
-            };
-            _ = Client.PostAsync("updatePlayer", payload);
-        }
-
-        /// <summary>
         /// Creates a new <see cref="Player"/> based on their <paramref name="uid"/>.
         /// </summary>
         /// <param name="uid">UID of a <see cref="Player"/>.</param>
@@ -253,7 +238,6 @@ namespace Multiplayer.Managers
             {
                 SyncProfile();
                 SyncHiddens();
-                SyncCustoms();
             });
 
             // Auto cache cleaner

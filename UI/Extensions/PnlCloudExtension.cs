@@ -35,6 +35,17 @@ namespace Multiplayer.UI.Extensions
         }
 
         /// <summary>
+        /// Updates the <see cref="PnlCloudMessage"/> text.
+        /// </summary>
+        /// <param name="text">Text to display.</param>
+        internal static void Update(string text)
+        { 
+            if (!Main.IsUIScene || !UIManager.Initialized || !PendingMsg.active) return;
+
+            PendingText.text = text;
+        }
+
+        /// <summary>
         /// Finishes the <see cref="PnlCloudMessage"/> animation.
         /// </summary>
         /// <param name="success">Will display completed or failed.</param>

@@ -71,6 +71,7 @@ namespace Multiplayer.Managers
         internal static LobbyGoalWindow LobbyGoalWindow { get; private set; }
         internal static LobbyPlayTypeWindow LobbyPlayTypeWindow { get; private set; }
         internal static LobbyChartSelectionWindow LobbyChartSelectionWindow { get; private set; }
+        internal static LobbyDifficultyRangeWindow LobbyDifficultyRangeWindow { get; private set; }
 
         internal static LobbyPlaylistWindow LobbyPlaylistWindow { get; private set; }
 
@@ -215,7 +216,7 @@ namespace Multiplayer.Managers
             }
             else LobbyWindowQueued = false;
 
-            // Host and playlist checks
+            // Other checks
             var localLobby = LobbyManager.LocalLobby;
             if (localLobby.Host != PlayerManager.LocalPlayer) return;
             if (localLobby.Playlist.Count == 0)
@@ -234,8 +235,17 @@ namespace Multiplayer.Managers
                 if (player.MultiplayerStats.GirlIndex == Constants.SleepwalkerRoleIndex)
                 {
                     PopupUtils.ShowInfo((LocalString)String.Format(Localization.Get("Lobby", "SleepwalkerUsed").ToString(), player.MultiplayerStats.Name));
+                    LobbyWindow.Window.Show();
                     return;
                 }
+            }
+
+            // Downloading check
+            if (!localLobby.EveryoneDownloaded)
+            {
+                PopupUtils.ShowInfo(Localization.Get("Lobby", "StillDownloading"));
+                LobbyWindow.Window.Show();
+                return;
             }
 
             Debounce = true;
@@ -394,6 +404,7 @@ namespace Multiplayer.Managers
             LobbyGoalWindow = new();
             LobbyPlayTypeWindow = new();
             LobbyChartSelectionWindow = new();
+            LobbyDifficultyRangeWindow = new();
 
             LobbyPlaylistWindow = new();
 

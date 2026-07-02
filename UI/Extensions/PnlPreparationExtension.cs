@@ -38,7 +38,7 @@ namespace Multiplayer.UI.Extensions
         /// </summary>
         internal static void OnPnlPreparationClick()
         {
-            if (IsRetrieving || PlaylistDebounce) return;
+            if (IsRetrieving || PlaylistDebounce || ChartManager.IsDownloading) return;
 
             var lobby = LobbyManager.LocalLobby;
 
@@ -76,7 +76,7 @@ namespace Multiplayer.UI.Extensions
                     PopupUtils.ShowInfo(Localization.Get("PnlPreparation", "CustomOnly"));
                     return;
                 }
-                else if (!lobby.IsValidDifficulty(musicInfo.GetDifficultyLevel(difficulty)))
+                else if (!lobby.IsValidDifficulty(musicInfo.GetMusicLevelIntByDiff(difficulty)))
                 {
                     PopupUtils.ShowInfo(String.Format(
                         Localization.Get("PnlPreparation", "InvalidDifficulty").ToString(), 

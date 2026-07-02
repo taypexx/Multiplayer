@@ -74,6 +74,25 @@ namespace Multiplayer.Managers
         }
 
         /// <summary>
+        /// Lets everyone know that this client is downloading a chart.
+        /// </summary>
+        /// <param name="state">Whether the client is downloading a chart.</param>
+        /// <returns><see langword="true"/> if the downloading state was updated, otherwise <see langword="false"/>.</returns>
+        internal static async Task<bool> SetDownloading(bool state)
+        {
+            if (!Client.Connected || !IsInLobby) return false;
+
+            var payload = new
+            {
+                Uid = PlayerManager.LocalPlayerUid,
+                State = state
+            };
+
+            var response = await Client.PostAsync("lobbySetDownloading", payload);
+            return response != null;
+        }
+            
+        /// <summary>
         /// Sends a request to the server to kick the player from the <see cref="Lobby"/>.
         /// </summary>
         /// <param name="playerUid">UID of a rogue.</param>
@@ -140,7 +159,8 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Entry = entry
+                Entry = entry,
+                ChartName = ChartManager.GetNiceChartName(musicInfo, difficulty)
             };
 
             var response = await Client.PostAsync("lobbyPlaylistAdd", payload, false, true, true);
@@ -170,9 +190,6 @@ namespace Multiplayer.Managers
                 LocalString reason;
                 switch (result)
                 {
-                    case 1:
-                        reason = Localization.Get("Warning", "Unknown");
-                        break;
                     case 2:
                         reason = Localization.Get("Lobby", "ChartHidden");
                         break;
@@ -201,7 +218,8 @@ namespace Multiplayer.Managers
             var payload = new
             {
                 Uid = PlayerManager.LocalPlayerUid,
-                Entry = entry
+                Entry = entry,
+                ChartName = ChartManager.GetNiceChartName(musicInfo, difficulty)
             };
 
             var response = await Client.PostAsync("lobbyPlaylistRemove", payload);
@@ -291,7 +309,7 @@ namespace Multiplayer.Managers
         /// Sends a request to create a new <see cref="Lobby"/> to the server.
         /// </summary>
         /// <returns><see langword="true"/> if it was created successfully, otherwise <see langword="false"/>.</returns>
-        internal static async Task<bool> CreateLobby(int maxPlayers, LobbyGoal goal, LobbyPlayType playType, LobbyChartSelection chartSelection, string name, int playlistSize, string password = null)
+        internal static async Task<bool> CreateLobby(int maxPlayers, LobbyGoal goal, LobbyPlayType playType, LobbyChartSelection chartSelection, string name, int playlistSize, string password = null, int difficultyLowest = 1, int difficultyHighest = 13)
         {
             if (!Client.Connected || IsInLobby) return false;
 
@@ -304,7 +322,9 @@ namespace Multiplayer.Managers
                 ChartSelection = (byte)chartSelection,
                 PlaylistSize = playlistSize,
                 Name = name,
-                Password = password
+                Password = password,
+                DifficultyLowest = difficultyLowest,
+                DifficultyHighest = difficultyHighest
             };
 
             var response = await Client.PostAsync("createLobby", payload);
@@ -351,7 +371,7 @@ namespace Multiplayer.Managers
         /// <returns><see langword="true"/> if left successfully, otherwise <see langword="false"/>.</returns>
         internal static async Task<bool> LeaveLobby(bool leaveAnyway = false)
         {
-            if ((!Client.Connected || !IsInLobby || LocalLobby.Locked) && !leaveAnyway) return false;
+            if ((!Client.Connected || !IsInLobby || LocalLobby.Locked || ChartManager.IsDownloading) && !leaveAnyway) return false;
 
             var payload = new
             {
@@ -403,6 +423,7 @@ namespace Multiplayer.Managers
                 PnlPreparationExtension.UpdatePnlPreparation();
                 UIManager.MainMenu.UpdateLobbiesButton();
                 PnlHomeExtension.Destroy();
+                PnlCloudExtension.Finish(false);
                 ClearLobbyFromCache(prevLobby);
             });
         }

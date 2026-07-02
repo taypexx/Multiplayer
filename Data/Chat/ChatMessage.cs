@@ -39,10 +39,13 @@ namespace Multiplayer.Data.Chat
                         MusicInfo musicInfo = ChartManager.GetMusicInfo(param[1]);
                         if (musicInfo != null)
                         {
-                            param[1] = ChartManager.GetNiceChartName(musicInfo, int.Parse(param[2]));
-                            param[2] = null;
                             ExtraData = musicInfo.uid;
                         }
+                        else ExtraData = null;
+
+                        param[1] = param[3];
+                        param[2] = null;
+                        param[3] = null;
                     }
 
                     return string.Format(Localization.Get("SystemChatMessages", Message).ToString() ?? "Unknown system message", param);

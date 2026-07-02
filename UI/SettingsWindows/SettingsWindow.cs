@@ -64,7 +64,7 @@ namespace Multiplayer.UI.SettingsWindows
                         var value = ((Setting<string>)setting).Value;
                         bool isColor = setting.Name.Contains("color", StringComparison.OrdinalIgnoreCase);
 
-                        valueString = $"<color={(isColor ? value : Constants.Yellow)}>{value}</color>";
+                        valueString = $"<color={(isColor ? ("#" + value) : Constants.Yellow)}>{value}</color>";
                         break;
                     default:
                         valueString = $"<color={Constants.Yellow}>{((Setting<int>)setting).Value}</color>";

@@ -27,6 +27,9 @@ namespace Multiplayer.Data.Lobbies
         public bool IsPrivate { get; private set; }
         public bool Locked { get; internal set; }
 
+        public HashSet<string> DownloadingPlayers {  get; private set; }
+        public bool EveryoneDownloaded => DownloadingPlayers.Count == 0;
+
         public HashSet<string> ReadyPlayers { get; private set; }
         public bool EveryoneReady => ReadyPlayers.Count == Players.Count;
         public bool EveryoneFinished => ReadyPlayers.Count == 0;
@@ -41,7 +44,6 @@ namespace Multiplayer.Data.Lobbies
         public List<PlaylistEntry> Playlist { get; private set; }
         public ushort PlaylistSize { get; private set; }
         public bool IsPlaylistFull => Playlist.Count >= PlaylistSize;
-        public HashSet<string> SharedCustoms { get; private set; } 
 
         private ushort CurrentGlobalPlaylistEntryIndex { get; set; }
         public ushort CurrentPlaylistEntryIndex { get; private set; }
@@ -66,6 +68,7 @@ namespace Multiplayer.Data.Lobbies
             IsPrivate = true;
             Locked = false;
 
+            DownloadingPlayers = new();
             ReadyPlayers = new();
             Players = new();
             MaxPlayers = 2;
@@ -76,8 +79,6 @@ namespace Multiplayer.Data.Lobbies
             PlaylistSize = 5;
             CurrentGlobalPlaylistEntryIndex = 0;
             CurrentPlaylistEntryIndex = 0;
-
-            SharedCustoms = new();
         }
 
         /// <summary>
@@ -171,6 +172,12 @@ namespace Multiplayer.Data.Lobbies
             return Playlist.Find(e => e.Entry == entry);
         }
 
+        private void AddToPlaylist(MusicInfo musicInfo, int difficulty, string entry)
+        {
+            PlaylistEntry playlistEntry = new(musicInfo, difficulty, entry);
+            Playlist.Add(playlistEntry);
+        }
+
         /// <summary>
         /// Updates fields of the <see cref="Lobby"/> by the given <paramref name="updatedData"/> JSON dictionary.
         /// </summary>
@@ -233,6 +240,11 @@ namespace Multiplayer.Data.Lobbies
             {
                 try
                 {
+                    DownloadingPlayers = JsonSerializer.Deserialize<HashSet<string>>(updatedData["DownloadingPlayers"]);
+                }
+                catch { }
+                try
+                {
                     ReadyPlayers = JsonSerializer.Deserialize<HashSet<string>>(updatedData["ReadyPlayers"]);
                 }
                 catch { }
@@ -244,14 +256,27 @@ namespace Multiplayer.Data.Lobbies
                     foreach (string entry in newPlaylist)
                     {
                         string[] str = entry.Split("#");
-                        MusicInfo musicInfo = ChartManager.GetMusicInfo(str[0]);
+                        var entryKey = str[0];
+
+                        MusicInfo musicInfo = ChartManager.GetMusicInfo(entryKey);
                         int difficulty = int.Parse(str[1]);
 
-                        if (HasInPlaylist(entry)) continue;
+                        // If the chart is not present on the client
+                        if (musicInfo is null)
+                        {
+                            _ = Task.Run(async () =>
+                            {
+                                await ChartManager.DownloadChart(entryKey);
+                                musicInfo = ChartManager.GetMusicInfo(entryKey);
 
-                        PlaylistEntry playlistEntry = new(musicInfo, difficulty, entry);
-                        Playlist.Add(playlistEntry);
+                                if (musicInfo == null) return;
+                                AddToPlaylist(musicInfo, difficulty, entry);
+                            });
+                        }
+                        else if (!HasInPlaylist(entry)) AddToPlaylist(musicInfo, difficulty, entry);
                     }
+
+
 
                     // Remove entries that were removed by other players
                     foreach (var playlistEntry in Playlist)
@@ -260,11 +285,6 @@ namespace Multiplayer.Data.Lobbies
 
                         Playlist.Remove(playlistEntry);
                     }
-                }
-                catch { }
-                try
-                {
-                    SharedCustoms = JsonSerializer.Deserialize<HashSet<string>>(updatedData["SharedCustoms"]);
                 }
                 catch { }
             }
